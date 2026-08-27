@@ -1,0 +1,17 @@
+{
+  "name": "Arogya Setu Local",
+  "short_name": "Arogya",
+  "description": "AI-powered rural health triage and hospital matching",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eff8ff",
+  "theme_color": "#0c6fcc",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
