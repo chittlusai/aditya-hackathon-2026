@@ -1,0 +1,24 @@
+services:
+  # Python FastAPI Backend Web Service
+  - type: web
+    name: arogya-setu-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # React Vite Frontend Static Site
+  - type: web
+    name: arogya-setu-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_GEMINI_API_KEY
+        sync: false
