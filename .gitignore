@@ -7,8 +7,10 @@ frontend/node_modules/
 # Testing & Build Outputs
 dist/
 frontend/dist/
+backend/dist/
 build/
 coverage/
+
 
 # Python
 __pycache__/

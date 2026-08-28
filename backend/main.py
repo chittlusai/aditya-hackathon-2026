@@ -2,16 +2,28 @@
 Arogya Setu Local — FastAPI Backend with Gemini AI
 ===================================================
 REST API endpoints:
-  - POST /classify-urgency : takes symptom text & optional vitals, returns Gemini AI / clinical triage
-  - POST /match-hospital   : takes urgency, symptoms, user coords, returns best hospital
-  - GET  /hospitals        : list all hospitals
-  - PUT  /hospitals/{id}   : live capacity update for PHC admin portal
+  - POST /classify-urgency / /api/classify-urgency : takes symptom text & optional vitals, returns Gemini AI / clinical triage
+  - POST /match-hospital   / /api/match-hospital   : takes urgency, symptoms, user coords, returns best hospital
+  - GET  /hospitals        / /api/hospitals        : list all hospitals
+  - PUT  /hospitals/{id}   / /api/hospitals/{id}   : live capacity update for PHC admin portal
+  - GET  /api/status                               : health check endpoint
+  - GET  /*                                        : serves React frontend Single Page Application (SPA)
 """
+
+import os
+import sys
+from typing import Optional, Dict, Any, List
+
+# Ensure backend directory is in sys.path
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+if _current_dir not in sys.path:
+    sys.path.insert(0, _current_dir)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from typing import Optional, Dict, Any, List
 
 from triage import classify_urgency, match_hospital, load_hospitals
 
@@ -30,6 +42,30 @@ app.add_middleware(
 )
 
 HOSPITALS = load_hospitals()
+
+
+# Helper to locate pre-built frontend distribution
+def get_dist_dir() -> Optional[str]:
+    candidates = [
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "dist"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "dist"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dist"),
+        os.path.join(os.getcwd(), "frontend", "dist"),
+        os.path.join(os.getcwd(), "dist"),
+        os.path.join(os.getcwd(), "backend", "dist"),
+    ]
+    for c in candidates:
+        if os.path.exists(c) and os.path.exists(os.path.join(c, "index.html")):
+            return os.path.abspath(c)
+    return None
+
+
+dist_dir = get_dist_dir()
+if dist_dir:
+    assets_dir = os.path.join(dist_dir, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
 
 
 # ---------- Request / Response models ----------
@@ -80,10 +116,11 @@ class HospitalUpdate(BaseModel):
     emergency_ready: Optional[bool] = None
 
 
-# ---------- Endpoints ----------
+# ---------- API Endpoints ----------
 
-@app.get("/")
-def root():
+@app.get("/api/status")
+@app.get("/api/health")
+def api_status():
     return {
         "app": "Arogya Setu Local",
         "status": "running",
@@ -94,6 +131,7 @@ def root():
 
 
 @app.post("/classify-urgency", response_model=UrgencyResponse)
+@app.post("/api/classify-urgency", response_model=UrgencyResponse)
 def classify(symptom_request: SymptomRequest):
     if not symptom_request.symptoms or not symptom_request.symptoms.strip():
         raise HTTPException(status_code=400, detail="symptoms text is required")
@@ -107,6 +145,7 @@ def classify(symptom_request: SymptomRequest):
 
 
 @app.post("/match-hospital", response_model=HospitalResponse)
+@app.post("/api/match-hospital", response_model=HospitalResponse)
 def match(match_request: MatchRequest):
     if not match_request.urgency or not match_request.urgency.strip():
         raise HTTPException(status_code=400, detail="urgency is required")
@@ -121,11 +160,13 @@ def match(match_request: MatchRequest):
 
 
 @app.get("/hospitals", response_model=List[Dict[str, Any]])
+@app.get("/api/hospitals", response_model=List[Dict[str, Any]])
 def get_hospitals():
     return HOSPITALS
 
 
 @app.put("/hospitals/{hospital_id}")
+@app.put("/api/hospitals/{hospital_id}")
 def update_hospital(hospital_id: int, update_data: HospitalUpdate):
     for h in HOSPITALS:
         if h.get("id") == hospital_id:
@@ -140,3 +181,37 @@ def update_hospital(hospital_id: int, update_data: HospitalUpdate):
             return {"status": "success", "hospital": h}
 
     raise HTTPException(status_code=404, detail=f"Hospital with id {hospital_id} not found")
+
+
+# ---------- Root & SPA Catch-All Route ----------
+
+@app.get("/")
+@app.get("/{full_path:path}")
+async def serve_root_or_spa(full_path: str = ""):
+    # If the client requested an unhandled /api route, return 404 JSON instead of HTML
+    if full_path == "api" or full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail=f"API route /{full_path} not found")
+
+    current_dist = get_dist_dir()
+    if current_dist:
+        if full_path:
+            # Check for direct file match (e.g., favicon.ico, vite.svg, assets/...)
+            specific_file = os.path.join(current_dist, full_path)
+            if os.path.exists(specific_file) and os.path.isfile(specific_file):
+                return FileResponse(specific_file)
+
+        # For all other frontend routes (React SPA), serve index.html
+        index_file = os.path.join(current_dist, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+
+    # Fallback status if frontend is not yet built
+    return {
+        "app": "Arogya Setu Local",
+        "status": "running",
+        "version": "2.1.0",
+        "hospitals_loaded": len(HOSPITALS),
+        "ai_engine": "Google Gemini AI",
+        "notice": "Frontend build not found. Please run 'npm run build' in the frontend folder.",
+    }
+
