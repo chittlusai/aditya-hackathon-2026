@@ -149,55 +149,78 @@ export default function SymptomInput() {
         ← {t('navHome')}
       </button>
 
-      {/* Official Form Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 block">
-                {t('formTag')}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                <ShieldCheck className="w-3 h-3 text-blue-600" />
-                {language === 'hi' ? 'स्वास्थ्य प्रोटोकॉल' : language === 'mr' ? 'आरोग्य प्रोटोकॉल' : 'Clinical Protocol'}
-              </span>
-            </div>
-            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 font-display mt-1">
-              {t('inputHeader')}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
-              {language === 'hi'
-                ? 'अपनी तकलीफ का चित्र चुनें, बोलकर बताएं या नीचे विवरण लिखें।'
-                : language === 'mr'
-                ? 'आपल्या त्रासाचे चित्र निवडा, बोलून सांगा किंवा खाली माहिती लिहा.'
-                : 'Select from visual problem cards, use voice dictation, or type your symptoms.'}
+      {/* 3-Step Visual Progress Stepper for Rural/Tribal Citizens */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-xs">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-3 text-center">
+          <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-900">
+            <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold inline-flex items-center justify-center mb-0.5">
+              1
+            </span>
+            <p className="text-[10px] sm:text-xs font-bold leading-tight">
+              {language === 'hi' ? 'दर्द का अंग' : language === 'mr' ? 'त्रासाचा भाग' : 'Body Area'}
             </p>
           </div>
 
-          {/* GPS Location Button */}
-          <button
-            type="button"
-            onClick={() => setGpsModalOpen(true)}
-            className="tap-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 shrink-0 shadow-2xs"
-          >
-            <Navigation className={`w-3.5 h-3.5 ${userCoords?.active ? 'text-emerald-600' : 'text-blue-600'}`} />
-            <span>{userCoords?.active ? t('gpsActive') : t('useGps')}</span>
-          </button>
+          <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-900">
+            <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold inline-flex items-center justify-center mb-0.5">
+              2
+            </span>
+            <p className="text-[10px] sm:text-xs font-bold leading-tight">
+              {language === 'hi' ? 'चित्र या आवाज' : language === 'mr' ? 'चित्र किंवा आवाज' : 'Picture / Voice'}
+            </p>
+          </div>
+
+          <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500">
+            <span className="w-5 h-5 rounded-full bg-slate-300 text-slate-700 text-[10px] font-bold inline-flex items-center justify-center mb-0.5">
+              3
+            </span>
+            <p className="text-[10px] sm:text-xs font-bold leading-tight">
+              {language === 'hi' ? 'डॉक्टर की सलाह' : language === 'mr' ? 'डॉक्टर सल्ला' : 'Doctor Care'}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 1. Visual Illustrated Problem Cards (Primary for Tribal & Rural citizens) */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
-        <VisualSymptomSelector
-          onSelectSymptom={handleSelectVisualSymptom}
-          selectedSymptoms={text ? text.split(',').map((s) => s.trim()).filter(Boolean) : []}
-        />
+      {/* Step 1: Body Part Selector */}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 px-1">
+          <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+            1
+          </span>
+          <h2 className="text-sm font-bold text-slate-900">
+            {language === 'hi'
+              ? 'चरण 1: शरीर के किस हिस्से में तकलीफ है? (Choose Body Area)'
+              : language === 'mr'
+              ? 'पायरी १: शरीराच्या कोणत्या भागात त्रास आहे? (Choose Body Area)'
+              : 'Step 1: Where is the problem? (Choose Body Area)'}
+          </h2>
+        </div>
+        <BodyPartSelector onAddSymptom={handleAddBodySymptom} currentSymptoms={text} />
       </div>
 
-      {/* 2. Body Part Selector (Where does it hurt?) */}
-      <BodyPartSelector onAddSymptom={handleAddBodySymptom} currentSymptoms={text} />
+      {/* Step 2: Visual Illustrated Problem Cards */}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 px-1">
+          <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+            2
+          </span>
+          <h2 className="text-sm font-bold text-slate-900">
+            {language === 'hi'
+              ? 'चरण 2: बीमारी का चित्र चुनें (Tap Your Symptom Picture)'
+              : language === 'mr'
+              ? 'पायरी २: त्रासाचे चित्र निवडा (Tap Your Symptom Picture)'
+              : 'Step 2: Tap Your Symptom Picture'}
+          </h2>
+        </div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
+          <VisualSymptomSelector
+            onSelectSymptom={handleSelectVisualSymptom}
+            selectedSymptoms={text ? text.split(',').map((s) => s.trim()).filter(Boolean) : []}
+          />
+        </div>
+      </div>
 
-      {/* 3. Main Symptom Box & Voice Dictation */}
+      {/* Step 3: Main Symptom Box & Voice Dictation */}
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
