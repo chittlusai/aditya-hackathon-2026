@@ -47,7 +47,7 @@ export default function SymptomInput() {
   })
 
   function handleSelectVisualSymptom(item) {
-    const symptomName = language === 'hi' ? item.titleHi : language === 'mr' ? item.titleMr : item.titleEn
+    const symptomName = item.translations?.[language]?.title || item.translations?.en?.title || item.tag
     setText((prev) => {
       if (!prev) return symptomName
       const parts = prev.split(',').map((s) => s.trim()).filter(Boolean)
@@ -58,12 +58,12 @@ export default function SymptomInput() {
     })
   }
 
-  function handleAddBodySymptom(tag, label) {
+  function handleAddBodySymptom(label) {
     setText((prev) => {
       if (!prev) return label
       const parts = prev.split(',').map((s) => s.trim()).filter(Boolean)
-      if (parts.some((p) => p.toLowerCase() === label.toLowerCase() || p.toLowerCase() === tag.toLowerCase())) {
-        return parts.filter((p) => p.toLowerCase() !== label.toLowerCase() && p.toLowerCase() !== tag.toLowerCase()).join(', ')
+      if (parts.some((p) => p.toLowerCase() === label.toLowerCase())) {
+        return parts.filter((p) => p.toLowerCase() !== label.toLowerCase()).join(', ')
       }
       return [...parts, label].join(', ')
     })
@@ -77,13 +77,18 @@ export default function SymptomInput() {
     e?.preventDefault?.()
     setErr('')
     if (!text.trim()) {
-      setErr(
-        language === 'hi'
-          ? 'कृपया ऊपर से कोई चित्र चुनें या बोलकर अपनी बीमारी बताएं।'
-          : language === 'mr'
-          ? 'कृपया वरील चित्रांमधून निवडा किंवा बोलून आपला त्रास सांगा.'
-          : 'Please select a visual symptom from above or type/speak your health problem.'
-      )
+      const errs = {
+        te: 'దయచేసి పై చిత్రాలను ఎంచుకోండి లేదా మాట్లాడి మీ అనారోగ్య వివరాలను తెలియజేయండి.',
+        ta: 'தயவுசெய்து மேலே உள்ள படங்களைத் தேர்ந்தெடுக்கவும் அல்லது பேசி அறிகுறிகளைச் சேர்க்கவும்.',
+        hi: 'कृपया ऊपर से कोई चित्र चुनें या बोलकर अपनी बीमारी बताएं।',
+        mr: 'कृपया वरील चित्रांमधून निवडा किंवा बोलून आपला त्रास सांगा.',
+        bn: 'দয়া করে উপরের ছবিগুলি থেকে নির্বাচন করুন বা কথা বলে আপনার সমস্যা জানান।',
+        gu: 'કૃપા કરીને ઉપરના ચિત્રોમાંથી પસંદ કરો અથવા બોલીને તમારી તકલીફ જણાવો.',
+        kn: 'ದಯವಿಟ್ಟು ಮೇಲಿನ ಚಿತ್ರಗಳಿಂದ ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ಮಾತನಾಡಿ ನಿಮ್ಮ ಸಮಸ್ಯೆ ತಿಳಿಸಿ.',
+        ml: 'ദയവായി മുകളിലെ ചിത്രങ്ങൾ തിരഞ്ഞെടുക്കുക അല്ലെങ്കിൽ സംസാരിക്കുക.',
+        en: 'Please select a visual symptom card from above or type/speak your health problem.',
+      }
+      setErr(errs[language] || errs.en)
       return
     }
 
@@ -197,14 +202,8 @@ export default function SymptomInput() {
         <div className="bg-white border border-border-soft rounded-lg p-4 sm:p-6 shadow-sm space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-soft pb-3">
             <label className="text-xs font-bold text-text-main flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-primary" />
-              <span>
-                {language === 'hi'
-                  ? 'चुने गए लक्षण व आपका विवरण:'
-                  : language === 'mr'
-                  ? 'निवडलेली लक्षणे व तपशील:'
-                  : t('symptomLabel')}
-              </span>
+              <FileText className="w-4 h-4 text-blue-600" />
+              <span>{t('symptomLabel')}</span>
             </label>
             <VoiceInput onTranscript={handleVoiceTranscript} disabled={loading} />
           </div>
@@ -213,25 +212,19 @@ export default function SymptomInput() {
             rows={3}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={
-              language === 'hi'
-                ? 'ऊपर चित्र क्लिक करने पर या बोलने पर यहां लक्षण अपने आप जुड़ेंगे...'
-                : language === 'mr'
-                ? 'वरील चित्रांवर क्लिक केल्यावर किंवा बोलल्यावर लक्षणे येथे जोडली जातील...'
-                : t('placeholder')
-            }
-            className="w-full p-3.5 text-sm rounded-md bg-slate-50 border border-border-soft text-text-main placeholder:text-text-muted focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-y"
+            placeholder={t('placeholder')}
+            className="w-full p-3.5 text-sm rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 outline-none transition-all resize-y font-sans"
           />
 
-          <div className="flex items-center justify-between text-[11px] text-text-muted">
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
             <span>{t('voicePrompt')}</span>
             {text && (
               <button
                 type="button"
                 onClick={() => setText('')}
-                className="text-red-600 hover:underline font-semibold"
+                className="text-red-600 hover:underline font-bold"
               >
-                Clear All
+                {language === 'te' ? 'అన్నీ తొలగించు' : language === 'ta' ? 'அனைத்தையும் அழி' : language === 'hi' ? 'सभी हटाएं' : language === 'mr' ? 'सर्व हटवा' : 'Clear All'}
               </button>
             )}
           </div>

@@ -108,7 +108,7 @@ export default function HospitalCard({ hospital, urgency, isTop = true }) {
             <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">
               {t('doctorsOnDuty')}
             </span>
-            <p className="font-bold text-xs text-emerald-700">{hospital.doctors_available} {t('inStock')}</p>
+            <p className="font-bold text-xs text-emerald-700">{hospital.doctors_available} Active</p>
           </div>
 
           <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
