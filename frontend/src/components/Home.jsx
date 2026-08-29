@@ -238,7 +238,11 @@ export default function Home() {
                   <h3 className="font-bold text-xs sm:text-sm text-slate-900 mt-1.5 leading-snug">
                     {h.name}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 mt-1.5">
+                  <p className="text-[10.5px] text-slate-500 truncate flex items-center gap-1 mt-0.5">
+                    <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
+                    <span className="truncate">{h.address || 'Rural Block Sector'}</span>
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 mt-1">
                     <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
                       • {h.doctors_available} {t('thDoctors')}
                     </span>

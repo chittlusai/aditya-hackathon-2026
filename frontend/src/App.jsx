@@ -12,15 +12,16 @@ import About from './components/About.jsx'
 import EmergencyModal from './components/EmergencyModal.jsx'
 import DigitalHealthSlip from './components/DigitalHealthSlip.jsx'
 import GpsPermissionPrompt from './components/GpsPermissionPrompt.jsx'
+import AdminAuthModal from './components/AdminAuthModal.jsx'
 import { MapPin, PhoneCall, Navigation } from 'lucide-react'
 
 function MapScreen() {
   const { hospitals, t, userCoords, setGpsModalOpen } = useApp()
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-3 sm:space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 font-display">
+          <h1 className="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2 font-display">
             <MapPin className="w-5 h-5 text-blue-600" />
             {t('mapTitle')}
           </h1>
@@ -32,13 +33,13 @@ function MapScreen() {
         <button
           type="button"
           onClick={() => setGpsModalOpen(true)}
-          className="tap-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold shadow-sm"
+          className="tap-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold shadow-2xs"
         >
           <Navigation className="w-3.5 h-3.5 text-blue-600" />
           <span>{userCoords?.active ? 'Live GPS: ' + userCoords.lat.toFixed(2) + ', ' + userCoords.lng.toFixed(2) : t('useGps')}</span>
         </button>
       </div>
-      <HospitalMap allHospitals={hospitals} height="560px" />
+      <HospitalMap allHospitals={hospitals} height="480px" />
     </div>
   )
 }
@@ -52,7 +53,7 @@ function Shell() {
       <Navbar />
 
       {/* Main Content View */}
-      <main className="flex-1 pb-20 lg:pb-10">
+      <main className="flex-1 pb-24 lg:pb-10">
         {screen === 'home' && <Home />}
         {screen === 'check' && <SymptomInput />}
         {screen === 'result' && <Result />}
@@ -61,6 +62,9 @@ function Shell() {
         {screen === 'map' && <MapScreen />}
         {screen === 'about' && <About />}
       </main>
+
+      {/* Admin Auth Modal Gate */}
+      <AdminAuthModal />
 
       {/* GPS Permission Modal */}
       <GpsPermissionPrompt />

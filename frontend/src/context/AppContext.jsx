@@ -30,10 +30,15 @@ export function AppProvider({ children }) {
   const [result, setResult] = useState(null)
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
   const [sosOpen, setSosOpen] = useState(false)
-  const [activeSlip, setActiveSlip] = useState(null)
   const [gpsModalOpen, setGpsModalOpen] = useState(false)
-
-  // Real-Time Live GPS Coordinates
+  const [adminAuthModalOpen, setAdminAuthModalOpen] = useState(false)
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    try {
+      return sessionStorage.getItem('asl:admin_auth') === 'true'
+    } catch {
+      return false
+    }
+  })
   const [userCoords, setUserCoords] = useState({
     lat: 21.1458,
     lng: 79.0882,
@@ -88,11 +93,49 @@ export function AppProvider({ children }) {
     return dict[key] || TRANSLATIONS.en[key] || key
   }, [language])
 
-  // Screen Navigation
-  const go = useCallback((targetScreen) => {
-    setScreen(targetScreen)
+  // Admin Login / Logout
+  const adminLogin = useCallback((pin) => {
+    const validPins = ['1080', 'ADMIN2026', '1234']
+    if (validPins.includes((pin || '').trim())) {
+      setIsAdminAuthenticated(true)
+      try {
+        sessionStorage.setItem('asl:admin_auth', 'true')
+      } catch (e) {}
+      setRole('admin')
+      setAdminAuthModalOpen(false)
+      setScreen('admin')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return true
+    }
+    return false
+  }, [])
+
+  const adminLogout = useCallback(() => {
+    setIsAdminAuthenticated(false)
+    try {
+      sessionStorage.removeItem('asl:admin_auth')
+    } catch (e) {}
+    setRole('patient')
+    setScreen('home')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
+
+  // Screen Navigation with Admin Gate
+  const go = useCallback((targetScreen) => {
+    if (targetScreen === 'admin' && !isAdminAuthenticated) {
+      setAdminAuthModalOpen(true)
+      return
+    }
+    if (targetScreen === 'admin') {
+      setRole('admin')
+    } else if (targetScreen === 'asha') {
+      setRole('asha')
+    } else {
+      setRole('patient')
+    }
+    setScreen(targetScreen)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [isAdminAuthenticated])
 
   // Request real device GPS and activate real-time continuous watch
   const requestGpsLocation = useCallback((isManual = true) => {
@@ -239,6 +282,11 @@ export function AppProvider({ children }) {
         deletePatientRecord,
         activeSlip,
         setActiveSlip,
+        adminAuthModalOpen,
+        setAdminAuthModalOpen,
+        isAdminAuthenticated,
+        adminLogin,
+        adminLogout,
       }}
     >
       {children}

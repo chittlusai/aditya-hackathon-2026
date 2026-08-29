@@ -202,11 +202,18 @@ export default function HospitalMap({
                   <h4 className="font-bold text-sm text-slate-900 leading-snug">
                     {h.name}
                   </h4>
-                  <p className="text-slate-600 text-[11px] mt-0.5">
+                  
+                  {/* Location Address */}
+                  <p className="text-slate-600 text-[11px] mt-1 flex items-start gap-1 font-medium bg-slate-50 p-1.5 rounded-md border border-slate-200/80">
+                    <span className="text-blue-600">📍</span>
+                    <span>{h.address || 'Rural District Sector'}</span>
+                  </p>
+
+                  <p className="text-slate-600 text-[11px] mt-1">
                     {t('mapSpecialist')}: <strong>{h.specialist || 'General'}</strong>
                   </p>
                   <p className="text-slate-600 text-[11px]">
-                    {t('mapDoctors')}: <strong>{h.doctors_available} on duty</strong>
+                    {t('mapDoctors')}: <strong className="text-emerald-700">{h.doctors_available} on duty</strong>
                   </p>
 
                   <div className="mt-2.5 pt-1.5 border-t border-slate-200 flex items-center gap-1.5">
@@ -249,26 +256,26 @@ export default function HospitalMap({
         )}
       </MapContainer>
 
-      {/* Legend & Real-Time Status Pill */}
-      <div className="absolute bottom-3 left-3 right-3 z-[1000] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
-        <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-2 text-[10px] text-slate-700 flex items-center gap-3 shadow-md pointer-events-auto">
+      {/* Legend & Real-Time Status Pill - Responsive for Mobile */}
+      <div className="absolute bottom-2.5 inset-x-2.5 z-[1000] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-1.5 pointer-events-none">
+        <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-1.5 sm:p-2 text-[9.5px] sm:text-[10px] text-slate-700 flex items-center justify-center sm:justify-start gap-2.5 sm:gap-3 shadow-sm pointer-events-auto">
           <span className="flex items-center gap-1 font-semibold">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block" />
+            <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" />
             {t('mapLegendYou')}
           </span>
           <span className="flex items-center gap-1 font-semibold">
-            <span className="w-2.5 h-2.5 rounded bg-blue-600 inline-block" />
+            <span className="w-2 h-2 rounded bg-blue-600 inline-block" />
             {t('mapLegendRecommended')}
           </span>
           <span className="flex items-center gap-1 font-semibold">
-            <span className="w-2.5 h-2.5 rounded bg-red-600 inline-block" />
+            <span className="w-2 h-2 rounded bg-red-600 inline-block" />
             {t('mapLegendEmergency')}
           </span>
         </div>
 
-        <div className="bg-slate-900/90 text-white rounded-xl px-3 py-1.5 text-[10px] font-mono font-semibold shadow-md flex items-center gap-1.5 backdrop-blur-sm pointer-events-auto">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Real-Time Proximity Radar: {allHospitals.length} nearby centres</span>
+        <div className="bg-slate-900/90 text-white rounded-xl px-2.5 py-1 text-[9.5px] sm:text-[10px] font-mono font-semibold shadow-sm flex items-center justify-center gap-1.5 backdrop-blur-sm pointer-events-auto">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Radar: {allHospitals.length} Active Facilities</span>
         </div>
       </div>
     </div>

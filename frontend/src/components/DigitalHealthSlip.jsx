@@ -175,7 +175,10 @@ export default function DigitalHealthSlip({ slipData, onClose }) {
               <p className="font-bold text-slate-900 text-sm mt-0.5">
                 {slipData.hospital.name}
               </p>
-              <p className="text-slate-600 text-xs mt-0.5">
+              <p className="text-slate-600 text-xs mt-0.5 font-medium flex items-center gap-1">
+                <span>📍 {slipData.hospital.address || 'Rural Block Sector'}</span>
+              </p>
+              <p className="text-slate-600 text-[11px] mt-0.5">
                 {slipData.hospital.type} · {slipData.hospital.distance_km} {t('kmAway')} · {t('callDesk')}: {slipData.hospital.phone || 'Available on visit'}
               </p>
             </div>
