@@ -28,6 +28,7 @@ export function AppProvider({ children }) {
   const [role, setRole] = useState('patient') // 'patient' | 'asha' | 'admin'
   const [screen, setScreen] = useState('home') // 'home' | 'check' | 'result' | 'asha' | 'admin' | 'map' | 'about'
   const [result, setResult] = useState(null)
+  const [activeSlip, setActiveSlip] = useState(null)
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
   const [sosOpen, setSosOpen] = useState(false)
   const [gpsModalOpen, setGpsModalOpen] = useState(false)
