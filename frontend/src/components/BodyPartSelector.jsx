@@ -138,17 +138,17 @@ export default function BodyPartSelector({ onAddSymptom, currentSymptoms = '' })
   const cleanSymptoms = currentSymptoms ? currentSymptoms.toLowerCase() : ''
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-3 sm:space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5 sm:pb-3">
+    <div className="bg-white border border-border-soft rounded-lg p-3.5 sm:p-5 shadow-sm space-y-3 sm:space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-soft pb-2.5 sm:pb-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-900">
+          <h3 className="text-sm font-bold text-text-main font-display">
             {language === 'hi'
               ? 'शरीर के किस हिस्से में तकलीफ है?'
               : language === 'mr'
               ? 'शरीराच्या कोणत्या भागात त्रास होत आहे?'
               : 'Where does it hurt?'}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-text-muted mt-0.5">
             {language === 'hi'
               ? 'शरीर के अंग पर क्लिक करें और अपने लक्षण जोड़ें'
               : language === 'mr'
@@ -167,13 +167,13 @@ export default function BodyPartSelector({ onAddSymptom, currentSymptoms = '' })
               key={r.id}
               type="button"
               onClick={() => setActiveRegion(r.id)}
-              className={`tap-press p-2 sm:p-3 rounded-xl border text-left flex flex-col items-center justify-center gap-1.5 sm:gap-2 transition-all ${
+              className={`tap-press p-2 sm:p-3 rounded-md border text-left flex flex-col items-center justify-center gap-1.5 sm:gap-2 transition-all ${
                 isActive
-                  ? 'border-blue-600 bg-blue-50 text-blue-900 shadow-xs ring-2 ring-blue-500/20'
-                  : 'border-slate-200 bg-slate-50 hover:bg-white text-slate-700'
+                  ? 'border-primary bg-primary-50 text-primary shadow-sm ring-2 ring-primary/10'
+                  : 'border-border-soft bg-slate-50 hover:bg-white text-text-muted'
               }`}
             >
-              <div className="p-1 rounded-lg bg-white shadow-xs">{r.svgIcon}</div>
+              <div className="p-1 rounded-md bg-white shadow-sm border border-border-soft">{r.svgIcon}</div>
               <span className="text-[11px] font-bold text-center leading-tight">
                 {getRegionName(r).split(',')[0]}
               </span>
@@ -183,13 +183,13 @@ export default function BodyPartSelector({ onAddSymptom, currentSymptoms = '' })
       </div>
 
       {/* Selected Region's Specific Problems */}
-      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+      <div className="p-4 rounded-lg bg-slate-50 border border-border-soft space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-xs font-bold text-text-main uppercase tracking-wider flex items-center gap-1.5">
             {regionData.svgIcon}
             <span>{getRegionName(regionData)}</span>
           </span>
-          <span className="text-[11px] text-slate-500 font-medium">
+          <span className="text-[11px] text-text-muted font-medium">
             {language === 'hi'
               ? 'जोड़ने के लिए क्लिक करें'
               : language === 'mr'
@@ -212,22 +212,22 @@ export default function BodyPartSelector({ onAddSymptom, currentSymptoms = '' })
                 key={s.tag}
                 type="button"
                 onClick={() => onAddSymptom(s.tag, label)}
-                className={`tap-press p-3 rounded-xl border text-left transition-all flex items-center justify-between shadow-xs ${
+                className={`tap-press p-3 rounded-md border text-left transition-all flex items-center justify-between shadow-sm ${
                   isAdded
-                    ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-sm'
-                    : 'bg-white text-slate-800 border-slate-200 hover:border-blue-400 hover:bg-blue-50/50'
+                    ? 'bg-primary text-white border-primary font-bold shadow-sm'
+                    : 'bg-white text-text-main border-border-soft hover:border-primary hover:bg-primary-50/50'
                 }`}
               >
                 <div>
                   <p className="text-xs font-bold leading-tight">{label}</p>
-                  <p className={`text-[10px] mt-0.5 ${isAdded ? 'text-blue-100' : 'text-slate-500'}`}>
+                  <p className={`text-[10px] mt-0.5 ${isAdded ? 'text-primary-100' : 'text-text-muted'}`}>
                     {getSymptomSub(s)}
                   </p>
                 </div>
                 {isAdded ? (
                   <Check className="w-4 h-4 text-white shrink-0 ml-2" />
                 ) : (
-                  <span className="text-xs font-bold text-blue-600 shrink-0 ml-2">+</span>
+                  <span className="text-xs font-bold text-primary shrink-0 ml-2">+</span>
                 )}
               </button>
             )

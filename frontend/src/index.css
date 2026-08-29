@@ -10,9 +10,12 @@
   }
 
   body {
-    @apply font-sans antialiased bg-slate-50 text-slate-800;
+    @apply font-sans antialiased text-[#1A1C1E];
     font-size: 15px;
     line-height: 1.5;
+    background-color: #FDFCFB;
+    /* Subtle Paper Grain Effect */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
   }
 
   input, textarea, button, select {
@@ -27,44 +30,48 @@
     @apply transition-all duration-100 active:scale-[0.99] select-none;
   }
 
-  /* Solid Clean Medical Cards */
+  /* Human-crafted Card - resembles a physical document/chart */
   .portal-card {
-    @apply bg-white border border-slate-200 rounded-xl shadow-sm text-slate-800;
+    @apply bg-white border-2 border-[#E8E4E1] rounded-lg shadow-none text-[#1A1C1E];
+    box-shadow: 2px 2px 0px #E8E4E1;
   }
 
   .portal-input {
-    @apply bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-150;
+    @apply bg-white border-2 border-[#E8E4E1] text-[#1A1C1E] placeholder:text-[#8A8885] rounded-md focus:border-[#2C5F2D] focus:ring-0 outline-none transition-all duration-150;
   }
 
-  /* Symptom Chips */
+  /* Symptom Chips - "Sticker" style */
   .chip {
-    @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg
-           bg-white border border-slate-200 text-slate-700 text-xs font-semibold
-           tap-press hover:border-blue-400 hover:bg-blue-50 hover:text-blue-900
-           active:bg-blue-100 transition-all select-none;
+    @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md
+           bg-white border-2 border-[#E8E4E1] text-[#5C5E60] text-xs font-semibold
+           tap-press hover:border-[#2C5F2D] hover:bg-[#F5F3EC] hover:text-[#2C5F2D]
+           active:bg-[#F5F3EC] transition-all select-none;
+    box-shadow: 1px 1px 0px #E8E4E1;
   }
 
   .chip-active {
-    @apply bg-blue-600 border-blue-600 text-white font-bold shadow-sm;
+    @apply bg-[#2C5F2D] border-[#2C5F2D] text-white font-bold shadow-none;
   }
 
-  /* Authentic Buttons */
+  /* Authentic Buttons - "Pressed" look */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-lg
-           bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-sm
+    @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-md
+           bg-[#2C5F2D] hover:bg-[#244D25] text-white font-semibold text-sm shadow-none
            disabled:opacity-50 disabled:cursor-not-allowed tap-press;
+    border-bottom: 3px solid #1B3B1C;
   }
 
   .btn-emergency {
-    @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-lg
+    @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-md
            bg-red-600 hover:bg-red-700 text-white font-bold text-sm
-           shadow-sm tap-press;
+           shadow-none tap-press;
+    border-bottom: 3px solid #B91C1C;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-lg
-           bg-white hover:bg-slate-50 border border-slate-300 text-slate-700
-           font-semibold text-sm tap-press shadow-sm;
+    @apply inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-md
+           bg-white hover:bg-[#F5F3EC] border-2 border-[#E8E4E1] text-[#5C5E60]
+           font-semibold text-sm tap-press shadow-none;
   }
 }
 
@@ -72,16 +79,16 @@
 .leaflet-container {
   width: 100%;
   height: 100%;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   z-index: 10;
 }
 
 .leaflet-popup-content-wrapper {
   background: #ffffff !important;
-  color: #1e293b !important;
-  border: 1px solid #e2e8f0 !important;
+  color: #1A1C1E !important;
+  border: 2px solid #E8E4E1 !important;
   border-radius: 0.5rem !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 2px 2px 0px #E8E4E1 !important;
 }
 
 .leaflet-popup-tip {
@@ -94,14 +101,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #FDFCFB;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #E8E4E1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #D1CEC8;
 }
 
 /* Reduced motion preference */

@@ -19,7 +19,7 @@ export const SYMPTOM_SVGS = {
     <svg viewBox="0 0 48 48" fill="none" className="w-10 h-10" stroke="currentColor">
       <path d="M24 6v14M24 20l-6 6M24 20l6 6" stroke="#0284C7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M18 26c-4 0-8 3-8 9 0 5 4 8 8 8 3 0 6-2 6-5V26" fill="#E0F2FE" stroke="#0284C7" strokeWidth="2.5" />
-      <path d="M30 26c4 0 8 3 8 9 0 5-4 8-8 8-3 0-6-2-6-5V26" fill="#E0F2FE" stroke="#0284C7" strokeWidth="2.5" />
+      <path d="M30 26c4 0 8 3 8 9 0 5-4 8-8 8-3 0-6-2 6-5V26" fill="#E0F2FE" stroke="#0284C7" strokeWidth="2.5" />
       <path d="M6 14c3-2 6-2 9 0M33 14c3-2 6-2 9 0" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" />
     </svg>
   ),
@@ -242,23 +242,22 @@ export default function VisualSymptomSelector({ onSelectSymptom, selectedSymptom
     return item.descEn
   }
 
-  // Filter out any empty strings or whitespace
   const activeList = Array.isArray(selectedSymptoms)
-    ? selectedSymptoms.map((s) => (typeof s === 'string' ? s.trim().toLowerCase() : '')).filter(Boolean)
+    ? selectedSymptoms.map((s) => (typeof s === 'string' ? s.trim().toLowerCase() : '')) .filter(Boolean)
     : []
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-slate-900">
+          <h3 className="text-sm font-bold text-text-main font-display">
             {language === 'hi'
               ? 'अपनी तकलीफ का चित्र चुनें'
               : language === 'mr'
               ? 'तुमच्या त्रासाचे चित्र निवडा'
               : 'Tap your health problem below'}
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-text-muted">
             {language === 'hi'
               ? 'बिना लिखे आसानी से अपनी बीमारी दर्ज करें'
               : language === 'mr'
@@ -268,7 +267,6 @@ export default function VisualSymptomSelector({ onSelectSymptom, selectedSymptom
         </div>
       </div>
 
-      {/* Grid of Illustrated SVG Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {VISUAL_SYMPTOMS_LIST.map((item) => {
           const itemTag = item.tag.toLowerCase()
@@ -294,34 +292,32 @@ export default function VisualSymptomSelector({ onSelectSymptom, selectedSymptom
               key={item.key}
               type="button"
               onClick={() => onSelectSymptom(item)}
-              className={`tap-press group relative p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-150 min-h-[125px] shadow-sm ${
+              className={`tap-press group relative p-3.5 rounded-md border text-left flex flex-col justify-between transition-all duration-150 min-h-[125px] shadow-sm ${
                 isSelected
-                  ? 'border-blue-600 bg-blue-50/80 ring-2 ring-blue-500/20 shadow-md'
-                  : `border-slate-200 bg-white hover:border-blue-400 hover:shadow-md ${item.urgencyColor}`
+                  ? 'border-primary bg-primary-50 ring-2 ring-primary/10 shadow-md'
+                  : `border-border-soft bg-white hover:border-primary hover:shadow-md ${item.urgencyColor}`
               }`}
             >
-              {/* Top Row: Icon + Checkmark */}
               <div className="flex items-start justify-between">
-                <div className="p-1 rounded-xl bg-white/90 shadow-sm border border-slate-100 group-hover:scale-105 transition-transform">
+                <div className="p-1 rounded-md bg-white/90 shadow-sm border border-border-soft group-hover:scale-105 transition-transform">
                   {item.svg}
                 </div>
                 {isSelected ? (
-                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center shadow-sm shrink-0">
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </span>
                 ) : (
-                  <span className="text-[10px] font-bold text-slate-400 group-hover:text-blue-600">
+                  <span className="text-[10px] font-bold text-text-muted group-hover:text-primary">
                     + Add
                   </span>
                 )}
               </div>
 
-              {/* Bottom: Bilingual Title & Subtitle */}
               <div className="mt-2.5">
-                <h4 className="font-bold text-xs leading-snug text-slate-900 group-hover:text-blue-700">
+                <h4 className="font-bold text-xs leading-snug text-text-main group-hover:text-primary">
                   {getTitle(item)}
                 </h4>
-                <p className="text-[11px] text-slate-500 leading-tight mt-0.5 line-clamp-2">
+                <p className="text-[11px] text-text-muted leading-tight mt-0.5 line-clamp-2">
                   {getDesc(item)}
                 </p>
               </div>
