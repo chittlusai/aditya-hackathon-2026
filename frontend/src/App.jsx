@@ -7,42 +7,13 @@ import SymptomInput from './components/SymptomInput.jsx'
 import Result from './components/Result.jsx'
 import AshaWorkerPortal from './components/AshaWorkerPortal.jsx'
 import HospitalAdminPortal from './components/HospitalAdminPortal.jsx'
-import HospitalMap from './components/HospitalMap.jsx'
+import HospitalDirectory from './components/HospitalDirectory.jsx'
 import About from './components/About.jsx'
 import EmergencyModal from './components/EmergencyModal.jsx'
 import DigitalHealthSlip from './components/DigitalHealthSlip.jsx'
 import GpsPermissionPrompt from './components/GpsPermissionPrompt.jsx'
 import AdminAuthModal from './components/AdminAuthModal.jsx'
-import { MapPin, PhoneCall, Navigation } from 'lucide-react'
-
-function MapScreen() {
-  const { hospitals, t, userCoords, setGpsModalOpen } = useApp()
-  return (
-    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-3 sm:space-y-4">
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2 font-display">
-            <MapPin className="w-5 h-5 text-blue-600" />
-            {t('mapTitle')}
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {t('mapSub')}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setGpsModalOpen(true)}
-          className="tap-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold shadow-2xs"
-        >
-          <Navigation className="w-3.5 h-3.5 text-blue-600" />
-          <span>{userCoords?.active ? 'Live GPS: ' + userCoords.lat.toFixed(2) + ', ' + userCoords.lng.toFixed(2) : t('useGps')}</span>
-        </button>
-      </div>
-      <HospitalMap allHospitals={hospitals} height="480px" />
-    </div>
-  )
-}
+import { PhoneCall } from 'lucide-react'
 
 function Shell() {
   const { screen, activeSlip, setActiveSlip, t } = useApp()
@@ -59,7 +30,7 @@ function Shell() {
         {screen === 'result' && <Result />}
         {screen === 'asha' && <AshaWorkerPortal />}
         {screen === 'admin' && <HospitalAdminPortal />}
-        {screen === 'map' && <MapScreen />}
+        {screen === 'map' && <HospitalDirectory />}
         {screen === 'about' && <About />}
       </main>
 
