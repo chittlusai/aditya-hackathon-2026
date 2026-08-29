@@ -219,8 +219,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[460px] overflow-y-auto pr-1">
-            {filteredHospitals.slice(0, 8).map((h) => (
+          {/* Clean Facility Cards Grid - Natural Flow without internal scroll trapping */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {filteredHospitals.slice(0, 6).map((h) => (
               <div
                 key={h.id}
                 className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-500 transition-all space-y-2 flex flex-col justify-between shadow-2xs"
@@ -270,13 +271,13 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+          <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
             <span>{t('showingCount')}</span>
             <button
               onClick={() => go('map')}
               className="text-blue-600 hover:underline font-bold"
             >
-              {t('viewAllMap')}
+              {t('viewAllMap')} →
             </button>
           </div>
         </div>
