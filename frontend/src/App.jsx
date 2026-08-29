@@ -18,10 +18,10 @@ function MapScreen() {
   const { hospitals, t, userCoords, setGpsModalOpen } = useApp()
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4">
-      <div className="bg-white border border-slate-300 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 font-display">
-            <MapPin className="w-5 h-5 text-blue-800" />
+            <MapPin className="w-5 h-5 text-blue-600" />
             {t('mapTitle')}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -32,9 +32,9 @@ function MapScreen() {
         <button
           type="button"
           onClick={() => setGpsModalOpen(true)}
-          className="tap-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-bold shadow-sm"
+          className="tap-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold shadow-sm"
         >
-          <Navigation className="w-3.5 h-3.5 text-blue-800" />
+          <Navigation className="w-3.5 h-3.5 text-blue-600" />
           <span>{userCoords?.active ? 'Live GPS: ' + userCoords.lat.toFixed(2) + ', ' + userCoords.lng.toFixed(2) : t('useGps')}</span>
         </button>
       </div>
@@ -47,7 +47,7 @@ function Shell() {
   const { screen, activeSlip, setActiveSlip, t } = useApp()
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
       <OfflineBanner />
       <Navbar />
 
@@ -77,20 +77,20 @@ function Shell() {
       )}
 
       {/* Official Footer */}
-      <footer className="hidden lg:block py-6 bg-white border-t border-slate-300 text-xs text-slate-600 mt-auto">
+      <footer className="hidden lg:block py-6 bg-white border-t border-slate-200 text-xs text-slate-600 mt-auto">
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
           <div>
             <p className="font-bold text-slate-900">{t('appName')} · {t('portalSubtitle')}</p>
             <p className="text-[11px] text-slate-500">{t('govtNotice')}</p>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold">
-            <span className="flex items-center gap-1 text-red-700">
+            <span className="flex items-center gap-1 text-red-600">
               <PhoneCall className="w-3.5 h-3.5" />
               {t('ambulanceLine')}
             </span>
-            <span className="text-slate-400">|</span>
+            <span className="text-slate-300">|</span>
             <span className="text-slate-700">{t('emergencyLine')}</span>
-            <span className="text-slate-400">|</span>
+            <span className="text-slate-300">|</span>
             <span className="text-slate-700">{t('healthAdviceLine')}</span>
           </div>
         </div>

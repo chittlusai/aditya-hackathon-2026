@@ -7,9 +7,9 @@ export default function UrgencyBadge({ urgency }) {
   const config = {
     Mild: {
       bg: 'bg-emerald-50',
-      text: 'text-emerald-950',
-      border: 'border-emerald-300',
-      badgeBg: 'bg-emerald-700 text-white',
+      text: 'text-emerald-900',
+      border: 'border-emerald-200',
+      badgeBg: 'bg-emerald-600 text-white',
       badgeText: 'Triage Level 1 · Mild',
       Icon: CheckCircle2,
       label: t('mild'),
@@ -17,8 +17,8 @@ export default function UrgencyBadge({ urgency }) {
     },
     Moderate: {
       bg: 'bg-amber-50',
-      text: 'text-amber-950',
-      border: 'border-amber-300',
+      text: 'text-amber-900',
+      border: 'border-amber-200',
       badgeBg: 'bg-amber-600 text-white',
       badgeText: 'Triage Level 2 · Moderate',
       Icon: AlertTriangle,
@@ -27,9 +27,9 @@ export default function UrgencyBadge({ urgency }) {
     },
     Emergency: {
       bg: 'bg-red-50',
-      text: 'text-red-950',
-      border: 'border-red-400',
-      badgeBg: 'bg-red-700 text-white',
+      text: 'text-red-900',
+      border: 'border-red-200',
+      badgeBg: 'bg-red-600 text-white',
       badgeText: 'Triage Level 3 · Emergency',
       Icon: Siren,
       label: t('emergency'),
@@ -38,8 +38,8 @@ export default function UrgencyBadge({ urgency }) {
   }[urgency] || {
     bg: 'bg-slate-50',
     text: 'text-slate-900',
-    border: 'border-slate-300',
-    badgeBg: 'bg-slate-700 text-white',
+    border: 'border-slate-200',
+    badgeBg: 'bg-blue-600 text-white',
     badgeText: 'Standard Evaluation',
     Icon: CheckCircle2,
     label: urgency || 'Standard Evaluation',
@@ -50,26 +50,26 @@ export default function UrgencyBadge({ urgency }) {
 
   return (
     <div
-      className={`p-5 rounded-xl border ${config.bg} ${config.border}`}
+      className={`p-5 rounded-2xl border ${config.bg} ${config.border} shadow-sm`}
       role="status"
     >
       <div className="flex items-start gap-3.5">
         <div
-          className={`w-10 h-10 rounded-lg shrink-0 flex items-center justify-center ${config.badgeBg}`}
+          className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center shadow-sm ${config.badgeBg}`}
         >
           <Icon className="w-5 h-5" />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/80 border border-slate-300 text-slate-800">
+            <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 shadow-sm">
               {config.badgeText}
             </span>
             <h3 className={`text-base font-bold ${config.text}`}>
               {config.label}
             </h3>
           </div>
-          <p className="text-xs text-slate-800 mt-1 leading-relaxed">
+          <p className="text-xs text-slate-700 mt-1 leading-relaxed">
             {config.sub}
           </p>
         </div>

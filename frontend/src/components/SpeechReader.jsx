@@ -166,13 +166,13 @@ export default function SpeechReader({ textToRead }) {
         aria-label={isPlaying ? 'Stop audio' : t('audioListen')}
         className={`tap-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm border ${
           isPlaying
-            ? 'bg-blue-800 text-white border-blue-900'
-            : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+            ? 'bg-blue-600 text-white border-blue-600'
+            : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
         }`}
       >
         {isLoading ? (
           <>
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-700" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
             <span>Loading Audio…</span>
           </>
         ) : isPlaying ? (
@@ -182,7 +182,7 @@ export default function SpeechReader({ textToRead }) {
           </>
         ) : (
           <>
-            <Volume2 className="w-3.5 h-3.5 text-blue-800" />
+            <Volume2 className="w-3.5 h-3.5 text-blue-600" />
             <span>{t('audioListen')}</span>
           </>
         )}
@@ -193,17 +193,17 @@ export default function SpeechReader({ textToRead }) {
         type="button"
         onClick={() => setShowSettings((v) => !v)}
         title="ElevenLabs Voice Settings"
-        className="tap-press p-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-600 shadow-sm"
+        className="tap-press p-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 shadow-sm"
       >
-        <Settings className="w-3.5 h-3.5 text-slate-700" />
+        <Settings className="w-3.5 h-3.5 text-slate-500" />
       </button>
 
       {/* ElevenLabs API Key Modal / Popover */}
       {showSettings && (
-        <div className="absolute top-full right-0 mt-2 z-50 w-80 bg-white border border-slate-300 rounded-xl p-4 shadow-2xl text-left">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
+        <div className="absolute top-full right-0 mt-2 z-50 w-80 bg-white border border-slate-200 rounded-2xl p-4 shadow-2xl text-left text-slate-800">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
             <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <Key className="w-3.5 h-3.5 text-blue-800" />
+              <Key className="w-3.5 h-3.5 text-blue-600" />
               {t('elevenLabsKeyTitle')}
             </h4>
             <button
@@ -224,7 +224,7 @@ export default function SpeechReader({ textToRead }) {
               placeholder={t('apiKeyPlaceholder')}
               value={inputKey}
               onChange={(e) => setInputKey(e.target.value)}
-              className="w-full p-2 text-xs rounded border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-700 outline-none font-mono"
+              className="w-full p-2 text-xs rounded-lg border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none font-mono"
             />
 
             <div className="flex items-center justify-between pt-1">
@@ -234,7 +234,7 @@ export default function SpeechReader({ textToRead }) {
 
               <button
                 type="submit"
-                className="tap-press px-3 py-1 rounded bg-blue-800 hover:bg-blue-900 text-white text-xs font-bold shadow-sm"
+                className="tap-press px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm"
               >
                 {savedSuccess ? 'Saved!' : t('saveApiKey')}
               </button>

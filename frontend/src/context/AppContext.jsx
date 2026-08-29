@@ -5,9 +5,9 @@
  * offline patient records, GPS location tracking & distance calculation,
  * and emergency SOS modal.
  */
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { TRANSLATIONS } from '../utils/i18n.js'
-import { INITIAL_HOSPITALS, calculateDistance } from '../utils/localTriage.js'
+import { INITIAL_HOSPITALS, calculateDistance, generateHospitalsForCoordinates } from '../utils/localTriage.js'
 
 const AppContext = createContext(null)
 
@@ -33,23 +33,20 @@ export function AppProvider({ children }) {
   const [activeSlip, setActiveSlip] = useState(null)
   const [gpsModalOpen, setGpsModalOpen] = useState(false)
 
-  // Live GPS Coordinates
+  // Real-Time Live GPS Coordinates
   const [userCoords, setUserCoords] = useState({
     lat: 21.1458,
     lng: 79.0882,
+    accuracy: 35,
     active: false,
     label: 'Rampur Rural Sector',
   })
   const [gpsStatus, setGpsStatus] = useState('prompt') // 'prompt' | 'granted' | 'denied' | 'loading'
+  const watchIdRef = useRef(null)
 
-  // Hospitals state (with offline persistence)
+  // Hospitals state (dynamically anchored nearby around user)
   const [hospitals, setHospitals] = useState(() => {
-    try {
-      const saved = localStorage.getItem(HOSPITALS_STORAGE_KEY)
-      return saved ? JSON.parse(saved) : INITIAL_HOSPITALS
-    } catch {
-      return INITIAL_HOSPITALS
-    }
+    return generateHospitalsForCoordinates(21.1458, 79.0882)
   })
 
   // ASHA Patient Records state
@@ -62,22 +59,21 @@ export function AppProvider({ children }) {
     }
   })
 
-  // Recalculate hospital distances whenever userCoords change
-  const recalculateHospitalDistances = useCallback((coords) => {
-    if (!coords || !coords.lat || !coords.lng) return
-
-    setHospitals((prev) => {
-      const recalculated = prev.map((h) => {
-        if (h.lat && h.lng) {
-          const dist = calculateDistance(coords.lat, coords.lng, h.lat, h.lng)
-          return { ...h, distance_km: dist }
-        }
-        return h
-      })
-      // Sort nearest first
-      recalculated.sort((a, b) => (a.distance_km || 99) - (b.distance_km || 99))
-      return recalculated
-    })
+  // Recalculate and regenerate nearby hospitals whenever userCoords change
+  const applyCoordinates = useCallback((lat, lng, label = 'Live GPS Location', accuracy = 25) => {
+    const coords = {
+      lat,
+      lng,
+      accuracy,
+      active: true,
+      label,
+    }
+    setUserCoords(coords)
+    const nearby = generateHospitalsForCoordinates(lat, lng)
+    setHospitals(nearby)
+    try {
+      localStorage.setItem(HOSPITALS_STORAGE_KEY, JSON.stringify(nearby))
+    } catch (e) {}
   }, [])
 
   // Sync language preference
@@ -98,7 +94,7 @@ export function AppProvider({ children }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
-  // Request real device GPS
+  // Request real device GPS and activate real-time continuous watch
   const requestGpsLocation = useCallback((isManual = true) => {
     if (!navigator.geolocation) {
       if (isManual) alert('Geolocation is not supported by your browser.')
@@ -107,35 +103,56 @@ export function AppProvider({ children }) {
     }
 
     setGpsStatus('loading')
+
+    // 1. Immediate position fix
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          active: true,
-          label: 'Live Device GPS',
-        }
-        setUserCoords(coords)
+        const { latitude, longitude, accuracy } = pos.coords
+        applyCoordinates(latitude, longitude, 'Live Device GPS (Real-Time)', accuracy || 20)
         setGpsStatus('granted')
         setGpsModalOpen(false)
         localStorage.setItem(GPS_PERMISSION_STORAGE_KEY, 'true')
-        recalculateHospitalDistances(coords)
+
+        // 2. Start continuous real-time watch
+        if (watchIdRef.current) {
+          navigator.geolocation.clearWatch(watchIdRef.current)
+        }
+
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          (livePos) => {
+            const { latitude: liveLat, longitude: liveLng, accuracy: liveAcc } = livePos.coords
+            applyCoordinates(liveLat, liveLng, 'Live Device GPS (Real-Time)', liveAcc || 20)
+          },
+          (err) => {
+            console.warn('Real-time GPS watch error:', err)
+          },
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+        )
       },
       (err) => {
         console.warn('GPS request denied or timed out:', err)
         setGpsStatus('denied')
         if (isManual && err.code === 1) {
-          alert('Location permission was denied. Please allow location in your browser settings to find nearest hospitals.')
+          alert('Location permission was denied. Please allow location in your browser settings to find nearest hospitals in real time.')
         }
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { timeout: 12000, enableHighAccuracy: true }
     )
-  }, [recalculateHospitalDistances])
+  }, [applyCoordinates])
 
-  // Auto-check GPS on first load if already previously granted
+  // Auto-check GPS on load if permission previously granted or prompt automatically
   useEffect(() => {
     if (localStorage.getItem(GPS_PERMISSION_STORAGE_KEY) === 'true') {
       requestGpsLocation(false)
+    } else if (navigator.geolocation) {
+      // Attempt passive real-time location query
+      requestGpsLocation(false)
+    }
+
+    return () => {
+      if (watchIdRef.current && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+      }
     }
   }, [requestGpsLocation])
 
@@ -210,6 +227,7 @@ export function AppProvider({ children }) {
         setSosOpen,
         userCoords,
         setUserCoords,
+        applyCoordinates,
         gpsStatus,
         gpsModalOpen,
         setGpsModalOpen,

@@ -8,24 +8,22 @@ export default function LanguageToggle() {
     <div
       role="group"
       aria-label="Language"
-      className="inline-flex items-center bg-slate-100 border border-slate-200 rounded-full p-1 shadow-inner"
+      className="inline-flex items-center bg-slate-100 border border-slate-200 rounded-lg p-0.5"
     >
-      <span className="hidden sm:flex items-center pl-2 pr-1 text-slate-400">
-        <Globe className="w-3.5 h-3.5" />
-      </span>
       {LANGS.map((l) => (
         <button
           key={l.code}
           type="button"
           onClick={() => setLanguage(l.code)}
-          className={`tap-press min-h-[30px] px-3 rounded-full text-xs font-bold transition-all duration-150 ${
+          className={`tap-press h-7 px-2 sm:px-2.5 rounded-md text-[11px] font-bold transition-all duration-150 ${
             language === l.code
-              ? 'bg-teal-600 text-white shadow-sm'
+              ? 'bg-white text-blue-700 shadow-xs border border-slate-200/80 font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
           aria-pressed={language === l.code}
         >
-          {l.label}
+          <span className="sm:hidden">{l.short}</span>
+          <span className="hidden sm:inline">{l.label}</span>
         </button>
       ))}
     </div>

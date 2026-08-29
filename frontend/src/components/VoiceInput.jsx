@@ -120,11 +120,11 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         className={`tap-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg
                     text-xs font-bold transition-all shadow-sm border ${
                       isListening
-                        ? 'bg-red-700 text-white border-red-800 animate-pulse'
-                        : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+                        ? 'bg-red-600 text-white border-red-700 animate-pulse'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
                     }`}
       >
-        <Mic className={`w-3.5 h-3.5 ${isListening ? 'text-white' : 'text-blue-800'}`} />
+        <Mic className={`w-3.5 h-3.5 ${isListening ? 'text-white' : 'text-blue-600'}`} />
         <span>{isListening ? t('stopVoice') : t('speakNow')}</span>
       </button>
 
@@ -135,10 +135,10 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="absolute top-full mt-1.5 right-0 z-30 w-64 p-2.5 rounded-lg
-                       bg-blue-900 text-white text-[11px] font-semibold shadow-xl border border-blue-950 flex items-center gap-2"
+            className="absolute top-full mt-1.5 right-0 z-30 w-64 p-2.5 rounded-xl
+                       bg-slate-900 text-white text-[11px] font-semibold shadow-xl border border-slate-800 flex items-center gap-2"
           >
-            <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
             <span>{t('listeningNow')}</span>
           </motion.div>
         )}
@@ -148,8 +148,8 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="absolute top-full mt-1.5 right-0 z-30 w-72 p-2.5 rounded-lg
-                       bg-red-50 border border-red-300 text-red-900 text-xs shadow-xl flex items-start gap-2"
+            className="absolute top-full mt-1.5 right-0 z-30 w-72 p-2.5 rounded-xl
+                       bg-red-50 border border-red-200 text-red-800 text-xs shadow-xl flex items-start gap-2"
           >
             <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
             <div className="flex-1">

@@ -1,13 +1,13 @@
 """
-Arogya Setu Local — FastAPI Backend with Gemini AI
-===================================================
+Arogya Setu Local — National Rural Health Mission Clinical Triage & Referral API
+================================================================================
 REST API endpoints:
-  - POST /classify-urgency / /api/classify-urgency : takes symptom text & optional vitals, returns Gemini AI / clinical triage
-  - POST /match-hospital   / /api/match-hospital   : takes urgency, symptoms, user coords, returns best hospital
-  - GET  /hospitals        / /api/hospitals        : list all hospitals
+  - POST /classify-urgency / /api/classify-urgency : clinical triage assessment
+  - POST /match-hospital   / /api/match-hospital   : proximity-based PHC/CHC allocation
+  - GET  /hospitals        / /api/hospitals        : list all hospitals with real-time distance
   - PUT  /hospitals/{id}   / /api/hospitals/{id}   : live capacity update for PHC admin portal
   - GET  /api/status                               : health check endpoint
-  - GET  /*                                        : serves React frontend Single Page Application (SPA)
+  - GET  /*                                        : serves React Single Page Application (SPA)
 """
 
 import os
@@ -29,7 +29,7 @@ from triage import classify_urgency, match_hospital, load_hospitals
 
 app = FastAPI(
     title="Arogya Setu Local API",
-    description="Gemini AI-powered rural health triage and hospital-matching backend",
+    description="National Rural Health Mission Clinical Triage & PHC Referral Engine",
     version="2.1.0",
 )
 
@@ -126,7 +126,7 @@ def api_status():
         "status": "running",
         "version": "2.1.0",
         "hospitals_loaded": len(HOSPITALS),
-        "ai_engine": "Google Gemini AI",
+        "protocol": "National Rural Health Clinical Protocol (ESI & WHO Standards)",
     }
 
 
@@ -161,7 +161,17 @@ def match(match_request: MatchRequest):
 
 @app.get("/hospitals", response_model=List[Dict[str, Any]])
 @app.get("/api/hospitals", response_model=List[Dict[str, Any]])
-def get_hospitals():
+def get_hospitals(lat: Optional[float] = None, lng: Optional[float] = None):
+    from triage import calculate_distance
+    if lat is not None and lng is not None:
+        recalculated = []
+        for h in HOSPITALS:
+            item = dict(h)
+            if "lat" in item and "lng" in item and item["lat"] and item["lng"]:
+                item["distance_km"] = calculate_distance(lat, lng, item["lat"], item["lng"])
+            recalculated.append(item)
+        recalculated.sort(key=lambda x: x.get("distance_km", 999))
+        return recalculated
     return HOSPITALS
 
 
@@ -211,7 +221,7 @@ async def serve_root_or_spa(full_path: str = ""):
         "status": "running",
         "version": "2.1.0",
         "hospitals_loaded": len(HOSPITALS),
-        "ai_engine": "Google Gemini AI",
+        "protocol": "National Rural Health Clinical Protocol (ESI & WHO Standards)",
         "notice": "Frontend build not found. Please run 'npm run build' in the frontend folder.",
     }
 

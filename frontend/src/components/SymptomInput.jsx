@@ -8,27 +8,16 @@ import {
   Navigation,
   FileText,
   AlertCircle,
-  Sparkles,
+  ShieldCheck,
+  Stethoscope,
+  Mic,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import VoiceInput from './VoiceInput.jsx'
+import VisualSymptomSelector from './VisualSymptomSelector.jsx'
+import BodyPartSelector from './BodyPartSelector.jsx'
 import { analyzeSymptomsWithGemini } from '../utils/geminiAi.js'
 import { classifyLocalUrgency, matchLocalHospital } from '../utils/localTriage.js'
-
-const COMMON_CHIPS_KEYS = [
-  'Fever',
-  'Cough',
-  'Chest Pain',
-  'Headache',
-  'Vomiting',
-  'Diarrhea',
-  'Dizziness',
-  'Stomach Pain',
-  'Shortness of Breath',
-  'Snake Bite',
-  'Injury / Fracture',
-  'High BP',
-]
 
 export default function SymptomInput() {
   const {
@@ -57,34 +46,51 @@ export default function SymptomInput() {
     isPregnant: false,
   })
 
-  function toggleChip(chipKey) {
-    const chipText = t('chips')?.[chipKey] || chipKey
+  function handleSelectVisualSymptom(item) {
+    const symptomName = language === 'hi' ? item.titleHi : language === 'mr' ? item.titleMr : item.titleEn
     setText((prev) => {
-      if (!prev) return chipText
+      if (!prev) return symptomName
       const parts = prev.split(',').map((s) => s.trim()).filter(Boolean)
-      if (parts.includes(chipText)) {
-        return parts.filter((p) => p !== chipText).join(', ')
+      if (parts.some((p) => p.toLowerCase() === symptomName.toLowerCase() || p.toLowerCase() === item.tag.toLowerCase())) {
+        return parts.filter((p) => p.toLowerCase() !== symptomName.toLowerCase() && p.toLowerCase() !== item.tag.toLowerCase()).join(', ')
       }
-      return [...parts, chipText].join(', ')
+      return [...parts, symptomName].join(', ')
+    })
+  }
+
+  function handleAddBodySymptom(tag, label) {
+    setText((prev) => {
+      if (!prev) return label
+      const parts = prev.split(',').map((s) => s.trim()).filter(Boolean)
+      if (parts.some((p) => p.toLowerCase() === label.toLowerCase() || p.toLowerCase() === tag.toLowerCase())) {
+        return parts.filter((p) => p.toLowerCase() !== label.toLowerCase() && p.toLowerCase() !== tag.toLowerCase()).join(', ')
+      }
+      return [...parts, label].join(', ')
     })
   }
 
   function handleVoiceTranscript(transcript) {
-    setText((prev) => (prev ? `${prev} ${transcript}` : transcript))
+    setText((prev) => (prev ? `${prev}, ${transcript}` : transcript))
   }
 
   async function onSubmit(e) {
     e?.preventDefault?.()
     setErr('')
     if (!text.trim()) {
-      setErr(t('placeholder'))
+      setErr(
+        language === 'hi'
+          ? 'कृपया ऊपर से कोई चित्र चुनें या बोलकर अपनी बीमारी बताएं।'
+          : language === 'mr'
+          ? 'कृपया वरील चित्रांमधून निवडा किंवा बोलून आपला त्रास सांगा.'
+          : 'Please select a visual symptom from above or type/speak your health problem.'
+      )
       return
     }
 
     setLoading(true)
 
     try {
-      // 1. Deep Gemini AI Clinical Analysis
+      // 1. Deep Gemini Clinical Analysis
       const geminiResult = await analyzeSymptomsWithGemini(text, vitals, language)
 
       // 2. Proximity-aware Hospital Matching
@@ -133,25 +139,38 @@ export default function SymptomInput() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
+      {/* Back button */}
+      <button
+        type="button"
+        onClick={() => go('home')}
+        className="tap-press inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline"
+      >
+        ← {t('navHome')}
+      </button>
+
       {/* Official Form Header */}
-      <div className="bg-white border border-slate-300 rounded-xl p-5 mb-5 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-900 block">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 block">
                 {t('formTag')}
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-200">
-                <Sparkles className="w-3 h-3 text-blue-700" />
-                Gemini AI Integrated
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                <ShieldCheck className="w-3 h-3 text-blue-600" />
+                {language === 'hi' ? 'स्वास्थ्य प्रोटोकॉल' : language === 'mr' ? 'आरोग्य प्रोटोकॉल' : 'Clinical Protocol'}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 font-display mt-0.5">
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 font-display mt-1">
               {t('inputHeader')}
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {t('inputSub')}
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+              {language === 'hi'
+                ? 'अपनी तकलीफ का चित्र चुनें, बोलकर बताएं या नीचे विवरण लिखें।'
+                : language === 'mr'
+                ? 'आपल्या त्रासाचे चित्र निवडा, बोलून सांगा किंवा खाली माहिती लिहा.'
+                : 'Select from visual problem cards, use voice dictation, or type your symptoms.'}
             </p>
           </div>
 
@@ -159,73 +178,82 @@ export default function SymptomInput() {
           <button
             type="button"
             onClick={() => setGpsModalOpen(true)}
-            className="tap-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+            className="tap-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 shrink-0 shadow-2xs"
           >
-            <Navigation className={`w-3.5 h-3.5 ${userCoords?.active ? 'text-emerald-700' : 'text-blue-800'}`} />
+            <Navigation className={`w-3.5 h-3.5 ${userCoords?.active ? 'text-emerald-600' : 'text-blue-600'}`} />
             <span>{userCoords?.active ? t('gpsActive') : t('useGps')}</span>
           </button>
         </div>
       </div>
 
+      {/* 1. Visual Illustrated Problem Cards (Primary for Tribal & Rural citizens) */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
+        <VisualSymptomSelector
+          onSelectSymptom={handleSelectVisualSymptom}
+          selectedSymptoms={text ? text.split(',').map((s) => s.trim()).filter(Boolean) : []}
+        />
+      </div>
+
+      {/* 2. Body Part Selector (Where does it hurt?) */}
+      <BodyPartSelector onAddSymptom={handleAddBodySymptom} currentSymptoms={text} />
+
+      {/* 3. Main Symptom Box & Voice Dictation */}
       <form onSubmit={onSubmit} className="space-y-4">
-        {/* Main Symptom Text Area with Integrated Voice */}
-        <div className="bg-white border border-slate-300 rounded-xl p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-blue-800" />
-              {t('symptomLabel')}
+              <FileText className="w-4 h-4 text-blue-600" />
+              <span>
+                {language === 'hi'
+                  ? 'चुने गए लक्षण व आपका विवरण:'
+                  : language === 'mr'
+                  ? 'निवडलेली लक्षणे व तपशील:'
+                  : t('symptomLabel')}
+              </span>
             </label>
             <VoiceInput onTranscript={handleVoiceTranscript} disabled={loading} />
           </div>
 
           <textarea
-            rows={4}
+            rows={3}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={t('placeholder')}
-            className="w-full p-3.5 text-sm rounded-lg bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-700 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-y"
+            placeholder={
+              language === 'hi'
+                ? 'ऊपर चित्र क्लिक करने पर या बोलने पर यहां लक्षण अपने आप जुड़ेंगे...'
+                : language === 'mr'
+                ? 'वरील चित्रांवर क्लिक केल्यावर किंवा बोलल्यावर लक्षणे येथे जोडली जातील...'
+                : t('placeholder')
+            }
+            className="w-full p-3.5 text-sm rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-y"
           />
 
-          <p className="text-[11px] text-slate-500">
-            {t('voicePrompt')}
-          </p>
-        </div>
-
-        {/* Common Symptoms Selection */}
-        <div className="bg-white border border-slate-300 rounded-xl p-5 shadow-sm">
-          <p className="text-xs font-bold text-slate-700 mb-2.5">
-            {t('commonSymptoms')}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {COMMON_CHIPS_KEYS.map((chipKey) => {
-              const chipLabel = t('chips')?.[chipKey] || chipKey
-              const active = text.toLowerCase().includes(chipLabel.toLowerCase())
-              return (
-                <button
-                  type="button"
-                  key={chipKey}
-                  onClick={() => toggleChip(chipKey)}
-                  className={`chip ${active ? 'chip-active' : ''}`}
-                >
-                  {chipLabel}
-                </button>
-              )
-            })}
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>{t('voicePrompt')}</span>
+            {text && (
+              <button
+                type="button"
+                onClick={() => setText('')}
+                className="text-red-600 hover:underline font-semibold"
+              >
+                Clear All
+              </button>
+            )}
           </div>
         </div>
 
         {/* Optional Clinical Vitals */}
-        <div className="bg-white border border-slate-300 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <button
             type="button"
             onClick={() => setShowVitals((v) => !v)}
             className="w-full flex items-center justify-between text-left text-xs font-bold text-slate-800 tap-press"
           >
             <span className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-blue-800" />
+              <Activity className="w-4 h-4 text-blue-600" />
               {showVitals ? t('vitalsHide') : t('vitalsToggle')}
             </span>
-            <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${showVitals ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showVitals ? 'rotate-180' : ''}`} />
           </button>
 
           <AnimatePresence>
@@ -245,7 +273,7 @@ export default function SymptomInput() {
                       placeholder="35"
                       value={vitals.age}
                       onChange={(e) => setVitals({ ...vitals, age: e.target.value })}
-                      className="w-full p-2 text-xs rounded border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-700 outline-none"
+                      className="w-full p-2.5 text-xs rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
                     />
                   </div>
 
@@ -256,7 +284,7 @@ export default function SymptomInput() {
                       placeholder="98"
                       value={vitals.spo2}
                       onChange={(e) => setVitals({ ...vitals, spo2: e.target.value })}
-                      className="w-full p-2 text-xs rounded border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-700 outline-none"
+                      className="w-full p-2.5 text-xs rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
                     />
                   </div>
 
@@ -267,7 +295,7 @@ export default function SymptomInput() {
                       placeholder="74"
                       value={vitals.pulse}
                       onChange={(e) => setVitals({ ...vitals, pulse: e.target.value })}
-                      className="w-full p-2 text-xs rounded border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-700 outline-none"
+                      className="w-full p-2.5 text-xs rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
                     />
                   </div>
 
@@ -278,7 +306,7 @@ export default function SymptomInput() {
                       placeholder="120/80"
                       value={vitals.bp}
                       onChange={(e) => setVitals({ ...vitals, bp: e.target.value })}
-                      className="w-full p-2 text-xs rounded border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-700 outline-none"
+                      className="w-full p-2.5 text-xs rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
                     />
                   </div>
                 </div>
@@ -291,7 +319,7 @@ export default function SymptomInput() {
                       onChange={(e) =>
                         setVitals({ ...vitals, isPregnant: e.target.checked })
                       }
-                      className="w-4 h-4 accent-blue-800 rounded"
+                      className="w-4 h-4 accent-blue-600 rounded"
                     />
                     <span>{t('isPregnant')}</span>
                   </label>
@@ -303,7 +331,7 @@ export default function SymptomInput() {
 
         {/* Error notification */}
         {err && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-xs flex items-center gap-2">
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
             <span>{err}</span>
           </div>
@@ -313,17 +341,29 @@ export default function SymptomInput() {
         <button
           type="submit"
           disabled={loading}
-          className="tap-press w-full min-h-[50px] rounded-lg bg-blue-800 hover:bg-blue-900 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
+          className="tap-press w-full min-h-[52px] rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-60 transition-all"
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Analyzing with Gemini AI…</span>
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
+              <span>
+                {language === 'hi'
+                  ? 'स्वास्थ्य प्रोटोकॉल एवं डॉक्टर सलाह जांची जा रही है...'
+                  : language === 'mr'
+                  ? 'वैद्यकीय सल्ला व केंद्र शोधत आहे...'
+                  : 'Evaluating against Clinical Protocols & Finding PHC…'}
+              </span>
             </>
           ) : (
             <>
-              <Send className="w-4 h-4" />
-              <span>{t('analyzeBtn')}</span>
+              <Stethoscope className="w-4 h-4" />
+              <span>
+                {language === 'hi'
+                  ? 'डॉक्टर की सलाह एवं नजदीकी केंद्र देखें (Check Guidance & PHC)'
+                  : language === 'mr'
+                  ? 'डॉक्टरांचा सल्ला व जवळचे केंद्र पहा (Check Guidance & PHC)'
+                  : t('analyzeBtn')}
+              </span>
             </>
           )}
         </button>

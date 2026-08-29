@@ -10,33 +10,28 @@ export default function GpsPermissionPrompt() {
     userCoords,
     gpsStatus,
     requestGpsLocation,
-    setUserCoords,
-    hospitals,
+    applyCoordinates,
     t,
   } = useApp()
 
-  const [selectedDistrict, setSelectedDistrict] = useState('wardha')
+  const [selectedDistrict, setSelectedDistrict] = useState('live')
 
   if (!gpsModalOpen) return null
 
   const DISTRICT_PRESETS = {
-    wardha: { name: 'Wardha Rural District', lat: 20.7453, lng: 78.6022 },
-    nagpur: { name: 'Nagpur District', lat: 21.1458, lng: 79.0882 },
-    pune: { name: 'Pune District Rural', lat: 18.5204, lng: 73.8567 },
-    amravati: { name: 'Amravati District', lat: 20.9374, lng: 77.7796 },
-    nashik: { name: 'Nashik District', lat: 19.9975, lng: 73.7898 },
+    wardha: { name: 'Wardha Rural District', lat: 20.7453, lng: 78.6022, desc: 'Vidarbha Rural Belt' },
+    nagpur: { name: 'Nagpur District Rural', lat: 21.1458, lng: 79.0882, desc: 'Central Health Hub' },
+    gadchiroli: { name: 'Gadchiroli Tribal Block', lat: 20.1809, lng: 80.0034, desc: 'Tribal Adivasi Sector' },
+    amravati: { name: 'Amravati Melghat Sector', lat: 21.2847, lng: 77.3482, desc: 'Melghat Tribal Belt' },
+    pune: { name: 'Pune Rural (Junnar Block)', lat: 19.2081, lng: 73.8767, desc: 'Western Ghats Sector' },
+    nashik: { name: 'Nashik Tribal Belt (Surgana)', lat: 20.5833, lng: 73.6167, desc: 'Northern Tribal Zone' },
   }
 
   const handleSelectDistrict = (key) => {
     setSelectedDistrict(key)
     const preset = DISTRICT_PRESETS[key]
     if (preset) {
-      setUserCoords({
-        lat: preset.lat,
-        lng: preset.lng,
-        active: true,
-        label: preset.name,
-      })
+      applyCoordinates(preset.lat, preset.lng, preset.name, 50)
       setGpsModalOpen(false)
     }
   }
@@ -48,21 +43,21 @@ export default function GpsPermissionPrompt() {
           initial={{ scale: 0.95, opacity: 0, y: 15 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="relative w-full max-w-lg bg-white border border-slate-300 rounded-2xl p-6 sm:p-8 shadow-2xl text-slate-900 overflow-hidden"
+          className="relative w-full max-w-lg bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-2xl text-slate-800 overflow-hidden"
         >
           {/* Top Blue Accent */}
-          <div className="absolute top-0 inset-x-0 h-1.5 bg-blue-800" />
+          <div className="absolute top-0 inset-x-0 h-1.5 bg-blue-600" />
 
           <button
             onClick={() => setGpsModalOpen(false)}
-            className="tap-press absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center border border-slate-200"
+            className="tap-press absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center border border-slate-200"
           >
             <X className="w-4 h-4" />
           </button>
 
           <div className="flex items-center gap-3.5 mb-4">
-            <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 flex items-center justify-center">
-              <Navigation className="w-6 h-6 animate-pulse text-blue-800" />
+            <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
+              <Navigation className="w-6 h-6 animate-pulse text-blue-600" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900 font-display">
@@ -76,13 +71,13 @@ export default function GpsPermissionPrompt() {
 
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5 text-xs text-slate-700 space-y-2 leading-relaxed">
             <div className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>
                 <strong>Accurate Proximity Matching:</strong> Automatically orders health centres from nearest to farthest based on your exact location.
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <ShieldCheck className="w-4 h-4 text-blue-800 shrink-0 mt-0.5" />
+              <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
               <span>
                 <strong>108 Ambulance Dispatch:</strong> Attaches precise GPS coordinates to emergency SMS/WhatsApp alerts for zero-delay ambulance routing.
               </span>
@@ -95,11 +90,11 @@ export default function GpsPermissionPrompt() {
               type="button"
               onClick={() => requestGpsLocation(true)}
               disabled={gpsStatus === 'loading'}
-              className="tap-press w-full min-h-[48px] rounded-lg bg-blue-800 hover:bg-blue-900 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
+              className="tap-press w-full min-h-[48px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
             >
               {gpsStatus === 'loading' ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
                   <span>Detecting GPS Coordinates…</span>
                 </>
               ) : (
@@ -111,17 +106,17 @@ export default function GpsPermissionPrompt() {
             </button>
 
             {/* Manual District Selection Fallback */}
-            <div className="pt-2 border-t border-slate-200">
-              <p className="text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wider">
+            <div className="pt-3 border-t border-slate-200">
+              <p className="text-[11px] font-bold text-slate-700 mb-2 uppercase tracking-wider">
                 Or Select District Sector Manually:
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {Object.entries(DISTRICT_PRESETS).map(([key, item]) => (
                   <button
                     key={key}
                     type="button"
                     onClick={() => handleSelectDistrict(key)}
-                    className="tap-press p-2 rounded border text-left text-xs bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800 font-semibold truncate"
+                    className="tap-press p-2.5 rounded-xl border text-left text-xs bg-slate-50 hover:bg-blue-50/60 border-slate-200 text-slate-800 font-semibold truncate"
                   >
                     {item.name.split(' ')[0]}
                   </button>

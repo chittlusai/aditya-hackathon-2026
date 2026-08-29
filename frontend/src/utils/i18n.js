@@ -22,10 +22,10 @@ export const TRANSLATIONS = {
     // Navigation
     navHome: 'Home',
     navCheck: 'Check Symptoms',
-    navMap: 'Hospital Directory',
+    navMap: 'Hospitals',
     navAsha: 'ASHA Desk',
-    navAdmin: 'PHC Status',
-    navAbout: 'About Portal',
+    navAdmin: 'PHC Admin',
+    navAbout: 'About',
     sosButton: '108 Ambulance',
 
     // Hero & Notice Banner
@@ -187,9 +187,9 @@ export const TRANSLATIONS = {
     // Map Legend & Popups
     mapTitle: 'Primary & Community Health Centres Map Directory',
     mapSub: 'Live district map of 18+ registered Government Primary Health Centres (PHC), Community Health Centres (CHC), and District Hospitals.',
-    mapYouAreHere: '📍 You Are Here',
+    mapYouAreHere: 'You Are Here',
     mapCurrentGps: 'Current GPS Sector',
-    mapTopMatch: '⭐ Top Match',
+    mapTopMatch: 'Top Recommended Centre',
     mapDoctors: 'Doctors on Duty',
     mapSpecialist: 'Specialty',
     mapCall: 'Call',
@@ -200,7 +200,7 @@ export const TRANSLATIONS = {
 
     // ElevenLabs TTS Settings
     elevenLabsVoice: 'Voice Settings',
-    elevenLabsKeyTitle: 'ElevenLabs AI Voice Integration',
+    elevenLabsKeyTitle: 'ElevenLabs Natural Audio Voice',
     elevenLabsKeySub: 'Enter your ElevenLabs API Key to enable ultra-realistic natural voice playback in Hindi, Marathi, or English.',
     apiKeyPlaceholder: 'Enter ElevenLabs API Key (sk_...)',
     saveApiKey: 'Save API Key',
@@ -240,12 +240,12 @@ export const TRANSLATIONS = {
     roleAdmin: 'पीएचसी चिकित्सा अधिकारी',
 
     // Navigation
-    navHome: 'मुख्य पृष्ठ',
+    navHome: 'होम',
     navCheck: 'लक्षण जांच',
-    navMap: 'अस्पताल सूची',
+    navMap: 'अस्पताल',
     navAsha: 'आशा डेस्क',
-    navAdmin: 'पीएचसी स्थिति',
-    navAbout: 'पोर्टल परिचय',
+    navAdmin: 'पीएचसी एडमिन',
+    navAbout: 'परिचय',
     sosButton: '108 एम्बुलेंस',
 
     // Hero & Notice Banner
@@ -407,9 +407,9 @@ export const TRANSLATIONS = {
     // Map Legend & Popups
     mapTitle: 'प्राथमिक एवं सामुदायिक स्वास्थ्य केंद्र मानचित्र डायरेक्टरी',
     mapSub: '18+ पंजीकृत सरकारी प्राथमिक स्वास्थ्य केंद्रों (PHC), सामुदायिक स्वास्थ्य केंद्रों (CHC) और जिला अस्पतालों का लाइव मानचित्र।',
-    mapYouAreHere: '📍 आप यहां हैं',
+    mapYouAreHere: 'आप यहां हैं',
     mapCurrentGps: 'वर्तमान GPS क्षेत्र',
-    mapTopMatch: '⭐ प्राथमिक केंद्र',
+    mapTopMatch: 'प्राथमिक अनुशंसित केंद्र',
     mapDoctors: 'ड्यूटी पर डॉक्टर',
     mapSpecialist: 'विशेषज्ञ',
     mapCall: 'कॉल',
@@ -460,12 +460,12 @@ export const TRANSLATIONS = {
     roleAdmin: 'पीएचसी वैद्यकीय अधिकारी',
 
     // Navigation
-    navHome: 'मुख्य पृष्ठ',
+    navHome: 'मुख्यपृष्ठ',
     navCheck: 'लक्षण तपासणी',
-    navMap: 'रुग्णालय यादी',
+    navMap: 'रुग्णालये',
     navAsha: 'आशा डेस्क',
-    navAdmin: 'पीएचसी स्थिती',
-    navAbout: 'पोर्टल माहिती',
+    navAdmin: 'पीएचसी ॲडमिन',
+    navAbout: 'माहिती',
     sosButton: '108 रुग्णवाहिका',
 
     // Hero & Notice Banner
@@ -627,9 +627,9 @@ export const TRANSLATIONS = {
     // Map Legend & Popups
     mapTitle: 'प्राथमिक व समुदाय आरोग्य केंद्र नकाशा निर्देशिका',
     mapSub: '१८+ नोंदणीकृत शासकीय प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) आणि जिल्हा रुग्णालयांचा थेट नकाशा.',
-    mapYouAreHere: '📍 तुम्ही येथे आहात',
+    mapYouAreHere: 'तुम्ही येथे आहात',
     mapCurrentGps: 'सध्याचे GPS क्षेत्र',
-    mapTopMatch: '⭐ प्राथमिक केंद्र',
+    mapTopMatch: 'प्राथमिक अनुशंसित केंद्र',
     mapDoctors: 'ड्युटीवरील डॉक्टर',
     mapSpecialist: 'तज्ज्ञ',
     mapCall: 'कॉल',

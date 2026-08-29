@@ -1,11 +1,11 @@
-import { Home, Stethoscope, Users, Building2, MapPin, Info, Siren, PhoneCall, ShieldCheck } from 'lucide-react'
+import { Home, Stethoscope, Users, Building2, MapPin, Info, Siren, ShieldCheck } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import LanguageToggle from './LanguageToggle.jsx'
 
 export default function Navbar() {
-  const { screen, go, setSosOpen, t, patientRecords } = useApp()
+  const { screen, go, setSosOpen, language, t, patientRecords } = useApp()
 
-  const links = [
+  const desktopLinks = [
     { key: 'home', label: t('navHome'), icon: Home },
     { key: 'check', label: t('navCheck'), icon: Stethoscope },
     { key: 'map', label: t('navMap'), icon: MapPin },
@@ -14,77 +14,82 @@ export default function Navbar() {
     { key: 'about', label: t('navAbout'), icon: Info },
   ]
 
+  const mobileNavItems = [
+    {
+      key: 'home',
+      label: language === 'hi' ? 'होम' : language === 'mr' ? 'मुख्य' : 'Home',
+      icon: Home,
+    },
+    {
+      key: 'check',
+      label: language === 'hi' ? 'जांच' : language === 'mr' ? 'तपासणी' : 'Check',
+      icon: Stethoscope,
+    },
+    {
+      key: 'map',
+      label: language === 'hi' ? 'अस्पताल' : language === 'mr' ? 'रुग्णालये' : 'Hospitals',
+      icon: MapPin,
+    },
+    {
+      key: 'asha',
+      label: language === 'hi' ? 'आशा' : language === 'mr' ? 'आशा' : 'ASHA',
+      icon: Users,
+      badge: patientRecords.length > 0 ? patientRecords.length : null,
+    },
+    {
+      key: 'admin',
+      label: language === 'hi' ? 'एडमिन' : language === 'mr' ? 'ॲडमिन' : 'Admin',
+      icon: Building2,
+    },
+  ]
+
   return (
     <>
-      {/* Top Official Helpline Strip */}
-      <div className="bg-slate-900 text-slate-200 text-[11px] py-1.5 px-4 sm:px-6 border-b border-slate-800">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="font-semibold text-slate-300 hidden sm:inline">
-              {t('govtNotice')}
-            </span>
-            <span className="flex items-center gap-1 text-red-400 font-bold">
-              <PhoneCall className="w-3 h-3" />
-              <span>{t('ambulanceLine')}</span>
-            </span>
-            <span className="hidden md:inline text-slate-400">|</span>
-            <span className="hidden md:inline text-slate-300">
-              {t('emergencyLine')}
-            </span>
-            <span className="hidden lg:inline text-slate-400">|</span>
-            <span className="hidden lg:inline text-slate-300">
-              {t('healthAdviceLine')}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-          </div>
-        </div>
+      {/* Subtle National Accent Line */}
+      <div className="h-[2px] w-full grid grid-cols-3">
+        <div className="bg-[#FF9933]" />
+        <div className="bg-slate-100" />
+        <div className="bg-[#138808]" />
       </div>
 
-      {/* Main Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-300 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
-          {/* Official Emblem & Portal Title */}
+      {/* Clean, Modern, Single Header Bar */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+          {/* Logo & Portal Brand */}
           <button
             onClick={() => go('home')}
-            className="tap-press flex items-center gap-3 text-left"
+            className="tap-press flex items-center gap-2 text-left shrink-0 group"
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-blue-900 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              <ShieldCheck className="w-6 h-6 text-white" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors">
+              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg sm:text-xl text-blue-950 tracking-tight font-display">
-                  {t('appName')}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium">
-                {t('portalSubtitle')}
-              </p>
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight whitespace-nowrap">
+                <span className="inline sm:hidden">Arogya Setu</span>
+                <span className="hidden sm:inline">{t('appName')}</span>
+              </span>
             </div>
           </button>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1">
-            {links.map((l) => {
+            {desktopLinks.map((l) => {
               const active = screen === l.key
               const Icon = l.icon
               return (
                 <button
                   key={l.key}
                   onClick={() => go(l.key)}
-                  className={`tap-press px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`tap-press px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
                     active
-                      ? 'bg-blue-50 text-blue-900 border-b-2 border-blue-800 rounded-b-none'
-                      : 'text-slate-700 hover:text-blue-900 hover:bg-slate-50'
+                      ? 'bg-blue-50 text-blue-700 font-extrabold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className={`w-3.5 h-3.5 ${active ? 'text-blue-600 stroke-[2.5]' : 'text-slate-400'}`} />
                   <span>{l.label}</span>
                   {l.badge && (
-                    <span className="w-4 h-4 rounded-full bg-blue-700 text-white text-[10px] font-bold flex items-center justify-center">
+                    <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
                       {l.badge}
                     </span>
                   )}
@@ -93,51 +98,48 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Emergency 108 Trigger */}
-          <div className="flex items-center gap-2">
+          {/* Right Utilities: Language Selector & Emergency Button */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <LanguageToggle />
+
             <button
               type="button"
               onClick={() => setSosOpen(true)}
-              className="tap-press inline-flex items-center gap-1.5 px-3.5 sm:px-4 min-h-[38px] rounded-lg bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-sm"
+              className="tap-press inline-flex items-center gap-1 px-2.5 sm:px-3.5 h-8 sm:h-9 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] sm:text-xs font-bold shadow-xs whitespace-nowrap"
               aria-label={t('sosButton')}
             >
-              <Siren className="w-4 h-4" />
-              <span>{t('sosButton')}</span>
+              <Siren className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{t('sosButton')}</span>
+              <span className="inline sm:hidden">108</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-300 pb-[env(safe-area-inset-bottom)] shadow-lg">
-        <ul className="grid grid-cols-5 h-15">
-          {[
-            { key: 'home', label: t('navHome'), icon: Home },
-            { key: 'check', label: t('navCheck'), icon: Stethoscope },
-            { key: 'map', label: t('navMap'), icon: MapPin },
-            { key: 'asha', label: t('navAsha'), icon: Users, badge: patientRecords.length > 0 ? patientRecords.length : null },
-            { key: 'admin', label: t('navAdmin'), icon: Building2 },
-          ].map((l) => {
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 pb-[env(safe-area-inset-bottom)] shadow-lg">
+        <ul className="grid grid-cols-5 h-14">
+          {mobileNavItems.map((l) => {
             const Icon = l.icon
             const active = screen === l.key
             return (
               <li key={l.key} className="flex">
                 <button
                   onClick={() => go(l.key)}
-                  className={`tap-press w-full flex flex-col items-center justify-center gap-1 text-[11px] font-bold transition-all py-1 ${
-                    active ? 'text-blue-900 font-extrabold bg-blue-50/70 border-t-2 border-blue-800' : 'text-slate-600 hover:text-slate-900'
+                  className={`tap-press w-full flex flex-col items-center justify-center gap-0.5 text-[10.5px] font-bold transition-all py-1 ${
+                    active ? 'text-blue-700 font-extrabold bg-blue-50/70' : 'text-slate-500 hover:text-slate-900'
                   }`}
                   aria-current={active ? 'page' : undefined}
                 >
                   <div className="relative">
-                    <Icon className="w-5 h-5" />
+                    <Icon className={`w-5 h-5 ${active ? 'text-blue-600 stroke-[2.5]' : 'text-slate-400'}`} />
                     {l.badge && (
-                      <span className="absolute -top-1 -right-2 w-3.5 h-3.5 rounded-full bg-blue-700 text-white text-[9px] font-bold flex items-center justify-center">
+                      <span className="absolute -top-1 -right-2 w-3.5 h-3.5 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center">
                         {l.badge}
                       </span>
                     )}
                   </div>
-                  <span className="truncate max-w-[56px]">{l.label}</span>
+                  <span className="leading-none text-center whitespace-nowrap">{l.label}</span>
                 </button>
               </li>
             )

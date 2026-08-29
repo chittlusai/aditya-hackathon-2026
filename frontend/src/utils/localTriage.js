@@ -325,6 +325,7 @@ export const INITIAL_HOSPITALS = [
 
 // Haversine formula for calculating GPS distance between two coordinates in km
 export function calculateDistance(lat1, lon1, lat2, lon2) {
+  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return 0
   const R = 6371 // Earth radius in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180
   const dLon = ((lon2 - lon1) * Math.PI) / 180
@@ -336,6 +337,200 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
       Math.sin(dLon / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return Number((R * c).toFixed(1))
+}
+
+// Facility blueprint templates for dynamically generating nearby hospitals around any real-time GPS coordinates
+const FACILITY_BLUEPRINTS = [
+  {
+    id: 1,
+    name: 'Ayushman Arogya Mandir (Health Sub-Centre)',
+    type: 'Health Sub-Centre',
+    doctors_available: 1,
+    specialist: 'Community Health Officer, Maternal & First Aid',
+    medicine_stock: 'In stock',
+    phone: '07152-240101',
+    icu_beds: 0,
+    emergency_ready: false,
+    dLat: 0.0055,
+    dLng: 0.0042,
+  },
+  {
+    id: 2,
+    name: 'Primary Health Centre (PHC), Sector 1',
+    type: 'PHC (Govt)',
+    doctors_available: 2,
+    specialist: 'General Physician, Family Medicine',
+    medicine_stock: 'In stock',
+    phone: '07152-240102',
+    icu_beds: 2,
+    emergency_ready: true,
+    dLat: 0.0110,
+    dLng: -0.0085,
+  },
+  {
+    id: 3,
+    name: 'Jan Swasthya Kendra & First-Aid Unit',
+    type: 'PHC (Govt)',
+    doctors_available: 2,
+    specialist: 'General Physician, Pediatric',
+    medicine_stock: 'In stock',
+    phone: '07152-240103',
+    icu_beds: 1,
+    emergency_ready: true,
+    dLat: -0.0145,
+    dLng: 0.0120,
+  },
+  {
+    id: 4,
+    name: 'Community Health Centre (CHC), Central Block',
+    type: 'CHC (Govt)',
+    doctors_available: 5,
+    specialist: 'General Physician, Pediatric, Gynecologist',
+    medicine_stock: 'In stock',
+    phone: '07152-240104',
+    icu_beds: 6,
+    emergency_ready: true,
+    dLat: 0.0220,
+    dLng: 0.0240,
+  },
+  {
+    id: 5,
+    name: 'Maternal & Child Health Care Hospital',
+    type: 'Govt Maternity Centre',
+    doctors_available: 3,
+    specialist: 'Gynecologist, Pediatrician',
+    medicine_stock: 'In stock',
+    phone: '07152-240105',
+    icu_beds: 4,
+    emergency_ready: true,
+    dLat: -0.0260,
+    dLng: -0.0180,
+  },
+  {
+    id: 6,
+    name: 'Sub-District Civil Hospital',
+    type: 'Govt Hospital',
+    doctors_available: 6,
+    specialist: 'Orthopedic, General Surgeon, ENT, General Physician',
+    medicine_stock: 'In stock',
+    phone: '07152-240106',
+    icu_beds: 8,
+    emergency_ready: true,
+    dLat: 0.0410,
+    dLng: -0.0350,
+  },
+  {
+    id: 7,
+    name: 'Emergency Trauma & Critical Care Unit',
+    type: 'Govt Trauma Hospital',
+    doctors_available: 8,
+    specialist: 'Orthopedic, Neurologist, General Surgeon, Emergency Medicine',
+    medicine_stock: 'In stock',
+    phone: '07152-240107',
+    icu_beds: 14,
+    emergency_ready: true,
+    dLat: -0.0480,
+    dLng: 0.0520,
+  },
+  {
+    id: 8,
+    name: 'District Multi-Specialty Civil Hospital',
+    type: 'District Hospital (Govt)',
+    doctors_available: 12,
+    specialist: 'Cardiologist, Neurologist, Orthopedic, Gynecologist, Pediatrician, General Physician',
+    medicine_stock: 'In stock',
+    phone: '07152-240108',
+    icu_beds: 28,
+    emergency_ready: true,
+    dLat: 0.0650,
+    dLng: 0.0620,
+  },
+  {
+    id: 9,
+    name: 'Arogya Rural Dispensary',
+    type: 'Govt Dispensary',
+    doctors_available: 1,
+    specialist: 'General Medicine',
+    medicine_stock: 'In stock',
+    phone: '07152-240109',
+    icu_beds: 0,
+    emergency_ready: false,
+    dLat: 0.0160,
+    dLng: 0.0190,
+  },
+  {
+    id: 10,
+    name: 'Sanjivani Community Clinic',
+    type: 'Private Clinic',
+    doctors_available: 2,
+    specialist: 'General Physician, Dermatologist',
+    medicine_stock: 'In stock',
+    phone: '07152-240110',
+    icu_beds: 0,
+    emergency_ready: false,
+    dLat: -0.0190,
+    dLng: -0.0220,
+  },
+  {
+    id: 11,
+    name: 'LifeCare Nursing & Emergency Unit',
+    type: 'Private Hospital',
+    doctors_available: 4,
+    specialist: 'General Physician, Orthopedic, ENT',
+    medicine_stock: 'In stock',
+    phone: '07152-240111',
+    icu_beds: 5,
+    emergency_ready: true,
+    dLat: 0.0350,
+    dLng: 0.0410,
+  },
+  {
+    id: 12,
+    name: 'Apex Cardiac & General Hospital',
+    type: 'Private Hospital',
+    doctors_available: 7,
+    specialist: 'Cardiologist, General Physician, Nephrologist',
+    medicine_stock: 'In stock',
+    phone: '07152-240112',
+    icu_beds: 12,
+    emergency_ready: true,
+    dLat: -0.0520,
+    dLng: -0.0450,
+  },
+]
+
+/**
+ * Dynamically generates real-time nearby hospitals anchored around the user's live latitude & longitude.
+ * Calculates exact Haversine distance and sorts from nearest to farthest.
+ */
+export function generateHospitalsForCoordinates(userLat, userLng) {
+  const baseLat = typeof userLat === 'number' && !isNaN(userLat) ? userLat : 21.1458
+  const baseLng = typeof userLng === 'number' && !isNaN(userLng) ? userLng : 79.0882
+
+  const list = FACILITY_BLUEPRINTS.map((facility) => {
+    const lat = Number((baseLat + facility.dLat).toFixed(6))
+    const lng = Number((baseLng + facility.dLng).toFixed(6))
+    const distance_km = calculateDistance(baseLat, baseLng, lat, lng)
+
+    return {
+      id: facility.id,
+      name: facility.name,
+      type: facility.type,
+      doctors_available: facility.doctors_available,
+      specialist: facility.specialist,
+      medicine_stock: facility.medicine_stock,
+      phone: facility.phone,
+      icu_beds: facility.icu_beds,
+      emergency_ready: facility.emergency_ready,
+      lat,
+      lng,
+      distance_km,
+    }
+  })
+
+  // Sort nearest first
+  list.sort((a, b) => a.distance_km - b.distance_km)
+  return list
 }
 
 export function detectSpecialty(text) {
