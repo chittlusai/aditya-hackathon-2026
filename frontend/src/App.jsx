@@ -13,6 +13,7 @@ import EmergencyModal from './components/EmergencyModal.jsx'
 import DigitalHealthSlip from './components/DigitalHealthSlip.jsx'
 import GpsPermissionPrompt from './components/GpsPermissionPrompt.jsx'
 import AdminAuthModal from './components/AdminAuthModal.jsx'
+import LanguageSelectModal from './components/LanguageSelectModal.jsx'
 import { PhoneCall } from 'lucide-react'
 
 function Shell() {
@@ -33,6 +34,9 @@ function Shell() {
         {screen === 'map' && <HospitalDirectory />}
         {screen === 'about' && <About />}
       </main>
+
+      {/* Language Selection Modal (First visit & On-demand) */}
+      <LanguageSelectModal />
 
       {/* Admin Auth Modal Gate */}
       <AdminAuthModal />

@@ -32,7 +32,21 @@ export async function analyzeSymptomsWithGemini(
   const langNames = {
     en: 'English',
     hi: 'Hindi (हिन्दी)',
+    te: 'Telugu (తెలుగు)',
+    ta: 'Tamil (தமிழ்)',
     mr: 'Marathi (मराठी)',
+    bn: 'Bengali (বাংলা)',
+    gu: 'Gujarati (ગુજરાતી)',
+    kn: 'Kannada (ಕನ್ನಡ)',
+    ml: 'Malayalam (മലയാളം)',
+    pa: 'Punjabi (ਪੰਜਾਬੀ)',
+    or: 'Odia (ଓଡ଼ିଆ)',
+    as: 'Assamese (অসমীয়া)',
+    ur: 'Urdu (اردو)',
+    sa: 'Sanskrit (संस्कृतम्)',
+    mai: 'Maithili (मैथिली)',
+    kok: 'Konkani (कोंकणी)',
+    ne: 'Nepali (नेपाली)',
   }
   const targetLanguage = langNames[language] || 'English'
 

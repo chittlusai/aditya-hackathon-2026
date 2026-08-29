@@ -1,22 +1,26 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mic, AlertCircle, CheckCircle, Volume2 } from 'lucide-react'
+import { Mic, AlertCircle, Volume2, Check } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
+import { INDIAN_LANGUAGES } from '../utils/i18n.js'
 
 /**
- * VoiceInput — Robust Multilingual Speech-to-Text
- * Supports English (en-IN), Hindi (hi-IN), and Marathi (mr-IN)
+ * VoiceInput — High-Accuracy Multilingual Speech-to-Text
+ * Supports all 17 Official / Spoken Indian Languages via BCP-47 Speech Recognition.
+ * Built with anti-duplication transcript buffering so each spoken utterance is processed exactly ONCE.
  */
 export default function VoiceInput({ onTranscript, disabled = false }) {
   const { language, t } = useApp()
   const [isListening, setIsListening] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [interimPreview, setInterimPreview] = useState('')
   const recognitionRef = useRef(null)
+  const transcriptBufferRef = useRef('')
 
-  const langCodeMap = {
-    en: 'en-IN',
-    hi: 'hi-IN',
-    mr: 'mr-IN',
+  // Look up BCP-47 speech recognition language code
+  const currentLangObj = INDIAN_LANGUAGES.find((l) => l.code === language) || {
+    speechCode: 'en-IN',
+    label: 'English',
   }
 
   // Cleanup on unmount
@@ -34,12 +38,15 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
   const startListening = () => {
     setErrorMessage('')
+    setInterimPreview('')
+    transcriptBufferRef.current = ''
+
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition
 
     if (!SpeechRecognition) {
       setErrorMessage(
-        'Speech recognition is not supported in this browser. Please use Chrome, Edge, or an updated mobile browser.'
+        'Speech recognition is not supported in this browser. Please use Google Chrome, Edge, or an updated mobile browser.'
       )
       return
     }
@@ -56,24 +63,33 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       recognition.continuous = false
       recognition.interimResults = true
       recognition.maxAlternatives = 1
-      recognition.lang = langCodeMap[language] || 'en-IN'
+      recognition.lang = currentLangObj.speechCode || 'en-IN'
 
       recognition.onstart = () => {
         setIsListening(true)
         setErrorMessage('')
+        transcriptBufferRef.current = ''
       }
 
       recognition.onresult = (event) => {
-        let finalTranscript = ''
+        let finalChunk = ''
+        let interimChunk = ''
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript
-          if (event.results[i].isFinal || transcript.trim()) {
-            finalTranscript += transcript
+          const res = event.results[i]
+          if (res.isFinal) {
+            finalChunk += res[0].transcript + ' '
+          } else {
+            interimChunk += res[0].transcript
           }
         }
-        if (finalTranscript.trim()) {
-          onTranscript(finalTranscript)
+
+        if (finalChunk.trim()) {
+          transcriptBufferRef.current = (transcriptBufferRef.current + ' ' + finalChunk).trim()
         }
+
+        // Show live visual preview of speaking without committing to parent state yet
+        setInterimPreview(interimChunk || transcriptBufferRef.current)
       }
 
       recognition.onerror = (event) => {
@@ -83,13 +99,20 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         } else if (event.error === 'no-speech') {
           setErrorMessage('No speech detected. Please speak closer to the microphone.')
         } else if (event.error !== 'aborted') {
-          setErrorMessage(`Microphone error: ${event.error}`)
+          setErrorMessage(`Microphone notice: ${event.error}`)
         }
         setIsListening(false)
       }
 
       recognition.onend = () => {
         setIsListening(false)
+        const finalRecordedText = transcriptBufferRef.current.trim() || interimPreview.trim()
+        if (finalRecordedText) {
+          // Commit to parent input field ONCE on speech completion
+          onTranscript(finalRecordedText)
+        }
+        setInterimPreview('')
+        transcriptBufferRef.current = ''
       }
 
       recognitionRef.current = recognition
@@ -117,29 +140,45 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         disabled={disabled}
         onClick={isListening ? stopListening : startListening}
         aria-label={isListening ? t('stopVoice') : t('speakNow')}
-        className={`tap-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg
-                    text-xs font-bold transition-all shadow-sm border ${
+        className={`tap-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl
+                    text-xs font-bold transition-all shadow-2xs border ${
                       isListening
-                        ? 'bg-red-600 text-white border-red-700 animate-pulse'
-                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                        ? 'bg-red-600 text-white border-red-700 animate-pulse ring-2 ring-red-500/20'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
                     }`}
       >
         <Mic className={`w-3.5 h-3.5 ${isListening ? 'text-white' : 'text-blue-600'}`} />
         <span>{isListening ? t('stopVoice') : t('speakNow')}</span>
+        <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${isListening ? 'bg-red-700 text-white' : 'bg-blue-50 text-blue-700'}`}>
+          {currentLangObj.short || currentLangObj.code?.toUpperCase()}
+        </span>
       </button>
 
-      {/* Listening notification or error banner */}
+      {/* Real-time Listening Pill with Live Speech Preview */}
       <AnimatePresence>
         {isListening && (
           <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="absolute top-full mt-1.5 right-0 z-30 w-64 p-2.5 rounded-xl
-                       bg-slate-900 text-white text-[11px] font-semibold shadow-xl border border-slate-800 flex items-center gap-2"
+            className="absolute top-full mt-1.5 right-0 z-30 w-72 p-3 rounded-2xl
+                       bg-slate-900 text-white text-xs font-medium shadow-xl border border-slate-800 space-y-1.5"
           >
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-            <span>{t('listeningNow')}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                <span className="font-bold text-[11px] text-red-400">
+                  {t('listeningNow')} ({currentLangObj.label})
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-mono">1x Capture</span>
+            </div>
+
+            {interimPreview && (
+              <div className="p-2 rounded-lg bg-slate-800/80 border border-slate-700 text-emerald-300 text-xs italic">
+                "{interimPreview}"
+              </div>
+            )}
           </motion.div>
         )}
 

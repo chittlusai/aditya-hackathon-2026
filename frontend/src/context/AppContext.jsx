@@ -6,16 +6,10 @@
  * and emergency SOS modal.
  */
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
-import { TRANSLATIONS } from '../utils/i18n.js'
+import { TRANSLATIONS, INDIAN_LANGUAGES } from '../utils/i18n.js'
 import { INITIAL_HOSPITALS, calculateDistance, generateHospitalsForCoordinates } from '../utils/localTriage.js'
 
 const AppContext = createContext(null)
-
-const LANGS = [
-  { code: 'en', label: 'English', short: 'EN' },
-  { code: 'hi', label: 'हिन्दी', short: 'HI' },
-  { code: 'mr', label: 'मराठी', short: 'MR' },
-]
 
 const PATIENTS_STORAGE_KEY = 'asl:patient_records_v1'
 const HOSPITALS_STORAGE_KEY = 'asl:hospital_capacity_v1'
@@ -24,6 +18,13 @@ const GPS_PERMISSION_STORAGE_KEY = 'asl:gps_permission_granted'
 export function AppProvider({ children }) {
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('asl:preferred_lang') || 'en'
+  })
+  const [langModalOpen, setLangModalOpen] = useState(() => {
+    try {
+      return localStorage.getItem('asl:lang_selected_first_time') !== 'true'
+    } catch {
+      return false
+    }
   })
   const [role, setRole] = useState('patient') // 'patient' | 'asha' | 'admin'
   const [screen, setScreen] = useState('home') // 'home' | 'check' | 'result' | 'asha' | 'admin' | 'map' | 'about'
@@ -259,7 +260,9 @@ export function AppProvider({ children }) {
         language,
         setLanguage: changeLanguage,
         t,
-        LANGS,
+        INDIAN_LANGUAGES,
+        langModalOpen,
+        setLangModalOpen,
         role,
         setRole,
         screen,
