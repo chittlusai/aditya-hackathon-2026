@@ -135,47 +135,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Quick Visual Color Guide (Traffic Light System) */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs">
-        <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping" />
-            <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-              {language === 'hi' ? 'रंगों का मतलब (3-Color Triage Guide)' : language === 'mr' ? 'रंगांचा अर्थ (3-Color Triage Guide)' : 'Urgency Color Guide'}
-            </h3>
-          </div>
-          <span className="text-[11px] text-slate-500 font-medium">
-            {language === 'hi' ? 'आपातकाल के अनुसार रंग' : language === 'mr' ? 'तीव्रतेनुसार रंग' : 'Follow the colors'}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 flex items-start gap-2.5">
-            <span className="text-base leading-none">🟢</span>
-            <div>
-              <strong className="block text-emerald-900 font-bold">{language === 'hi' ? 'हरा: सामान्य (Mild)' : language === 'mr' ? 'हिरवा: सामान्य (Mild)' : 'Green: Mild'}</strong>
-              <span className="text-[11px] text-emerald-800 leading-tight block mt-0.5">{language === 'hi' ? 'घर पर आराम करें या उप-केंद्र से सलाह लें।' : language === 'mr' ? 'घरी विश्रांती घ्या किंवा उपकेंद्राचा सल्ला घ्या.' : 'Manage at home or visit local Sub-Centre.'}</span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-start gap-2.5">
-            <span className="text-base leading-none">🟡</span>
-            <div>
-              <strong className="block text-amber-900 font-bold">{language === 'hi' ? 'पीला: मध्यम (Moderate)' : language === 'mr' ? 'पिवळा: मध्यम (Moderate)' : 'Yellow: Moderate'}</strong>
-              <span className="text-[11px] text-amber-800 leading-tight block mt-0.5">{language === 'hi' ? 'आज ही प्राथमिक स्वास्थ्य केंद्र (PHC) में डॉक्टर को दिखाएं।' : language === 'mr' ? 'आजच प्राथमिक आरोग्य केंद्रात डॉक्टरांना दाखवा.' : 'Visit your nearest PHC doctor today.'}</span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-950 flex items-start gap-2.5">
-            <span className="text-base leading-none">🔴</span>
-            <div>
-              <strong className="block text-red-900 font-bold">{language === 'hi' ? 'लाल: आपातकाल (Emergency)' : language === 'mr' ? 'लाल: आपत्कालीन (Emergency)' : 'Red: Emergency'}</strong>
-              <span className="text-[11px] text-red-800 leading-tight block mt-0.5">{language === 'hi' ? 'तुरंत अस्पताल जाएं या 108 एम्बुलेंस बुलाएं।' : language === 'mr' ? 'तातडीने रुग्णालयात जा किंवा १०८ बोलवा.' : 'Immediate hospital visit or call 108 ambulance.'}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* 2. Three Big Primary Action Cards (Simple & Unambiguous) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         {/* Card 1: Check Symptoms */}
