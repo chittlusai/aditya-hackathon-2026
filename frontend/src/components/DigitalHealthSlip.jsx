@@ -51,9 +51,11 @@ export default function DigitalHealthSlip({ slipData, onClose }) {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-700 text-white flex items-center justify-center font-bold shadow-xs">
-                <ShieldCheck className="w-6 h-6 text-white" />
-              </div>
+              <img
+                src="/logo.png"
+                alt="Arogya Setu"
+                className="w-10 h-10 object-contain rounded-xl p-0.5 border border-blue-100 bg-white shadow-2xs"
+              />
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 font-display uppercase tracking-tight">
                   {t('slipHeader')}

@@ -71,14 +71,21 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Main Title & Subtitle */}
-          <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
-              {t('appName')}
-            </h1>
-            <p className="text-xs sm:text-sm font-semibold text-blue-700 mt-0.5">
-              {t('portalSubtitle')}
-            </p>
+          {/* Main Title & Subtitle with Logo */}
+          <div className="flex items-center gap-3.5 sm:gap-4">
+            <img
+              src="/logo.png"
+              alt="Arogya Setu Logo"
+              className="w-14 h-14 sm:w-16 sm:h-16 object-contain rounded-2xl p-1 bg-white border border-blue-100 shadow-xs shrink-0"
+            />
+            <div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight font-display">
+                {t('appName')}
+              </h1>
+              <p className="text-xs sm:text-sm font-semibold text-blue-700 mt-0.5">
+                {t('portalSubtitle')}
+              </p>
+            </div>
           </div>
 
           <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">

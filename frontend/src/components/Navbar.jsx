@@ -58,15 +58,20 @@ export default function Navbar() {
           {/* Logo & Portal Brand */}
           <button
             onClick={() => go('home')}
-            className="tap-press flex items-center gap-2 text-left shrink-0 group"
+            className="tap-press flex items-center gap-2.5 text-left shrink-0 group"
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs group-hover:bg-blue-700 transition-colors">
-              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight whitespace-nowrap">
+            <img
+              src="/logo.png"
+              alt="Arogya Setu Logo"
+              className="w-8 h-8 sm:w-9 sm:h-9 object-contain rounded-xl shadow-2xs border border-blue-100/60 p-0.5 bg-white group-hover:scale-105 transition-transform"
+            />
+            <div className="flex flex-col">
+              <span className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight leading-none whitespace-nowrap">
                 <span className="inline sm:hidden">Arogya Setu</span>
                 <span className="hidden sm:inline">{t('appName')}</span>
+              </span>
+              <span className="text-[10px] text-blue-600 font-bold tracking-wide uppercase mt-0.5 hidden sm:inline">
+                Rural Health Mission
               </span>
             </div>
           </button>
