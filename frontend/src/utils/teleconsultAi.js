@@ -1,7 +1,7 @@
 /**
  * teleconsultAi.js — Interactive Multilingual AI Teleconsultation & Vision Engine
  * Supports natural conversational dialogue, greeting detection, medical question answering,
- * real-time facial expression analysis, and tailored clinical prescriptions in all 17 Indian languages.
+ * real-time facial expression analysis, and fully categorized medicine timing schedules.
  */
 
 export const DEFAULT_GEMINI_API_KEY =
@@ -19,13 +19,13 @@ export const DOCTOR_PROFILE = {
 }
 
 export const DOCTOR_GREETINGS = {
-  te: 'నమస్కారం! నేను డాక్టర్ రాజేష్ శర్మ. మీ ఆరోగ్యం ఎలా ఉంది? మీకు ఎక్కడ నొప్పి లేదా సమస్య ఉందో మైక్ నొక్కి చెప్పండి.',
+  te: 'నమస్కారం! నేను డాక్టర్ రాజేష్ శర్మ. మీ ఆరోగ్యం ఎలా ఉంది? మీ సమస్యను లేదా ఎక్కడ నొప్పి ఉందో మైక్ నొక్కి చెప్పండి.',
   hi: 'नमस्ते! मैं डॉ. राजेश शर्मा हूँ। आपको क्या तकलीफ या दर्द हो रहा है? कृपया मुझे बताएं।',
   ta: 'வணக்கம்! நான் டாக்டர் ராஜேஷ் சர்மா. உங்கள் உடல்நலம் எப்படி உள்ளது? உங்கள் பிரச்சனையை சொல்லுங்கள்.',
   mr: 'नमस्कार! मी डॉ. राजेश शर्मा. तुम्हाला काय त्रास किंवा दुखणे होत आहे? कृपया मला सांगा.',
   bn: 'নমস্কার! আমি ডক্টর রাজেশ শর্মা। আপনার কি শারীরিক সমস্যা বা কষ্ট হচ্ছে? আমাকে বলুন।',
-  kn: 'ನಮಸ್ಕಾರ! ನಾನು ಡಾಕ್ಟರ್ ರಾಜೇಶ್ ಶರ್ಮಾ. ನಿಮಗೆ ಏನು ತೊಂದರೆ లేదా నోವಿದೆ? ದಯవిಟ್ಟು ತಿಳಿಸಿ.',
-  ml: 'നമസ്കാരം! ഞാൻ ഡോക്ടർ രാജേഷ് ശർമ്മ. നിങ്ങൾക്ക് എന്താണ് അസുഖം? ദയവായി പറയൂ.',
+  kn: 'ನಮಸ್ಕಾರ! ನಾನು ಡಾಕ್ಟರ್ ರಾಜೇಶ್ ಶರ್ಮಾ. ನಿಮಗೆ ಏನು ತೊಂದರೆ లేదా నోವಿದೆ? దయవిಟ್ಟು ತಿಳಿಸಿ.',
+  ml: 'നമസ്കാരം! ഞാൻ ഡോക്ടർ രാജേഷ് ശർമ്മ. നിങ്ങൾക്ക് എന്താണ് അസുఖം? ദയവായി പറയൂ.',
   gu: 'નમસ્તે! હું ડૉ. રાજેશ શર્મા છું. તમને શું તકલીફ થઈ રહી છે? જણાવો.',
   pa: 'ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ! ਮੈਂ ਡਾਕਟਰ ਰਾਜੇਸ਼ ਹਾਂ। ਤੁਹਾਨੂੰ ਕੀ ਤਕਲੀਫ ਹੈ? ਦੱਸੋ।',
   or: 'ନମସ୍କାର! ମୁଁ ଡାକ୍ତର ରାଜେଶ ଶର୍ମା। ଆପଣଙ୍କୁ କଣ ଅସୁବିଧା ହେଉଛି? କୁହନ୍ତୁ।',
@@ -98,7 +98,7 @@ export async function getDoctorConsultResponse(
     try {
       const prompt = `
 You are Dr. Rajesh Sharma (MBBS, MD General Medicine), Chief Medical Officer.
-You are in a live video teleconsultation with a patient.
+You are in an active live video teleconsultation with a patient.
 
 PATIENT SAYS / ASKS:
 "${trimmed}"
@@ -120,7 +120,11 @@ INSTRUCTIONS:
    C. REPORTING SYMPTOMS OR INJURY (e.g., "fever", "headache", "stomach pain", "cut", "cough", "vomiting"):
       - Formulate an accurate diagnosis strictly matching the reported symptoms (DO NOT assume fever if not reported).
       - Provide a warm medical reply in ${targetLangName}.
-      - Prescribe appropriate medicines with dosages and schedules.
+      - Categorize EVERY single prescribed tablet into EXACT DAILY TIMING SLOTS:
+        * Morning (☀️ 08:00 AM)
+        * Afternoon (🌤️ 01:30 PM)
+        * Night (🌙 08:30 PM)
+        * SOS Emergency (⚡ As Needed)
       - Provide home recovery care points in ${targetLangName}.
 
 2. If an image snapshot is provided, visually inspect facial expressions, emotional state, signs of pain, and any skin lacerations or injuries.
@@ -138,13 +142,16 @@ RETURN VALID JSON ONLY matching this schema:
   },
   "medicines": [
     {
-      "name": "Medicine Name with Strength",
-      "dosage": "1 Tablet / Syrup",
-      "timing": "After Food / Before Food / Empty Stomach",
-      "schedule": "Morning (☀️) • Afternoon (🌤️) • Night (🌙)",
-      "frequency": "TDS / BD / OD",
+      "name": "Medicine Name with Strength (e.g. Paracetamol 650mg Tablet)",
+      "dosage": "1 Tablet",
+      "slot": "Morning" | "Afternoon" | "Night" | "Morning & Night" | "TDS (All 3 Slots)" | "SOS",
+      "exactTime": "08:00 AM" | "01:30 PM" | "08:30 PM" | "08:00 AM, 01:30 PM, 08:30 PM" | "Immediate SOS",
+      "timing": "After Food" | "Before Food" | "Empty Stomach (30 mins before breakfast)",
+      "foodInstruction": "Take after meals / Before food",
+      "schedule": "Morning (☀️ 08:00 AM) • Afternoon (🌤️ 01:30 PM) • Night (🌙 08:30 PM)",
+      "frequency": "TDS / BD / OD / SOS",
       "duration": "3 to 5 Days",
-      "purpose": "Usage purpose"
+      "purpose": "Precise usage purpose"
     }
   ],
   "recoveryAdvice": [
@@ -200,7 +207,7 @@ RETURN VALID JSON ONLY matching this schema:
   // 2. High-Quality Context-Aware Conversational Fallback Engine
   const lower = trimmed.toLowerCase()
 
-  // GREETINGS / CHITCHAT DETECTION (e.g. "hi", "hello", "hail", "hey", "namaste", "how are you")
+  // GREETINGS / CHITCHAT DETECTION
   const greetingPatterns = [
     'hi',
     'hello',
@@ -273,7 +280,7 @@ RETURN VALID JSON ONLY matching this schema:
     }
   }
 
-  // GENERAL MEDICAL QUESTIONS (e.g. "what should I eat?", "can I drink milk?", "diet", "water")
+  // GENERAL MEDICAL QUESTIONS / DIET
   if (
     lower.includes('eat') ||
     lower.includes('food') ||
@@ -287,13 +294,13 @@ RETURN VALID JSON ONLY matching this schema:
     let speech = ''
     if (langKey === 'te') {
       speech =
-        'ఆరోగ్యంగా ఉండటానికి రోజూ పుష్కలంగా కాచి చల్లార్చిన నీరు త్రాగండి. తేలికగా జీర్ణమయ్యే పప్పు అన్నం, ఆకుకూరలు, తాజా పండ్లు తీసుకోండి. నూనె మరియు జంక్ ఫుడ్ తగ్గించండి.'
+        'ఆరోగ్యంగా ఉండటానికి రోజూ పుష్కలంగా కాచి చల్లార్చిన నీరు త్రాగండి. ఉదయం 8:00 AM కి తేలికపాటి బ్రేక్‌ఫాస్ట్, మధ్యాహ్నం పప్పు అన్నం, రాత్రి తక్కువ ఆహారం తీసుకోండి.'
     } else if (langKey === 'hi') {
       speech =
-        'अच्छे स्वास्थ्य के लिए रोज उबला हुआ गुनगुना पानी पिएं। सुपाच्य और ताजा घर का बना भोजन जैसे दाल-चावल, हरी सब्जियां और मौसमी फल खाएं। तेल और तीखा कम खाएं।'
+        'अच्छे स्वास्थ्य के लिए रोज उबला हुआ गुनगुना पानी पिएं। सुबह 8:00 AM पर नाश्ता, दोपहर 1:30 PM पर सुपाच्य भोजन और रात में हल्का खाना खाएं।'
     } else {
       speech =
-        'For optimal health, drink plenty of clean boiled water throughout the day. Eat warm, light home-cooked meals including green vegetables, lentils, and fresh fruits. Avoid oily foods.'
+        'For optimal health, drink plenty of clean boiled water throughout the day. Eat warm, light home-cooked meals: Morning at 08:00 AM, Lunch at 01:30 PM, and light dinner at 08:30 PM.'
     }
 
     return {
@@ -308,11 +315,14 @@ RETURN VALID JSON ONLY matching this schema:
       },
       medicines: [
         {
-          name: 'Multivitamin & Zinc Mineral Supplement',
+          name: 'Multivitamin & Zinc Mineral Tablet',
           dosage: '1 Tablet',
-          timing: 'After Breakfast',
-          schedule: 'Morning (☀️)',
-          frequency: 'Once daily',
+          slot: 'Morning',
+          exactTime: '08:00 AM',
+          timing: '30 Mins After Breakfast',
+          foodInstruction: 'Take with a glass of water after breakfast',
+          schedule: 'Morning (☀️ 08:00 AM)',
+          frequency: 'Once daily (OD)',
           duration: '30 Days',
           purpose: 'General vitality, immune boost & nutrition',
         },
@@ -338,13 +348,13 @@ RETURN VALID JSON ONLY matching this schema:
     let speech = ''
     if (langKey === 'te') {
       speech =
-        'మీరు తలనొప్పి ఉందని చెప్పారు. ఇది పని ఒత్తిడి లేదా అలసట వల్ల కావచ్చు. నేను తలనొప్పి తగ్గడానికి అవసరమైన మందులు రాశాను. చీకటి గదిలో కాసేపు విశ్రాంతి తీసుకోండి.'
+        'మీరు తలనొప్పి ఉందని చెప్పారు. ఉదయం 08:00 AM మరియు రాత్రి 08:30 PM కి భోజనం తర్వాత వేసుకోవడానికి పారాసిటమాల్ రాశాను. విశ్రాంతి తీసుకోండి.'
     } else if (langKey === 'hi') {
       speech =
-        'मैंने आपकी सिरदर्द की समस्या को समझा है। यह तनाव या थकान के कारण हो सकता है। मैंने दर्द निवारक दवा लिख दी है। पर्याप्त पानी पिएं और शांत कमरे में विश्राम करें।'
+        'मैंने आपकी सिरदर्द की समस्या को समझा है। सुबह 08:00 AM और रात 08:30 PM को खाने के बाद लेने के लिए दर्द निवारक दवा लिख दी है।'
     } else {
       speech =
-        'I understand you have a headache. This is often due to tension, eye strain, or fatigue. I have prescribed a mild pain relief tablet. Please drink water and rest in a quiet room.'
+        'I understand you have a headache. I have prescribed Paracetamol 650mg for Morning (08:00 AM) and Night (08:30 PM) after food. Please rest in a quiet room.'
     }
 
     return {
@@ -361,11 +371,14 @@ RETURN VALID JSON ONLY matching this schema:
         {
           name: 'Paracetamol 650mg Tablet',
           dosage: '1 Tablet',
-          timing: 'After Food',
-          schedule: 'Morning (☀️) • Night (🌙)',
-          frequency: 'Twice daily as needed',
-          duration: '2 to 3 Days',
-          purpose: 'Relieves headache and neck muscle tension',
+          slot: 'Morning & Night',
+          exactTime: '08:00 AM & 08:30 PM',
+          timing: '30 Mins After Food',
+          foodInstruction: 'Take after breakfast and dinner with water',
+          schedule: 'Morning (☀️ 08:00 AM) • Night (🌙 08:30 PM)',
+          frequency: 'Twice daily (BD)',
+          duration: '3 Days',
+          purpose: 'Relieves headache, temple tension and neck pain',
         },
       ],
       recoveryAdvice: [
@@ -393,13 +406,13 @@ RETURN VALID JSON ONLY matching this schema:
     let speech = ''
     if (langKey === 'te') {
       speech =
-        'మీకు దగ్గు మరియు జలుబు లక్షణాలు ఉన్నాయి. గొంతు ఉపశమనానికి మరియు దగ్గు తగ్గడానికి మందులు రాశాను. వేడి నీటి ఆవిరి పట్టండి మరియు గోరువెచ్చని ఉప్పు నీటితో పుక్కిలించండి.'
+        'మీకు దగ్గు మరియు జలుబు లక్షణాలు ఉన్నాయి. ఉదయం 08:00 AM కి కాఫ్ సిరప్, రాత్రి 08:30 PM కి సిట్రిజిన్ టాబ్లెట్ రాశాను. వేడి నీటి ఆవిరి పట్టండి.'
     } else if (langKey === 'hi') {
       speech =
-        'आपको खांसी और जुकाम की शिकायत है। मैंने गले के आराम और कफ निवारण के लिए दवाएं लिख दी हैं। गर्म पानी की भाप लें और गुनगुने नमक के पानी से गरारे करें।'
+        'आपको खांसी और जुकाम की शिकायत है। सुबह 08:00 AM को कफ सिरप और रात 08:30 PM को सिट्रीजीन की गोली लें।'
     } else {
       speech =
-        'You are experiencing cough and cold symptoms. I have prescribed an antihistamine and cough syrup for your throat relief. Please take steam inhalation and gargle with warm salt water.'
+        'You are experiencing cough and cold. I have scheduled Cough Syrup for Morning (08:00 AM) and Afternoon (01:30 PM), and Cetirizine for Night (08:30 PM).'
     }
 
     return {
@@ -416,20 +429,26 @@ RETURN VALID JSON ONLY matching this schema:
         {
           name: 'Cetirizine 10mg Tablet',
           dosage: '1 Tablet',
-          timing: 'After Food',
-          schedule: 'Night Only (🌙)',
-          frequency: 'Once daily at bedtime',
+          slot: 'Night',
+          exactTime: '08:30 PM',
+          timing: 'After Dinner / Bedtime',
+          foodInstruction: 'Take at night before going to sleep',
+          schedule: 'Night Only (🌙 08:30 PM)',
+          frequency: 'Once daily at bedtime (OD)',
           duration: '3 Days',
           purpose: 'Relieves runny nose, sneezing & throat irritation',
         },
         {
-          name: 'Dextromethorphan + Chlorpheniramine Cough Syrup',
+          name: 'Dextromethorphan + CPM Cough Syrup',
           dosage: '10 ml (2 Teaspoons)',
-          timing: 'After Food',
-          schedule: 'Morning (☀️) • Night (🌙)',
-          frequency: 'Twice daily',
+          slot: 'Morning & Afternoon',
+          exactTime: '08:00 AM & 01:30 PM',
+          timing: 'After Meals',
+          foodInstruction: 'Take after morning breakfast and lunch',
+          schedule: 'Morning (☀️ 08:00 AM) • Afternoon (🌤️ 01:30 PM)',
+          frequency: 'Twice daily (BD)',
           duration: '4 Days',
-          purpose: 'Soothes dry cough and throat irritation',
+          purpose: 'Soothes dry cough and pharyngeal tickle',
         },
       ],
       recoveryAdvice: [
@@ -458,13 +477,13 @@ RETURN VALID JSON ONLY matching this schema:
     let speech = ''
     if (langKey === 'te') {
       speech =
-        'మీ కడుపు సమస్య మరియు వాంతుల వివరాలను పరిశీలించాను. డీహైడ్రేషన్ రాకుండా ORS ద్రావణం త్రాగాలి. కడుపు ఉబ్బరం మరియు వాంతులు తగ్గడానికి మందులు రాశాను.'
+        'మీ కడుపు సమస్యకు ఉదయం 07:30 AM కి ఖాళీ కడుపున పాంటోప్రజోల్, మధ్యాహ్నం మరియు రాత్రి వాంతులు తగ్గడానికి ఓండాన్‌సెట్రాన్ రాశాను. రోజంతా ORS నీరు త్రాగండి.'
     } else if (langKey === 'hi') {
       speech =
-        'मैंने आपकी पेट की समस्या और उल्टी के बारे में समझा है। कमजोरी और डिहाइड्रेशन रोकने के लिए ओआरएस पिएं। मैंने उल्टी और गैस रोकने की दवाएं लिख दी हैं।'
+        'पेट की समस्या के लिए सुबह 07:30 AM पर खाली पेट पेंटोप्राजोल और उल्टी रोकने के लिए ओन्डेनसेट्रॉन लिख दी है। दिन भर ORS घोल पिएं।'
     } else {
       speech =
-        'I have evaluated your stomach discomfort and nausea symptoms. It is vital to stay hydrated with ORS solution. I have prescribed antacid and anti-emetic medications.'
+        'For your stomach discomfort: Take Pantoprazole in the Morning (07:30 AM) on empty stomach, Ondansetron before meals (08:00 AM & 08:30 PM), and sip ORS throughout the day.'
     }
 
     return {
@@ -481,29 +500,38 @@ RETURN VALID JSON ONLY matching this schema:
         {
           name: 'Pantoprazole 40mg Tablet',
           dosage: '1 Tablet',
+          slot: 'Morning',
+          exactTime: '07:30 AM',
           timing: 'Empty Stomach (30 mins before breakfast)',
-          schedule: 'Morning (☀️)',
-          frequency: 'Once daily',
+          foodInstruction: 'Take first thing in the morning with half glass water',
+          schedule: 'Morning (☀️ 07:30 AM Empty Stomach)',
+          frequency: 'Once daily (OD)',
           duration: '5 Days',
-          purpose: 'Reduces stomach acid & gastric distress',
+          purpose: 'Reduces stomach acid, heartburn & gastric burning',
         },
         {
           name: 'Ondansetron 4mg Tablet',
           dosage: '1 Tablet',
-          timing: 'Before Food',
-          schedule: 'Morning (☀️) • Night (🌙)',
-          frequency: 'Twice daily',
+          slot: 'Morning & Night',
+          exactTime: '08:00 AM & 08:30 PM',
+          timing: '15 Mins Before Food',
+          foodInstruction: 'Take before breakfast and dinner to prevent vomiting',
+          schedule: 'Morning (☀️ 08:00 AM) • Night (🌙 08:30 PM)',
+          frequency: 'Twice daily (BD)',
           duration: '3 Days',
-          purpose: 'Prevents nausea & stops vomiting',
+          purpose: 'Prevents nausea and stops vomiting',
         },
         {
-          name: 'ORS Electrolyte Solution',
+          name: 'ORS Electrolyte Solution (WHO Formula)',
           dosage: '1 Litre prepared fresh daily',
-          timing: 'Throughout the day',
-          schedule: 'Sip frequently',
-          frequency: 'Continuous sips',
+          slot: 'Continuous Schedule',
+          exactTime: 'Every 2 Hours (10:00 AM, 12:00 PM, 03:00 PM, 06:00 PM)',
+          timing: 'Between Meals',
+          foodInstruction: 'Sip frequently throughout the day',
+          schedule: 'All Day Hydration (☀️ 10:00 AM • 🌤️ 02:00 PM • 🌙 06:00 PM)',
+          frequency: 'Frequent sips',
           duration: '3 Days',
-          purpose: 'Restores hydration and essential body electrolytes',
+          purpose: 'Restores vital electrolytes and prevents dehydration',
         },
       ],
       recoveryAdvice: [
@@ -532,13 +560,13 @@ RETURN VALID JSON ONLY matching this schema:
     let speech = ''
     if (langKey === 'te') {
       speech =
-        'మీ గాయాన్ని పరిశీలించాను. ఇన్ఫెక్షన్ రాకుండా యాంటీసెప్టిక్ ఆయింట్‌మెంట్ మరియు నొప్పి నివారణ మందులు రాశాను. గాయాన్ని శుభ్రంగా మరియు పొడిగా ఉంచండి.'
+        'మీ గాయాన్ని పరిశీలించాను. ఉదయం 08:00 AM మరియు రాత్రి 08:30 PM కి యాంటీసెప్టిక్ ఆయింట్‌మెంట్ పూయాలి. నొప్పి నివారణకు భోజనం తర్వాత మాత్ర తీసుకోండి.'
     } else if (langKey === 'hi') {
       speech =
-        'मैंने आपकी चोट का आकलन किया है। संक्रमण रोकने के लिए एंटीसेप्टिक मरहम और दर्द की दवा लिख दी है। घाव को साफ और सूखा रखें।'
+        'मैंने आपकी चोट का आकलन किया है। सुबह 08:00 AM और रात 08:30 PM को एंटीसेप्टिक मरहम लगाएं और दर्द की गोली खाने के बाद लें।'
     } else {
       speech =
-        'I have assessed your wound and injury. I have prescribed antiseptic healing ointment and anti-inflammatory pain relief to prevent infection. Keep the area clean and dry.'
+        'I have assessed your wound. Apply Povidone Iodine Ointment Morning (08:00 AM) and Night (08:30 PM) after cleaning, and take Aceclofenac tablet after meals.'
     }
 
     return {
@@ -555,20 +583,26 @@ RETURN VALID JSON ONLY matching this schema:
         {
           name: 'Povidone Iodine 5% Antiseptic Ointment',
           dosage: 'Apply thin layer',
-          timing: 'External application',
-          schedule: 'Morning (☀️) • Night (🌙)',
-          frequency: 'Twice daily after cleaning with boiled water',
+          slot: 'Morning & Night',
+          exactTime: '08:00 AM & 08:30 PM',
+          timing: 'External Application',
+          foodInstruction: 'Clean wound with boiled cooled water first, then apply',
+          schedule: 'Morning (☀️ 08:00 AM) • Night (🌙 08:30 PM)',
+          frequency: 'Twice daily',
           duration: '7 Days',
-          purpose: 'Topical wound sterilization and tissue repair',
+          purpose: 'Topical wound sterilization, kills bacteria and promotes tissue healing',
         },
         {
           name: 'Aceclofenac + Paracetamol Tablet',
           dosage: '1 Tablet',
-          timing: 'After Food',
-          schedule: 'Morning (☀️) • Night (🌙)',
-          frequency: 'Twice daily after meals',
+          slot: 'Morning & Night',
+          exactTime: '08:00 AM & 08:30 PM',
+          timing: '30 Mins After Food',
+          foodInstruction: 'Take after breakfast and dinner',
+          schedule: 'Morning (☀️ 08:00 AM) • Night (🌙 08:30 PM)',
+          frequency: 'Twice daily after meals (BD)',
           duration: '3 Days',
-          purpose: 'Anti-inflammatory wound pain relief',
+          purpose: 'Anti-inflammatory wound pain relief and swelling reduction',
         },
       ],
       recoveryAdvice: [
@@ -594,13 +628,13 @@ RETURN VALID JSON ONLY matching this schema:
     let speech = ''
     if (langKey === 'te') {
       speech =
-        'మీకు జ్వరం మరియు ఒంటి నొప్పులు ఉన్నాయని తెలిపారు. జ్వరం తగ్గడానికి పారాసిటమాల్ మరియు ORS మందులు రాశాను. సమయానికి మందులు వేసుకుని విశ్రాంతి తీసుకోండి.'
+        'మీకు జ్వరం ఉందని చెప్పారు. పారాసిటమాల్ 650mg మాత్రను ఉదయం 08:00 AM, మధ్యాహ్నం 01:30 PM, మరియు రాత్రి 08:30 PM కి భోజనం తర్వాత వేసుకోవాలి. ORS నీరు త్రాగండి.'
     } else if (langKey === 'hi') {
       speech =
-        'आपको बुखार और शरीर दर्द की समस्या है। मैंने बुखार कम करने के लिए पैरासिटामोल और ओआरएस लिख दी है। समय पर दवाएं लें और पर्याप्त आराम करें।'
+        'आपको बुखार की समस्या है। पैरासिटामोल 650mg को सुबह 08:00 AM, दोपहर 01:30 PM और रात 08:30 PM को खाने के बाद लें और ओआरएस पिएं।'
     } else {
       speech =
-        'You have reported fever and body pain. I have generated your digital prescription with Paracetamol and hydration salts. Please take the tablets on time and get ample rest.'
+        'You have reported fever. I have scheduled Paracetamol 650mg for Morning (08:00 AM), Afternoon (01:30 PM), and Night (08:30 PM) after meals, along with ORS hydration.'
     }
 
     return {
@@ -617,20 +651,26 @@ RETURN VALID JSON ONLY matching this schema:
         {
           name: 'Paracetamol 650mg Tablet',
           dosage: '1 Tablet',
-          timing: 'After Food',
-          schedule: 'Morning (☀️) • Afternoon (🌤️) • Night (🌙)',
+          slot: 'TDS (Morning, Afternoon & Night)',
+          exactTime: '08:00 AM, 01:30 PM, 08:30 PM',
+          timing: '30 Mins After Food',
+          foodInstruction: 'Take after breakfast, lunch, and dinner with a glass of water',
+          schedule: 'Morning (☀️ 08:00 AM) • Afternoon (🌤️ 01:30 PM) • Night (🌙 08:30 PM)',
           frequency: 'Three times daily (TDS)',
           duration: '3 to 5 Days',
-          purpose: 'Fever and body ache relief',
+          purpose: 'Reduces high body temperature, chills and body aches',
         },
         {
           name: 'ORS (Oral Rehydration Solution)',
           dosage: '1 Sachet in 1 Litre boiled & cooled water',
-          timing: 'Throughout the day',
-          schedule: 'Sip frequently',
+          slot: 'Throughout the Day',
+          exactTime: 'Every 2 Hours (10:00 AM, 02:00 PM, 06:00 PM)',
+          timing: 'Between Meals',
+          foodInstruction: 'Sip throughout the day to replenish electrolytes',
+          schedule: 'Morning (☀️ 10:00 AM) • Afternoon (🌤️ 02:00 PM) • Evening (🌙 06:00 PM)',
           frequency: 'Continuous hydration',
           duration: '3 Days',
-          purpose: 'Restores electrolytes and prevents dehydration',
+          purpose: 'Restores electrolytes and prevents fever-induced dehydration',
         },
       ],
       recoveryAdvice: [

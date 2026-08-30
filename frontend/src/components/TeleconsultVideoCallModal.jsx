@@ -721,28 +721,47 @@ export default function TeleconsultVideoCallModal() {
                         </span>
                       </div>
 
-                      {/* Tablet List with Schedule Badges */}
-                      <div className="space-y-2">
-                        <span className="text-[11px] font-bold text-slate-700 block">
-                          💊 Prescribed Tablets & Dosages:
+                      {/* Categorized Medicines & Tablets List */}
+                      <div className="space-y-2.5">
+                        <span className="text-[11px] font-bold text-slate-800 flex items-center justify-between">
+                          <span>💊 Prescribed Medicines & Exact Timings:</span>
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-mono">
+                            {prescribedMedicines.length} Medicine(s) Scheduled
+                          </span>
                         </span>
 
                         {prescribedMedicines.map((med, index) => (
                           <div
                             key={index}
-                            className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1 shadow-2xs"
+                            className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 text-xs space-y-2 shadow-2xs"
                           >
-                            <div className="flex items-center justify-between">
-                              <strong className="text-emerald-950 font-bold text-xs">{med.name}</strong>
-                              <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <strong className="text-slate-900 font-bold text-xs block">{med.name}</strong>
+                                <span className="text-[10.5px] text-blue-700 font-medium">{med.purpose}</span>
+                              </div>
+                              <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
                                 {med.duration}
                               </span>
                             </div>
-                            <p className="text-slate-700 text-[11px]">
-                              <strong>Dosage:</strong> {med.dosage} · <strong className="text-blue-700">{med.timing || 'After Food'}</strong>
-                            </p>
-                            <div className="text-[10.5px] font-medium text-slate-600 bg-white p-1.5 rounded-xl border border-slate-200/80 mt-1">
-                              🕒 Schedule: <strong className="text-slate-900">{med.schedule || med.frequency}</strong>
+
+                            {/* Categorized Timing Chips */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                              <div className="p-2 rounded-xl bg-white border border-slate-200/80 text-[10.5px] space-y-0.5">
+                                <span className="text-slate-500 block text-[9.5px] font-bold uppercase">🕒 Scheduled Timing:</span>
+                                <strong className="text-slate-900 font-bold">{med.exactTime || '08:00 AM • 08:30 PM'}</strong>
+                              </div>
+
+                              <div className="p-2 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[10.5px] space-y-0.5">
+                                <span className="text-blue-600 block text-[9.5px] font-bold uppercase">🍽️ Food Instruction:</span>
+                                <strong className="text-blue-950 font-bold">{med.timing || med.foodInstruction || 'After Food'}</strong>
+                              </div>
+                            </div>
+
+                            {/* Dosage & Daily Frequency */}
+                            <div className="text-[10.5px] text-slate-600 bg-slate-100/70 px-2.5 py-1 rounded-xl flex items-center justify-between">
+                              <span>Dosage: <strong className="text-slate-800">{med.dosage}</strong></span>
+                              <span className="font-mono text-slate-500">{med.frequency || 'Daily'}</span>
                             </div>
                           </div>
                         ))}

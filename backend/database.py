@@ -56,7 +56,7 @@ def init_db():
         )
     """)
 
-    # 3. Patient Health Assessment & Triage Reports
+    # 3. Patient Health Assessment & Triage Reports / Prescriptions
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS patient_reports (
             id TEXT PRIMARY KEY,
@@ -67,16 +67,36 @@ def init_db():
             gender TEXT,
             symptoms TEXT NOT NULL,
             urgency TEXT NOT NULL,
+            is_prescription INTEGER DEFAULT 0,
+            diagnosis TEXT,
+            doctor_name TEXT,
             vitals_json TEXT,
             advice TEXT,
             hospital_name TEXT,
             hospital_distance REAL,
             prescribed_medicines_json TEXT,
+            medicines_list_json TEXT,
             doctor_notes TEXT,
             risk_factors_json TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    try:
+        cursor.execute("ALTER TABLE patient_reports ADD COLUMN is_prescription INTEGER DEFAULT 0")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE patient_reports ADD COLUMN diagnosis TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE patient_reports ADD COLUMN doctor_name TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE patient_reports ADD COLUMN medicines_list_json TEXT")
+    except Exception:
+        pass
 
     # 4. Teleconsultation Video Call Records
     cursor.execute("""
@@ -239,19 +259,25 @@ def save_patient_report(report_data: Dict[str, Any]) -> Dict[str, Any]:
     meds = report_data.get("prescribed_medicines", report_data.get("medicines", []))
     meds_json = json.dumps(meds) if isinstance(meds, list) else str(meds)
 
+    meds_list = report_data.get("medicines_list", [])
+    meds_list_json = json.dumps(meds_list) if isinstance(meds_list, list) else str(meds_list)
+
     risks = report_data.get("risk_factors", [])
     risks_json = json.dumps(risks) if isinstance(risks, list) else str(risks)
 
     hospital = report_data.get("hospital", {})
-    h_name = hospital.get("name", "") if isinstance(hospital, dict) else str(hospital)
+    h_name = hospital.get("name", "") if isinstance(hospital, dict) else str(hospital or "")
     h_dist = hospital.get("distance_km", 0.0) if isinstance(hospital, dict) else 0.0
+
+    is_rx = 1 if (report_data.get("is_prescription") or report_id.startswith("RX") or bool(meds_list)) else 0
 
     cursor.execute("""
         INSERT OR REPLACE INTO patient_reports (
             id, user_id, patient_name, phone, age, gender, symptoms, urgency,
+            is_prescription, diagnosis, doctor_name,
             vitals_json, advice, hospital_name, hospital_distance,
-            prescribed_medicines_json, doctor_notes, risk_factors_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            prescribed_medicines_json, medicines_list_json, doctor_notes, risk_factors_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         report_id,
         report_data.get("user_id", "PAT-DEMO-01"),
@@ -261,11 +287,15 @@ def save_patient_report(report_data: Dict[str, Any]) -> Dict[str, Any]:
         report_data.get("gender", "Other"),
         report_data.get("symptoms", "Routine checkup"),
         report_data.get("urgency", "Moderate"),
+        is_rx,
+        report_data.get("diagnosis", "Clinical Diagnosis"),
+        report_data.get("doctor_name", "Dr. Rajesh Sharma (MD)"),
         vitals_json,
         report_data.get("advice", ""),
         h_name,
         h_dist,
         meds_json,
+        meds_list_json,
         report_data.get("doctor_notes", ""),
         risks_json
     ))
@@ -275,7 +305,7 @@ def save_patient_report(report_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def get_patient_reports(user_id: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
-    """Retrieves patient assessment history reports."""
+    """Retrieves patient assessment history reports and prescriptions."""
     conn = get_connection()
     cursor = conn.cursor()
     if user_id:
@@ -306,9 +336,14 @@ def get_patient_reports(user_id: Optional[str] = None, limit: int = 100) -> List
         except:
             d["prescribed_medicines"] = []
         try:
+            d["medicines_list"] = json.loads(d["medicines_list_json"]) if d.get("medicines_list_json") else []
+        except:
+            d["medicines_list"] = []
+        try:
             d["risk_factors"] = json.loads(d["risk_factors_json"]) if d.get("risk_factors_json") else []
         except:
             d["risk_factors"] = []
+        d["is_prescription"] = bool(d.get("is_prescription")) or d["id"].startswith("RX") or bool(d.get("medicines_list"))
         results.append(d)
     return results
 
