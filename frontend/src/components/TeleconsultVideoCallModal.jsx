@@ -76,55 +76,21 @@ export default function TeleconsultVideoCallModal() {
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [savedToHistoryNotice, setSavedToHistoryNotice] = useState(false)
 
-  // Live AI Facial Emotion & Injury Scanner State
+  // Live AI Facial Emotion & Injury Scanner State (Unbiased initial state)
   const [aiScanningActive, setAiScanningActive] = useState(true)
   const [facialAnalysisData, setFacialAnalysisData] = useState({
-    emotion: 'Fatigued / Mild Discomfort',
-    painScore: 65,
-    visualSigns: 'Facial pallor, mild eye conjunctival strain',
-    injuryCheck: 'No open acute lacerations detected',
-    lastScanned: 'Live Active',
+    emotion: 'Ready / Observing Face',
+    painScore: 0,
+    visualSigns: 'Camera live stream active for clinical inspection',
+    injuryCheck: 'No trauma detected · Ready to scan',
+    lastScanned: 'Awaiting Consultation',
   })
 
-  // Clinical Prescription State
-  const [consultDiagnosis, setConsultDiagnosis] = useState('Acute Viral Febrile Illness')
-  const [prescribedMedicines, setPrescribedMedicines] = useState([
-    {
-      name: 'Paracetamol 650mg Tablet',
-      dosage: '1 Tablet',
-      timing: 'After Food',
-      schedule: 'Morning (☀️) • Afternoon (🌤️) • Night (🌙)',
-      frequency: 'TDS (3 times daily)',
-      duration: '3 to 5 Days',
-      purpose: 'Fever & body pain relief',
-    },
-    {
-      name: 'ORS (Oral Rehydration Solution)',
-      dosage: '1 Sachet in 1 Litre boiled & cooled water',
-      timing: 'Throughout the day',
-      schedule: 'Sip frequently every 2 hours',
-      frequency: 'Continuous hydration',
-      duration: 'Until hydration normalizes',
-      purpose: 'Prevents dehydration & electrolyte loss',
-    },
-    {
-      name: 'Cetirizine 10mg Tablet',
-      dosage: '1 Tablet',
-      timing: 'After Food',
-      schedule: 'Night Only (🌙)',
-      frequency: 'Once daily at bedtime',
-      duration: '3 Days',
-      purpose: 'Relieves runny nose, sneezing & throat irritation',
-    },
-  ])
-  const [recoveryAdviceList, setRecoveryAdviceList] = useState([
-    'Drink plenty of boiled warm water and ORS solution.',
-    'Eat light, easily digestible meals (khichdi, warm soup, porridge).',
-    'Get complete bed rest for 3 days and monitor body temperature.',
-  ])
-  const [whenToVisitWarning, setWhenToVisitWarning] = useState(
-    'If fever stays above 102°F or if you experience shortness of breath, visit your nearest PHC immediately.'
-  )
+  // Clinical Prescription State (Clean initial state, generated ONLY after user speaks)
+  const [consultDiagnosis, setConsultDiagnosis] = useState('')
+  const [prescribedMedicines, setPrescribedMedicines] = useState([])
+  const [recoveryAdviceList, setRecoveryAdviceList] = useState([])
+  const [whenToVisitWarning, setWhenToVisitWarning] = useState('')
 
   // In-Call Chat Messages
   const [chatMessages, setChatMessages] = useState([])
@@ -144,7 +110,7 @@ export default function TeleconsultVideoCallModal() {
       synthRef.current.cancel()
       const utterance = new SpeechSynthesisUtterance(textToSpeak)
       utterance.lang = speechCode
-      utterance.rate = 0.92 // Calm, realistic doctor cadence
+      utterance.rate = 0.92 // Natural doctor cadence
       utterance.pitch = 0.98
 
       // Select natural voice
@@ -177,6 +143,9 @@ export default function TeleconsultVideoCallModal() {
 
     const greeting = DOCTOR_GREETINGS[langKey] || DOCTOR_GREETINGS.en
     setDoctorSpeechText(greeting)
+    setConsultDiagnosis('')
+    setPrescribedMedicines([])
+    setRecoveryAdviceList([])
     setChatMessages([
       {
         sender: 'doctor',
@@ -250,6 +219,23 @@ export default function TeleconsultVideoCallModal() {
     setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'))
   }
 
+  // Capture current webcam frame for Gemini Multimodal AI vision analysis
+  const captureVideoFrame = () => {
+    try {
+      if (!patientVideoRef.current || !videoActive) return null
+      const video = patientVideoRef.current
+      if (!video.videoWidth || !video.videoHeight) return null
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.min(video.videoWidth, 640)
+      canvas.height = Math.min(video.videoHeight, 480)
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      return canvas.toDataURL('image/jpeg', 0.8)
+    } catch (e) {
+      return null
+    }
+  }
+
   // Patient Voice Dictation Handler
   const startPatientSpeaking = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -305,10 +291,13 @@ export default function TeleconsultVideoCallModal() {
     }
   }
 
-  // Submit Patient Speech to Doctor AI + Live Facial Analysis
+  // Submit Patient Speech to Gemini AI with Video Frame Snapshot
   const handleSendProblem = async (textToSend = null) => {
     const text = (textToSend || patientSpokenText || chatInput).trim()
     if (!text) return
+
+    // Capture visual frame snapshot from video element
+    const frameSnapshot = captureVideoFrame()
 
     const newMsg = {
       sender: 'patient',
@@ -325,7 +314,7 @@ export default function TeleconsultVideoCallModal() {
         text,
         langKey,
         activeVideoSession?.patient?.vitals || {},
-        facialAnalysisData
+        frameSnapshot
       )
       setIsEvaluating(false)
 
@@ -356,7 +345,7 @@ export default function TeleconsultVideoCallModal() {
         },
       ])
 
-      // Speak aloud with natural doctor cadence!
+      // Doctor speaks the response aloud in chosen language!
       speakDoctorVoice(response.doctorReplySpeech)
     } catch (err) {
       setIsEvaluating(false)
@@ -366,6 +355,8 @@ export default function TeleconsultVideoCallModal() {
 
   // Save Prescription to SQLite Database & Dedicated Prescriptions Vault
   const handleSaveToPrescriptionsVault = () => {
+    if (!consultDiagnosis || prescribedMedicines.length === 0) return
+
     const patient = activeVideoSession?.patient || {}
     const medSummary = prescribedMedicines.map(
       (m) => `${m.name} (${m.dosage} • ${m.schedule || m.frequency})`
@@ -521,7 +512,7 @@ export default function TeleconsultVideoCallModal() {
                   </div>
                 </div>
 
-                {/* Patient Video (True-to-life orientation + AI Facial Scan Overlay) */}
+                {/* Patient Video (Natural True-to-Life Orientation + AI Vision Scan Overlay) */}
                 <div className="absolute bottom-3 right-3 w-32 sm:w-44 h-24 sm:h-32 rounded-2xl bg-slate-900 border-2 border-blue-500 overflow-hidden shadow-xl z-20 flex items-center justify-center">
                   {videoActive && !cameraError ? (
                     <div className="relative w-full h-full">
@@ -652,7 +643,7 @@ export default function TeleconsultVideoCallModal() {
                     className="tap-press px-3 py-1 rounded-xl bg-blue-600 text-white text-xs font-bold shrink-0 flex items-center gap-1 shadow-xs"
                   >
                     {isEvaluating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                    <span>Send to Doctor</span>
+                    <span>Analyze with Doctor</span>
                   </button>
                 </div>
               )}
@@ -705,109 +696,121 @@ export default function TeleconsultVideoCallModal() {
               {/* Tab 1: Prescriptions & Tablets Vault */}
               {activeTab === 'prescription' && (
                 <div className="p-3.5 sm:p-4 overflow-y-auto flex-1 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
-                        Digital Prescription (Rx)
-                      </span>
-                      <h4 className="text-sm font-bold text-slate-900 mt-1">
-                        {consultDiagnosis}
-                      </h4>
+                  {!consultDiagnosis || prescribedMedicines.length === 0 ? (
+                    <div className="text-center p-6 space-y-2 bg-slate-50 rounded-2xl border border-slate-200 my-auto">
+                      <Pill className="w-8 h-8 text-emerald-600 mx-auto opacity-70" />
+                      <h4 className="font-bold text-slate-800 text-xs sm:text-sm">Awaiting Symptom Consultation</h4>
+                      <p className="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
+                        Tap the microphone below to speak your symptoms or injuries. Gemini AI will analyze your live face and voice to formulate your verified prescription and recovery tablets.
+                      </p>
                     </div>
-
-                    <span className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded font-bold">
-                      {doctor.name}
-                    </span>
-                  </div>
-
-                  {/* Tablet List with Schedule Badges */}
-                  <div className="space-y-2">
-                    <span className="text-[11px] font-bold text-slate-700 block">
-                      💊 Prescribed Tablets & Dosages:
-                    </span>
-
-                    {prescribedMedicines.map((med, index) => (
-                      <div
-                        key={index}
-                        className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1 shadow-2xs"
-                      >
-                        <div className="flex items-center justify-between">
-                          <strong className="text-emerald-950 font-bold text-xs">{med.name}</strong>
-                          <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
-                            {med.duration}
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                            Digital Prescription (Rx)
                           </span>
+                          <h4 className="text-sm font-bold text-slate-900 mt-1">
+                            {consultDiagnosis}
+                          </h4>
                         </div>
-                        <p className="text-slate-700 text-[11px]">
-                          <strong>Dosage:</strong> {med.dosage} · <strong className="text-blue-700">{med.timing || 'After Food'}</strong>
-                        </p>
-                        <div className="text-[10.5px] font-medium text-slate-600 bg-white p-1.5 rounded-xl border border-slate-200/80 mt-1">
-                          🕒 Schedule: <strong className="text-slate-900">{med.schedule || med.frequency}</strong>
-                        </div>
+
+                        <span className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded font-bold">
+                          {doctor.name}
+                        </span>
                       </div>
-                    ))}
-                  </div>
 
-                  {/* Recovery Guidelines */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-xs space-y-1">
-                    <span className="text-[11px] font-bold text-blue-950 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-amber-500" />
-                      Home Recovery & Care Steps:
-                    </span>
-                    <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-slate-700">
-                      {recoveryAdviceList.map((adv, idx) => (
-                        <li key={idx}>{adv}</li>
-                      ))}
-                    </ul>
-                  </div>
+                      {/* Tablet List with Schedule Badges */}
+                      <div className="space-y-2">
+                        <span className="text-[11px] font-bold text-slate-700 block">
+                          💊 Prescribed Tablets & Dosages:
+                        </span>
 
-                  {/* Hospital Red Flag Warning */}
-                  {whenToVisitWarning && (
-                    <div className="bg-red-50 border border-red-200 rounded-2xl p-2.5 text-[11px] text-red-900 flex items-start gap-1.5">
-                      <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
-                      <span>{whenToVisitWarning}</span>
-                    </div>
+                        {prescribedMedicines.map((med, index) => (
+                          <div
+                            key={index}
+                            className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1 shadow-2xs"
+                          >
+                            <div className="flex items-center justify-between">
+                              <strong className="text-emerald-950 font-bold text-xs">{med.name}</strong>
+                              <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                                {med.duration}
+                              </span>
+                            </div>
+                            <p className="text-slate-700 text-[11px]">
+                              <strong>Dosage:</strong> {med.dosage} · <strong className="text-blue-700">{med.timing || 'After Food'}</strong>
+                            </p>
+                            <div className="text-[10.5px] font-medium text-slate-600 bg-white p-1.5 rounded-xl border border-slate-200/80 mt-1">
+                              🕒 Schedule: <strong className="text-slate-900">{med.schedule || med.frequency}</strong>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Recovery Guidelines */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-xs space-y-1">
+                        <span className="text-[11px] font-bold text-blue-950 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-500" />
+                          Home Recovery & Care Steps:
+                        </span>
+                        <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-slate-700">
+                          {recoveryAdviceList.map((adv, idx) => (
+                            <li key={idx}>{adv}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Hospital Red Flag Warning */}
+                      {whenToVisitWarning && (
+                        <div className="bg-red-50 border border-red-200 rounded-2xl p-2.5 text-[11px] text-red-900 flex items-start gap-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
+                          <span>{whenToVisitWarning}</span>
+                        </div>
+                      )}
+
+                      {savedToHistoryNotice && (
+                        <div className="p-2.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>Prescription saved to your dedicated Medical History Vault!</span>
+                        </div>
+                      )}
+
+                      {/* Save to History & Print Slip Buttons */}
+                      <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
+                        <button
+                          type="button"
+                          onClick={handleSaveToPrescriptionsVault}
+                          className="tap-press flex-1 py-2.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Save to Prescriptions Vault</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActiveSlip({
+                              name: patient.name,
+                              age: patient.age,
+                              gender: patient.gender,
+                              symptoms: consultDiagnosis,
+                              urgency: 'Moderate',
+                              advice: recoveryAdviceList.join(' | '),
+                              vitals: patient.vitals,
+                              hospital: { name: doctor.facility, distance_km: 3.2 },
+                              date: new Date().toLocaleDateString('en-IN'),
+                              refId: `RX-${Date.now().toString().slice(-6)}`,
+                            })
+                          }
+                          className="tap-press py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                          <span>Print Slip</span>
+                        </button>
+                      </div>
+                    </>
                   )}
-
-                  {savedToHistoryNotice && (
-                    <div className="p-2.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-1.5 shadow-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Prescription saved to your dedicated Medical History Vault!</span>
-                    </div>
-                  )}
-
-                  {/* Save to History & Print Slip Buttons */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
-                    <button
-                      type="button"
-                      onClick={handleSaveToPrescriptionsVault}
-                      className="tap-press flex-1 py-2.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Save to Prescriptions Vault</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveSlip({
-                          name: patient.name,
-                          age: patient.age,
-                          gender: patient.gender,
-                          symptoms: consultDiagnosis,
-                          urgency: 'Moderate',
-                          advice: recoveryAdviceList.join(' | '),
-                          vitals: patient.vitals,
-                          hospital: { name: doctor.facility, distance_km: 3.2 },
-                          date: new Date().toLocaleDateString('en-IN'),
-                          refId: `RX-${Date.now().toString().slice(-6)}`,
-                        })
-                      }
-                      className="tap-press py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      <span>Print Slip</span>
-                    </button>
-                  </div>
                 </div>
               )}
 
@@ -817,10 +820,10 @@ export default function TeleconsultVideoCallModal() {
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 flex items-center gap-1">
                       <Scan className="w-3 h-3 text-purple-600" />
-                      AI Facial & Injury Vision Radar
+                      Gemini Multimodal AI Vision Radar
                     </span>
                     <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
-                      ● Live AI Active
+                      ● Active
                     </span>
                   </div>
 
@@ -839,7 +842,7 @@ export default function TeleconsultVideoCallModal() {
                         <Activity className="w-3.5 h-3.5 text-amber-600" />
                         Pain Distress Score:
                       </span>
-                      <strong className="text-amber-950 text-xs block">{facialAnalysisData.painScore}% (Moderate)</strong>
+                      <strong className="text-amber-950 text-xs block">{facialAnalysisData.painScore}% Index</strong>
                     </div>
                   </div>
 
@@ -868,11 +871,11 @@ export default function TeleconsultVideoCallModal() {
                   {/* Manual AI Scan Refresh Button */}
                   <button
                     type="button"
-                    onClick={() => handleSendProblem('Please analyze my face for injuries and pain.')}
+                    onClick={() => handleSendProblem('Doctor, please analyze my facial expressions and check my condition for any injuries or pain.')}
                     className="tap-press w-full py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
                   >
                     <Scan className="w-3.5 h-3.5" />
-                    <span>Re-Scan Facial Emotions & Injuries</span>
+                    <span>Scan Face & Check Injuries with Gemini AI</span>
                   </button>
                 </div>
               )}
