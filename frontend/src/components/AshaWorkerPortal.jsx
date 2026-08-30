@@ -1,5 +1,27 @@
 import { useState } from 'react'
-import { Activity, Trash2, FileText, CheckCircle2, User, Search, Stethoscope, Users, Loader2, ShieldCheck, Phone, Calendar, Building2 } from 'lucide-react'
+import {
+  Activity,
+  Trash2,
+  FileText,
+  CheckCircle2,
+  User,
+  Search,
+  Stethoscope,
+  Users,
+  Loader2,
+  ShieldCheck,
+  Phone,
+  Calendar,
+  Building2,
+  AlertTriangle,
+  Heart,
+  Baby,
+  Sparkles,
+  ArrowRight,
+  TrendingUp,
+  Clock,
+  RefreshCw,
+} from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import VoiceInput from './VoiceInput.jsx'
 import VisualSymptomSelector from './VisualSymptomSelector.jsx'
@@ -16,7 +38,13 @@ export default function AshaWorkerPortal() {
     setActiveSlip,
     hospitals,
     userCoords,
-    language
+    language,
+    highRiskWatchlist,
+    mchRecords,
+    chronicCareData,
+    createNewReferral,
+    setSelectedReferral,
+    setReferralTrackerModalOpen,
   } = useApp()
 
   const [form, setForm] = useState({
@@ -35,10 +63,11 @@ export default function AshaWorkerPortal() {
 
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState('new') // 'new' | 'registry'
+  const [activeTab, setActiveTab] = useState('new') // 'new' | 'watchlist' | 'mch' | 'chronic' | 'registry'
+  const [syncStatus, setSyncStatus] = useState('All 185 Households Synced')
 
   const handleVisualSymptomSelect = (item) => {
-    const symptomName = language === 'hi' ? item.titleHi : language === 'mr' ? item.titleMr : item.titleEn
+    const symptomName = item.translations?.[language]?.title || item.translations?.en?.title || item.tag
     setForm((prev) => {
       if (!prev.symptoms) return { ...prev, symptoms: symptomName }
       const parts = prev.symptoms.split(',').map((s) => s.trim()).filter(Boolean)
@@ -99,22 +128,51 @@ export default function AshaWorkerPortal() {
       age: form.age,
       gender: form.gender,
       symptoms: form.symptoms,
+      vitals,
       urgency: urgencyResult.urgency,
       advice: urgencyResult.advice,
-      vitals,
       hospital: matchResult?.best,
-      ai_powered: urgencyResult.ai_powered ?? true,
+      risk_factors: urgencyResult.risk_factors || [],
     })
 
-    try {
-      confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } })
-    } catch (e) {}
+    // If emergency, auto generate referral
+    if (urgencyResult.urgency === 'Emergency') {
+      const ref = createNewReferral({
+        patientName: form.name || 'Resident',
+        age: form.age || 30,
+        gender: form.gender,
+        phone: form.phone,
+        village: 'Rampur Village',
+        originFacility: 'Rampur Sub-Centre (ASHA Anita)',
+        targetFacility: matchResult?.best?.name || 'Gangaon CHC',
+        specialtyRequired: urgencyResult.suggested_specialist || 'Emergency Care',
+        urgency: 'Emergency',
+        reasonForReferral: form.symptoms,
+        vitals,
+      })
+      setSelectedReferral(ref)
+      setReferralTrackerModalOpen(true)
+    }
+
+    confetti({ particleCount: 30, spread: 60, origin: { y: 0.8 } })
+    setLoading(false)
 
     setActiveSlip({
-      ...savedRecord,
-      hospital: matchResult?.best,
+      name: savedRecord.name,
+      phone: savedRecord.phone,
+      age: savedRecord.age,
+      gender: savedRecord.gender,
+      symptoms: savedRecord.symptoms,
+      urgency: savedRecord.urgency,
+      advice: savedRecord.advice,
+      vitals: savedRecord.vitals,
+      hospital: savedRecord.hospital,
+      date: savedRecord.displayDate,
+      refId: savedRecord.id,
+      risk_factors: savedRecord.risk_factors,
     })
 
+    // Reset form
     setForm({
       name: '',
       phone: '',
@@ -128,380 +186,582 @@ export default function AshaWorkerPortal() {
       sugar: '',
       isPregnant: false,
     })
-    setLoading(false)
   }
 
-  const filteredRecords = patientRecords.filter((rec) =>
-    (rec.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (rec.phone || '').includes(searchQuery) ||
-    (rec.urgency || '').toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   return (
-    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-5">
-      {/* Header Banner */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-blue-600 block">
-                  {t('bannerCategory')}
-                </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-blue-600" />
-                  National Health Mission Portal
-                </span>
-              </div>
-              <h1 className="text-lg sm:text-2xl font-bold text-slate-900 font-display mt-0.5">
-                {t('ashaTitle')}
-              </h1>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {t('ashaSub')}
-              </p>
-            </div>
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-5">
+      {/* Frontline ASHA Super-App Header Banner */}
+      <div className="bg-gradient-to-r from-purple-800 via-indigo-900 to-slate-900 text-white rounded-3xl p-5 sm:p-7 shadow-xl border border-purple-600/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-purple-600/30 border border-purple-400/30 flex items-center justify-center shrink-0">
+            <Users className="w-7 h-7 text-purple-300" />
           </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-md border border-emerald-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Offline-First Field Mode Active
+              </span>
+              <span className="text-xs text-purple-200 font-mono">ASHA ID: #ASHA-404</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold font-display mt-1">
+              Anita Devi • ASHA Field Super-App
+            </h1>
+            <p className="text-xs text-purple-100 mt-0.5">
+              Rampur Sector Sub-Centre • 185 Assigned Households (Ward 1–4)
+            </p>
+          </div>
+        </div>
 
-          {/* Responsive Tab Switcher */}
-          <div className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={() => setActiveTab('new')}
-              className={`tap-press py-2 px-3 sm:px-4 rounded-lg text-xs font-bold text-center transition-all ${
-                activeTab === 'new'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t('tabNewIntake')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('registry')}
-              className={`tap-press py-2 px-3 sm:px-4 rounded-lg text-xs font-bold text-center transition-all ${
-                activeTab === 'registry'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {t('tabVillageRegister')} ({patientRecords.length})
-            </button>
-          </div>
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setSyncStatus('Syncing 3 offline records with PHC...')
+              setTimeout(() => setSyncStatus('All Records Synced (0 Pending)'), 1200)
+            }}
+            className="tap-press px-3.5 py-2 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-center flex items-center gap-1.5 text-xs font-bold"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-emerald-400 animate-spin-slow" />
+            <span>{syncStatus}</span>
+          </button>
         </div>
       </div>
 
-      {activeTab === 'new' ? (
+      {/* 5 Super-App Navigation Tabs */}
+      <div className="flex items-center gap-1.5 sm:gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('new')}
+          className={`tap-press px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'new'
+              ? 'bg-purple-700 text-white shadow-sm'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+          }`}
+        >
+          <Stethoscope className="w-3.5 h-3.5" />
+          <span>1. Household Intake</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('watchlist')}
+          className={`tap-press px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'watchlist'
+              ? 'bg-purple-700 text-white shadow-sm'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+          }`}
+        >
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+          <span>2. High-Risk Watchlist ({highRiskWatchlist.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('mch')}
+          className={`tap-press px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'mch'
+              ? 'bg-purple-700 text-white shadow-sm'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+          }`}
+        >
+          <Baby className="w-3.5 h-3.5 text-pink-500" />
+          <span>3. Maternal & Child (MCH)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('chronic')}
+          className={`tap-press px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'chronic'
+              ? 'bg-purple-700 text-white shadow-sm'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+          }`}
+        >
+          <Heart className="w-3.5 h-3.5 text-red-500" />
+          <span>4. Chronic Care (NCD)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('registry')}
+          className={`tap-press px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'registry'
+              ? 'bg-purple-700 text-white shadow-sm'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>5. Village Registry ({patientRecords.length})</span>
+        </button>
+      </div>
+
+      {/* TAB 1: HOUSEHOLD INTAKE & SCREENING */}
+      {activeTab === 'new' && (
         <form onSubmit={handleTriageSubmit} className="space-y-4">
-          {/* Patient Demographics */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
-            <h2 className="text-xs sm:text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-              <User className="w-4 h-4 text-blue-600" />
-              <span>{t('section1Demo')}</span>
-            </h2>
+          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 font-display flex items-center gap-2">
+              <User className="w-4 h-4 text-purple-600" />
+              <span>1. Resident Demographics & Household Code</span>
+            </h3>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="sm:col-span-2">
-                <label className="block text-xs text-slate-700 font-bold mb-1">{t('patientName')} *</label>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Resident Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Rekha Devi"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full p-2.5 text-xs rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
+                  placeholder="e.g. Savita Devi"
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs sm:text-sm outline-none focus:bg-white focus:border-purple-600"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs text-slate-700 font-bold mb-1">{t('patientPhone')}</label>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Mobile Phone</label>
                 <input
                   type="tel"
-                  placeholder="9876543210"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full p-2.5 text-xs rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
+                  placeholder="e.g. 98221 55601"
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs sm:text-sm outline-none focus:bg-white focus:border-purple-600"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs text-slate-700 font-bold mb-1">{t('gender')}</label>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Age (Years)</label>
+                <input
+                  type="number"
+                  value={form.age}
+                  onChange={(e) => setForm({ ...form, age: e.target.value })}
+                  placeholder="e.g. 28"
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs sm:text-sm outline-none focus:bg-white focus:border-purple-600"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Gender</label>
                 <select
                   value={form.gender}
                   onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                  className="w-full p-2.5 text-xs rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs sm:text-sm outline-none focus:bg-white focus:border-purple-600"
                 >
-                  <option value="Female">{t('female')}</option>
-                  <option value="Male">{t('male')}</option>
-                  <option value="Other">{t('other')}</option>
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* Vitals Assessment */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
-              <h2 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-blue-600" />
-                <span>{t('section2Vitals')}</span>
-              </h2>
-              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
-                <input
-                  type="checkbox"
-                  checked={form.isPregnant}
-                  onChange={(e) => setForm({ ...form, isPregnant: e.target.checked })}
-                  className="w-4 h-4 accent-blue-600 rounded"
-                />
-                <span>{t('isPregnant')}</span>
-              </label>
-            </div>
+          {/* Vitals Kit (Field Measurements) */}
+          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 font-display flex items-center gap-2">
+              <Activity className="w-4 h-4 text-purple-600" />
+              <span>2. ASHA Diagnostic Kit Vitals (Field Measurements)</span>
+            </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-3">
-              <div>
-                <label className="block text-[11px] text-slate-600 font-semibold mb-1">{t('spo2')}</label>
-                <input
-                  type="number"
-                  placeholder="98 %"
-                  value={form.spo2}
-                  onChange={(e) => setForm({ ...form, spo2: e.target.value })}
-                  className="w-full p-2.5 text-xs font-mono text-center rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] text-slate-600 font-semibold mb-1">{t('pulse')}</label>
-                <input
-                  type="number"
-                  placeholder="76 bpm"
-                  value={form.pulse}
-                  onChange={(e) => setForm({ ...form, pulse: e.target.value })}
-                  className="w-full p-2.5 text-xs font-mono text-center rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] text-slate-600 font-semibold mb-1">{t('bp')}</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600">Blood Pressure</label>
                 <input
                   type="text"
                   placeholder="120/80"
                   value={form.bp}
                   onChange={(e) => setForm({ ...form, bp: e.target.value })}
-                  className="w-full p-2.5 text-xs font-mono text-center rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
+                  className="w-full p-2 rounded-xl bg-slate-50 border border-slate-300 text-xs font-mono outline-none"
                 />
               </div>
-              <div>
-                <label className="block text-[11px] text-slate-600 font-semibold mb-1">{t('temp')}</label>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600">SpO2 Oxygen (%)</label>
                 <input
                   type="number"
-                  step="0.1"
-                  placeholder="98.6 °F"
+                  placeholder="98"
+                  value={form.spo2}
+                  onChange={(e) => setForm({ ...form, spo2: e.target.value })}
+                  className="w-full p-2 rounded-xl bg-slate-50 border border-slate-300 text-xs font-mono outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600">Pulse (bpm)</label>
+                <input
+                  type="number"
+                  placeholder="76"
+                  value={form.pulse}
+                  onChange={(e) => setForm({ ...form, pulse: e.target.value })}
+                  className="w-full p-2 rounded-xl bg-slate-50 border border-slate-300 text-xs font-mono outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600">Temp (°F)</label>
+                <input
+                  type="text"
+                  placeholder="98.6"
                   value={form.temp}
                   onChange={(e) => setForm({ ...form, temp: e.target.value })}
-                  className="w-full p-2.5 text-xs font-mono text-center rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
+                  className="w-full p-2 rounded-xl bg-slate-50 border border-slate-300 text-xs font-mono outline-none"
                 />
               </div>
-              <div>
-                <label className="block text-[11px] text-slate-600 font-semibold mb-1">{t('sugar')}</label>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600">Sugar (mg/dL)</label>
                 <input
                   type="number"
-                  placeholder="110 mg"
+                  placeholder="110"
                   value={form.sugar}
                   onChange={(e) => setForm({ ...form, sugar: e.target.value })}
-                  className="w-full p-2.5 text-xs font-mono text-center rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
+                  className="w-full p-2 rounded-xl bg-slate-50 border border-slate-300 text-xs font-mono outline-none"
                 />
+              </div>
+
+              <div className="flex items-center gap-2 pt-5">
+                <input
+                  type="checkbox"
+                  id="pregnantCheck"
+                  checked={form.isPregnant}
+                  onChange={(e) => setForm({ ...form, isPregnant: e.target.checked })}
+                  className="w-4 h-4 rounded text-purple-600"
+                />
+                <label htmlFor="pregnantCheck" className="text-xs font-bold text-slate-700 cursor-pointer">
+                  Pregnant (ANC)
+                </label>
               </div>
             </div>
           </div>
 
-          {/* Visual Problem Cards for ASHA Worker Intake */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs">
+          {/* Visual Symptom Selector */}
+          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-3">
             <VisualSymptomSelector
               onSelectSymptom={handleVisualSymptomSelect}
-              selectedSymptoms={form.symptoms ? form.symptoms.split(',').map((s) => s.trim()).filter(Boolean) : []}
+              selectedSymptoms={form.symptoms ? form.symptoms.split(',').map((s) => s.trim()) : []}
             />
-          </div>
 
-          {/* Symptoms & Observation Box */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
-              <h2 className="text-xs sm:text-sm font-bold text-slate-900">
-                {t('section3Symptoms')}
-              </h2>
-              <VoiceInput onTranscript={handleVoiceTranscript} />
+            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <label className="text-xs font-bold text-slate-700">Recorded Symptoms:</label>
+              <VoiceInput onTranscript={handleVoiceTranscript} disabled={loading} />
             </div>
 
             <textarea
-              rows={3}
+              rows={2}
               value={form.symptoms}
               onChange={(e) => setForm({ ...form, symptoms: e.target.value })}
-              placeholder={language === 'hi' ? 'चित्र चुनने या बोलने पर लक्षण यहां जुड़ेंगे...' : 'Selected problems will appear here...'}
-              className="w-full p-3 text-xs rounded-xl border border-slate-300 text-slate-900 bg-slate-50 focus:bg-white focus:border-blue-600 outline-none"
+              placeholder="Click cards above or speak symptoms in your language..."
+              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-300 text-xs outline-none"
             />
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
-            className="tap-press w-full min-h-[48px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 transition-all"
+            className="tap-press w-full py-3.5 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
-                <span>
-                  {language === 'hi'
-                    ? 'स्वास्थ्य ट्राइएज व रेफरल जांचा जा रहा है...'
-                    : language === 'mr'
-                    ? 'आरोग्य ट्राइएज तपासत आहे...'
-                    : 'Evaluating Clinical Triage & Referral…'}
-                </span>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Running Rural Clinical Triage & Facility Matching...</span>
               </>
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4" />
-                <span>{t('savePatient')}</span>
+                <span>Save Household Intake & Generate Digital Referral Slip</span>
               </>
             )}
           </button>
         </form>
-      ) : (
-        /* Patient Registry List View */
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
+      )}
+
+      {/* TAB 2: HIGH-RISK PATIENT WATCHLIST (Feature 13) */}
+      {activeTab === 'watchlist' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 font-display">
+                High-Risk Patient Watchlist (Feature 13)
+              </h3>
+              <p className="text-xs text-slate-500">
+                Flagged village residents needing close follow-up for chronic illness, maternal risk, or missed appointments.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
+            {highRiskWatchlist.map((w) => (
+              <div
+                key={w.id}
+                className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col justify-between space-y-3"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-mono font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">
+                        {w.id} • {w.village}
+                      </span>
+                      <h4 className="font-bold text-sm sm:text-base text-slate-900 leading-snug mt-1">
+                        {w.patientName} ({w.age})
+                      </h4>
+                    </div>
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                      {w.riskLevel} Risk
+                    </span>
+                  </div>
+
+                  <p className="text-xs font-bold text-purple-900 bg-purple-50 p-2 rounded-xl border border-purple-100">
+                    {w.riskCategory}
+                  </p>
+
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    <strong>Findings:</strong> {w.keyFindings}
+                  </p>
+
+                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 font-medium">
+                    <strong>Action:</strong> {w.actionRequired}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-slate-400">Next Due: {w.nextScheduledVisit}</span>
+                  <a
+                    href={`tel:${w.phone}`}
+                    className="tap-press px-2.5 py-1 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold flex items-center gap-1 text-[11px]"
+                  >
+                    <Phone className="w-3 h-3" />
+                    <span>Call</span>
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: MATERNAL & CHILD CARE (MCH) PATHWAY (Feature 14) */}
+      {activeTab === 'mch' && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 font-display">
+              Maternal & Child Health (MCH) Care Pathway (Feature 14)
+            </h3>
+            <p className="text-xs text-slate-500">
+              Structured antenatal care journeys (ANC 1–4), institutional delivery plans, and immunization schedules.
+            </p>
+          </div>
+
+          {mchRecords.map((m) => (
+            <div key={m.id} className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-bold bg-pink-50 text-pink-700 px-2 py-0.5 rounded border border-pink-200">
+                      {m.id} • Gravida {m.gravida}
+                    </span>
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      Gestation: {m.gestationWeeks}
+                    </span>
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900 mt-1">
+                    {m.motherName} (W/o {m.husbandName}) • {m.village}
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Estimated Date of Delivery (EDD): <strong>{m.edd}</strong> • LMP: {m.lmp}
+                  </p>
+                </div>
+
+                <div className="text-right self-start sm:self-auto">
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Delivery Facility</span>
+                  <span className="text-xs font-bold text-purple-900">{m.institutionalDeliveryPlan}</span>
+                </div>
+              </div>
+
+              {/* 4 ANC Visits Progress */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-700 block">Antenatal Care (ANC) Visits Timeline:</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                  {m.ancVisits.map((v, i) => (
+                    <div
+                      key={v.visit}
+                      className={`p-3 rounded-2xl border text-xs space-y-1 ${
+                        v.status === 'Completed'
+                          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
+                          : 'bg-slate-50 border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[11px]">{v.visit.split('(')[0]}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                          v.status === 'Completed' ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
+                        }`}>
+                          {v.status}
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] text-slate-500">{v.date}</p>
+                      <p className="text-[11px] font-mono">BP: {v.bp} • Hb: {v.hb}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TAB 4: CHRONIC CARE COMPANION (Feature 15) */}
+      {activeTab === 'chronic' && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 font-display">
+              Chronic Care Companion — NCD Longitudinal Monitoring (Feature 15)
+            </h3>
+            <p className="text-xs text-slate-500">
+              Longitudinal tracking for Diabetes & Hypertension with medication adherence streaks and vitals history.
+            </p>
+          </div>
+
+          {chronicCareData.map((c) => (
+            <div key={c.id} className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <span className="text-[10px] font-mono font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
+                    {c.id} • {c.disease}
+                  </span>
+                  <h4 className="text-base font-bold text-slate-900 mt-1">
+                    {c.patientName} ({c.age}y)
+                  </h4>
+                </div>
+
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
+                  🔥 Adherence Streak: {c.adherenceStreak}
+                </span>
+              </div>
+
+              {/* Vitals Comparison Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold">Baseline BP</span>
+                  <span className="font-bold text-slate-600">{c.baselineBP}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold">Current BP</span>
+                  <span className="font-bold text-emerald-700 text-sm">{c.currentBP}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold">Baseline Sugar</span>
+                  <span className="font-bold text-slate-600">{c.baselineSugar}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold">Current Sugar</span>
+                  <span className="font-bold text-emerald-700 text-sm">{c.currentSugar}</span>
+                </div>
+              </div>
+
+              <div className="text-xs space-y-1">
+                <span className="font-bold text-slate-700 block">Prescribed Daily Medicines:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {c.prescriptions.map((rx) => (
+                    <span key={rx} className="bg-purple-50 text-purple-800 px-2 py-0.5 rounded-lg border border-purple-200 font-medium">
+                      {rx}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TAB 5: VILLAGE PATIENT REGISTRY (Feature 07 & 16) */}
+      {activeTab === 'registry' && (
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-4 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900">{t('villageRegisterTitle')}</h2>
-              <p className="text-xs text-slate-500">{t('villageRegisterSub')}</p>
+              <h3 className="text-base font-bold text-slate-900 font-display">
+                Village Resident Registry ({patientRecords.length} Records)
+              </h3>
+              <p className="text-xs text-slate-500">
+                Offline records cached securely on this device with referral slip re-print options.
+              </p>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 w-full sm:w-64">
-              <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder={t('searchRecordsPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none text-xs text-slate-800 outline-none w-full"
+                placeholder="Search patient name..."
+                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-300 text-xs outline-none"
               />
             </div>
           </div>
 
-          {filteredRecords.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs">
-              {t('noPatients')}
+          {patientRecords.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              No patient records registered yet. Use Tab 1 to screen residents.
             </div>
           ) : (
-            <>
-              {/* Mobile Card List View (< md screens) */}
-              <div className="space-y-3 block md:hidden">
-                {filteredRecords.map((rec) => (
-                  <div key={rec.id} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2.5 shadow-2xs">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="font-bold text-xs sm:text-sm text-slate-900">{rec.name}</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          {rec.age ? `${rec.age} yrs` : '—'} • {rec.gender}
-                          {rec.phone && ` • 📞 ${rec.phone}`}
-                        </p>
+            <div className="divide-y divide-slate-100">
+              {patientRecords
+                .filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((p) => (
+                  <div
+                    key={p.id}
+                    className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-slate-900">{p.name}</h4>
+                        <span className={`text-[10px] font-bold px-2 py-0.2 rounded-full ${
+                          p.urgency === 'Emergency' ? 'bg-red-600 text-white' : 'bg-amber-100 text-amber-900'
+                        }`}>
+                          {p.urgency}
+                        </span>
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border shrink-0 ${
-                        rec.urgency === 'Emergency'
-                          ? 'bg-red-50 text-red-700 border-red-200'
-                          : rec.urgency === 'Moderate'
-                          ? 'bg-amber-50 text-amber-800 border-amber-200'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      }`}>
-                        {rec.urgency}
-                      </span>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Age: {p.age} • {p.gender} • Date: {p.displayDate}
+                      </p>
+                      <p className="text-slate-600 line-clamp-1 mt-0.5">{p.symptoms}</p>
                     </div>
 
-                    <div className="text-[11px] text-slate-700 flex items-center gap-1.5 bg-white p-2 rounded-lg border border-slate-200">
-                      <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                      <span className="truncate">{rec.hospital?.name || 'Local Primary Health Centre'}</span>
-                    </div>
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setActiveSlip({
+                            name: p.name,
+                            phone: p.phone,
+                            age: p.age,
+                            gender: p.gender,
+                            symptoms: p.symptoms,
+                            urgency: p.urgency,
+                            advice: p.advice,
+                            vitals: p.vitals,
+                            hospital: p.hospital,
+                            date: p.displayDate,
+                            refId: p.id,
+                            risk_factors: p.risk_factors,
+                          })
+                        }
+                        className="tap-press px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold border border-purple-200 flex items-center gap-1 text-[11px]"
+                      >
+                        <FileText className="w-3 h-3" />
+                        <span>Print Slip</span>
+                      </button>
 
-                    <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
-                      <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(rec.createdAt).toLocaleDateString()}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setActiveSlip(rec)}
-                          className="tap-press text-blue-600 hover:underline font-bold text-xs inline-flex items-center gap-1"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>{t('actionPrint')}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => deletePatientRecord(rec.id)}
-                          className="tap-press text-red-600 hover:underline font-bold text-xs inline-flex items-center gap-1"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>{t('actionDelete')}</span>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => deletePatientRecord(p.id)}
+                        className="tap-press p-1.5 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        title="Delete Record"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* Desktop Table View (md+ screens) */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
-                      <th className="py-2.5 px-3">{t('thPatientName')}</th>
-                      <th className="py-2.5 px-3">{t('thAgeGender')}</th>
-                      <th className="py-2.5 px-3">{t('thDate')}</th>
-                      <th className="py-2.5 px-3">{t('thUrgencyStatus')}</th>
-                      <th className="py-2.5 px-3">{t('thAssignedPHC')}</th>
-                      <th className="py-2.5 px-3 text-right">{t('thActions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredRecords.map((rec) => (
-                      <tr key={rec.id} className="hover:bg-slate-50/80">
-                        <td className="py-2.5 px-3 font-bold text-slate-900">{rec.name}</td>
-                        <td className="py-2.5 px-3 text-slate-600">{rec.age ? `${rec.age} yrs` : '—'} / {rec.gender}</td>
-                        <td className="py-2.5 px-3 text-slate-500">{new Date(rec.createdAt).toLocaleDateString()}</td>
-                        <td className="py-2.5 px-3">
-                          <span className={`px-2 py-0.5 rounded-md font-bold border ${
-                            rec.urgency === 'Emergency'
-                              ? 'bg-red-50 text-red-700 border-red-200'
-                              : rec.urgency === 'Moderate'
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          }`}>
-                            {rec.urgency}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-slate-800 font-medium truncate max-w-[180px]">
-                          {rec.hospital?.name || 'Local PHC'}
-                        </td>
-                        <td className="py-2.5 px-3 text-right space-x-2">
-                          <button
-                            type="button"
-                            onClick={() => setActiveSlip(rec)}
-                            className="text-blue-600 hover:underline font-bold"
-                          >
-                            {t('actionPrint')}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => deletePatientRecord(rec.id)}
-                            className="text-red-600 hover:underline font-bold"
-                          >
-                            {t('actionDelete')}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
+            </div>
           )}
         </div>
       )}

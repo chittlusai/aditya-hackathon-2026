@@ -1,0 +1,259 @@
+=== PAGE 1 ===
+Arogya Setu Local • SIH26133 • Next-Gen Feature Upgrade Blueprint
+Page 1
+ AROGYA SETU LOCAL
+Next-Gen Feature Upgrade Blueprint
+ SIH 2026 • Problem Statement SIH26133
+Accessibility and quality of public healthcare services, particularly in rural and
+ underserved areas
+PRODUCT DIRECTION
+Move from a basic rural-health portal to an intelligent care-access network that connects patients,
+frontline workers, doctors, diagnostics, medicines, facilities and emergency services.
+DESIGN PRINCIPLE
+AI assists. Clinicians decide. The system routes, coordinates, records and follows up.
+THE 20-UPGRADE STACK
+These features are selected to directly strengthen the core outcomes expected for SIH26133: timely
+access, continuity, quality, referral completion, follow-up, diagnostic/medicine visibility, frontline-worker
+support, multilingual access, low-connectivity operation, emergency escalation and interoperable records.
+
+
+=== PAGE 2 ===
+Arogya Setu Local • SIH26133 • Next-Gen Feature Upgrade Blueprint
+Page 2
+FEATURES 01–05
+01
+AI Care Navigator
+CORE
+Conversational symptom intake that asks adaptive follow-up
+questions, estimates urgency, and routes the user to the appropriate
+care level.
+AI • Triage
+02
+Dynamic Care Routing Engine
+CORE
+Rank PHCs, hospitals and specialists using urgency, distance,
+specialty, queue, diagnostics, medicine availability and operating
+status—not distance alone.
+Routing • Optimization
+03
+Rural Health Command Map
+CORE
+Live map for patients and health workers showing nearby PHCs,
+hospitals, specialists, labs, pharmacies, ambulances, queues and
+service status.
+Maps • Operations
+04
+Doctor Availability Mesh
+CORE
+Doctors publish live availability, specialty and consultation mode.
+The system automatically matches patients to the right available
+clinician.
+Telehealth • Matching
+05
+AI Referral Copilot
+HIGH
+Generate a structured referral summary containing symptoms,
+history, vitals, prior treatment, reason for referral and urgency so the
+receiving facility can act faster.
+AI • Referral
+
+
+=== PAGE 3 ===
+Arogya Setu Local • SIH26133 • Next-Gen Feature Upgrade Blueprint
+Page 3
+FEATURES 06–10
+06
+Referral Journey Tracker
+CORE
+Track a referral from creation → acceptance → travel → arrival →
+consultation → treatment → closure, with alerts when a referral stalls.
+Workflow • Follow-up
+07
+Offline-First Health Mode
+CORE
+Allow essential patient records, triage forms and referral packets to
+work with poor connectivity, then securely sync when a connection
+returns.
+Offline • Rural
+08
+Voice + Local Language Care
+HIGH
+Voice-first interaction for patients with low literacy. Support regional
+languages, speech-to-text and spoken responses.
+Voice • Accessibility
+09
+Smart Queue & Wait-Time Predictor
+HIGH
+Predict waiting time using current queue, doctor availability and
+historical patterns; let patients choose the best nearby facility.
+Prediction • Queue
+10
+Medicine Availability Network
+HIGH
+Show verified medicine stock at connected PHCs, hospitals and
+pharmacies; suggest the closest verified source when stock is
+unavailable.
+Inventory • Access
+
+
+=== PAGE 4 ===
+Arogya Setu Local • SIH26133 • Next-Gen Feature Upgrade Blueprint
+Page 4
+FEATURES 11–15
+11
+Diagnostics Availability Finder
+HIGH
+Check whether tests such as CBC, ECG, X-ray or ultrasound are
+available at nearby facilities and coordinate the next step.
+Diagnostics •
+Coordination
+12
+Emergency Escalation Mode
+CORE
+A dedicated emergency workflow that surfaces urgent care options,
+emergency contacts, facility capability and ambulance coordination.
+Emergency • Safety
+13
+High-Risk Patient Watchlist
+HIGH
+With authorized clinician oversight, flag patients needing close
+follow-up for chronic disease, pregnancy, child health or missed
+appointments.
+Risk • Follow-up
+14
+Maternal & Child Care Pathway
+HIGH
+Structured journeys for ANC, postnatal care, immunization, child
+growth and scheduled follow-ups with reminder and escalation logic.
+MCH • Continuity
+15
+Chronic Care Companion
+HIGH
+Longitudinal support for diabetes, hypertension and other chronic
+conditions: medication reminders, vitals logging, appointments and
+missed-follow-up alerts.
+Chronic • Monitoring
+
+
+=== PAGE 5 ===
+Arogya Setu Local • SIH26133 • Next-Gen Feature Upgrade Blueprint
+Page 5
+FEATURES 16–20
+16
+Health Worker Super-App
+CORE
+A dedicated ASHA/ANM/field-worker workflow for household visits,
+screening, referrals, follow-ups, records and offline sync.
+Frontline • Field
+17
+Doctor AI Workbench
+HIGH
+Assist clinicians with timeline summarization, visit notes, referral
+drafts, follow-up plans and patient education—always reviewable by
+the doctor.
+Clinical AI • Productivity
+18
+Care Capacity Heatmap
+HIGH
+District/block-level analytics showing overloaded facilities, specialist
+gaps, medicine shortages, referral bottlenecks and underserved
+zones.
+Analytics • Planning
+19
+Privacy + Consent Vault
+CORE
+Fine-grained consent, role-based access, audit logs, encrypted data
+handling and controlled sharing of health records between care
+teams.
+Security • Trust
+20
+Interoperable Health Record Bridge
+CORE
+Design the record layer around approved Indian digital-health
+interoperability standards so patient information can move safely
+between connected systems.
+Interoperability • Scale
+HOW THE UPGRADE FITS TOGETHER
+ USER LAYER
+CARE INTELLIGENCE
+SERVICE NETWORK
+DATA + TRUST
+Patient App
+Voice / Text / Local language
+AI Care Navigator
+Triage + routing + prediction
+PHCs • Hospitals
+Doctors • Labs • Pharmacies
+Ambulances
+Health Records
+Consent • Audit • Encryption
+Health Worker App
+Offline field workflow
+Referral Copilot
+Queue prediction
+Follow-up engine
+Specialists
+Diagnostics
+Emergency services
+Interoperability
+Analytics
+Role-based access
+THE SIGNATURE USER JOURNEY
+ 1. Patient speaks or types symptoms
+2. AI collects adaptive follow-up information
+3. Triage estimates urgency and recommends the next care level
+
+
+=== PAGE 6 ===
+Arogya Setu Local • SIH26133 • Next-Gen Feature Upgrade Blueprint
+Page 6
+4. Routing engine scores suitable facilities/doctors
+5. Patient sees distance + availability + queue + diagnostics + medicine signals
+6. Consultation/referral is created
+7. Referral packet travels with the patient
+8. Clinician reviews history and records the encounter
+9. Follow-up engine tracks completion and missed care
+10. Aggregated analytics reveal system-level bottlenecks
+
+
+=== PAGE 7 ===
+Arogya Setu Local • SIH26133 • Next-Gen Feature Upgrade Blueprint
+Page 7
+NEXT UPDATE — IMPLEMENTATION ORDER
+ PHASE
+BUILD
+WHY IT MATTERS
+1 • Foundation
+Patient profiles, facility registry, doctor availability, digital records, roles/permissions
+Creates the data and workflow backbone.
+2 • Intelligence
+AI Care Navigator + Dynamic Care Routing + Referral Copilot
+Turns the portal into a decision-support and routing system.
+3 • Access
+Voice/local language + offline mode + queue prediction
+Makes it usable in real rural conditions.
+4 • Network
+Medicine + diagnostics + ambulance + facility capability
+Connects the complete care-access chain.
+5 • Continuity
+Referral tracking + high-risk follow-up + maternal/child + chronic care
+Moves from one-time consultation to longitudinal care.
+6 • Scale
+Health-worker super-app + command map + analytics + interoperability + consent vault
+Creates a deployable public-health platform.
+KEY DEMO SCENARIO
+Scenario: A rural patient reports chest discomfort and breathlessness in a local language. The system
+collects structured information, flags the need for urgent evaluation, checks suitable nearby facilities,
+shows service capability and availability, initiates emergency/referral workflow, and prepares a concise
+clinical handoff. After treatment, the same record powers follow-up and missed-care alerts.
+ This single journey can demonstrate AI, multilingual access, rural connectivity, smart
+ routing, referral continuity, facility intelligence, emergency escalation and
+longitudinal records without turning the product into an AI diagnosis tool.
+IMPORTANT PRODUCT GUARDRAILS
+• AI outputs should be framed as decision support/triage assistance, not definitive diagnosis.
+• Emergency escalation should prioritize human clinical services and verified facility information.
+• Health data should use role-based access, consent and auditable sharing.
+• Availability data should carry timestamps/status so stale information is not presented as live truth.
+• Offline synchronization should resolve conflicts safely and preserve an audit trail.
+
+

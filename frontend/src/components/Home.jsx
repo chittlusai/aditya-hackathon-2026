@@ -126,8 +126,122 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 2. Visual Illustrated Problem Cards */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-7 shadow-xs">
+      {/* 2. Next-Gen 20-Feature Upgrade Blueprint Hub (SIH26133) */}
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-5 sm:p-7 shadow-xl border border-blue-700/30 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-400/20 inline-flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-300" />
+              SIH26133 • Next-Gen Feature Upgrade Stack
+            </span>
+            <h2 className="text-lg sm:text-xl font-bold font-display mt-1">
+              Rural Healthcare Access & Intelligence Grid
+            </h2>
+          </div>
+          <span className="text-xs text-blue-200 font-medium">
+            20 Integrated Upgrades
+          </span>
+        </div>
+
+        {/* Feature Cards Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+          {/* Feature 01: AI Care Navigator */}
+          <button
+            type="button"
+            onClick={() => go('check')}
+            className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-blue-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <Stethoscope className="w-4 h-4 text-blue-300" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono text-blue-300 block font-bold">FEAT 01</span>
+              <span className="text-xs font-bold text-white leading-tight block">AI Care Navigator</span>
+            </div>
+          </button>
+
+          {/* Feature 03: Command Map & Radar */}
+          <button
+            type="button"
+            onClick={() => go('map')}
+            className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <MapPin className="w-4 h-4 text-emerald-300" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono text-emerald-300 block font-bold">FEAT 03</span>
+              <span className="text-xs font-bold text-white leading-tight block">Command Map & Queue</span>
+            </div>
+          </button>
+
+          {/* Features 10 & 11: Medicine & Diagnostics */}
+          <button
+            type="button"
+            onClick={() => go('medicines')}
+            className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-amber-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <Pill className="w-4 h-4 text-amber-300" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono text-amber-300 block font-bold">FEAT 10 & 11</span>
+              <span className="text-xs font-bold text-white leading-tight block">Medicine & Labs</span>
+            </div>
+          </button>
+
+          {/* Feature 06: Referral Journey Tracker */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedReferral(null)
+              setReferralTrackerModalOpen(true)
+            }}
+            className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-purple-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <Activity className="w-4 h-4 text-purple-300" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono text-purple-300 block font-bold">FEAT 05 & 06</span>
+              <span className="text-xs font-bold text-white leading-tight block">Referral Tracker</span>
+            </div>
+          </button>
+
+          {/* Feature 19: Privacy & Consent Vault */}
+          <button
+            type="button"
+            onClick={() => setConsentVaultModalOpen(true)}
+            className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <ShieldCheck className="w-4 h-4 text-indigo-300" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono text-indigo-300 block font-bold">FEAT 19</span>
+              <span className="text-xs font-bold text-white leading-tight block">Consent Vault (ABDM)</span>
+            </div>
+          </button>
+
+          {/* Feature 20: FHIR Interoperability */}
+          <button
+            type="button"
+            onClick={() => setFhirExportModalOpen(true)}
+            className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-rose-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+              <HeartPulse className="w-4 h-4 text-rose-300" />
+            </div>
+            <div>
+              <span className="text-[9px] font-mono text-rose-300 block font-bold">FEAT 20</span>
+              <span className="text-xs font-bold text-white leading-tight block">FHIR / ABDM Bridge</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Visual Illustrated Problem Cards */}
+      <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-7 shadow-xs">
         <VisualSymptomSelector onSelectSymptom={handleVisualSelect} selectedSymptoms={[]} />
       </div>
 
