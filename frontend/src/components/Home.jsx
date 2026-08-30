@@ -183,31 +183,31 @@ export default function Home() {
         <VisualSymptomSelector onSelectSymptom={handleVisualSelect} selectedSymptoms={[]} />
       </div>
 
-      {/* 3. Next-Gen 20-Feature Upgrade Blueprint Hub (Collapsible on Mobile) */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-4 sm:p-7 shadow-xl border border-blue-700/30 space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-400/20 inline-flex items-center gap-1">
+      {/* 3. Next-Gen 20-Feature Upgrade Blueprint Hub (Mobile Optimized Collapsible) */}
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xl border border-blue-700/30 space-y-3 w-full overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowFeatureHub((prev) => !prev)}
+          className="tap-press w-full flex items-center justify-between gap-2 text-left"
+        >
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-blue-500/25 text-blue-200 px-2 py-0.5 rounded-full border border-blue-400/25 inline-flex items-center gap-1 shrink-0">
               <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
               SIH26133
             </span>
-            <h2 className="text-sm sm:text-lg font-bold font-display truncate">
-              20 Advanced Health Grid Upgrades
+            <h2 className="text-xs sm:text-base font-bold font-sans text-white truncate">
+              20 Advanced Health Upgrades
             </h2>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowFeatureHub((prev) => !prev)}
-            className="tap-press text-xs font-bold text-blue-200 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all shrink-0"
-          >
+          <div className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-blue-200 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-xl shrink-0 transition-all border border-white/10">
             <span>{showFeatureHub ? 'Hide' : 'Explore'}</span>
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showFeatureHub ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
+            <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform ${showFeatureHub ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
 
         {showFeatureHub && (
-          <div className="pt-2 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+          <div className="pt-3 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
             {/* Feature 01: AI Care Navigator */}
             <button
               type="button"
