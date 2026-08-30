@@ -25,6 +25,8 @@ import {
   Navigation,
   KeyRound,
   FileCode,
+  Menu,
+  X,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import LanguageToggle from './LanguageToggle.jsx'
@@ -51,6 +53,7 @@ export default function Navbar() {
 
   // State for categorized dropdown menus: null | 'clinical' | 'facilities' | 'portals' | 'profile'
   const [openDropdown, setOpenDropdown] = useState(null)
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const navRef = useRef(null)
 
   // Close dropdown on click outside
@@ -68,7 +71,10 @@ export default function Navbar() {
     setOpenDropdown((prev) => (prev === name ? null : name))
   }
 
-  const closeDropdowns = () => setOpenDropdown(null)
+  const closeDropdowns = () => {
+    setOpenDropdown(null)
+    setMobileDrawerOpen(false)
+  }
 
   // Role Theme Accents & Configurations
   const roleConfig = (() => {
@@ -135,10 +141,11 @@ export default function Navbar() {
     { key: 'map', label: 'Hospitals', icon: MapPin },
     { key: 'medicines', label: 'Medicines', icon: Pill },
     {
-      key: role === 'doctor' ? 'doctor' : role === 'asha' ? 'asha' : role === 'admin' ? 'admin' : 'asha',
-      label: role === 'doctor' ? 'Dr. Desk' : role === 'asha' ? 'ASHA' : role === 'admin' ? 'Admin' : 'Portal',
-      icon: role === 'doctor' ? Stethoscope : role === 'asha' ? Users : Building2,
+      key: role === 'doctor' ? 'doctor' : role === 'asha' ? 'asha' : role === 'admin' ? 'admin' : 'history',
+      label: role === 'doctor' ? 'Dr. Desk' : role === 'asha' ? 'ASHA' : role === 'admin' ? 'Admin' : 'History',
+      icon: role === 'doctor' ? Stethoscope : role === 'asha' ? Users : role === 'admin' ? Building2 : FileText,
       badge: role === 'asha' && patientRecords.length > 0 ? patientRecords.length : null,
+      action: role === 'patient' ? () => setHistoryModalOpen(true) : null,
     },
   ]
 
@@ -155,41 +162,41 @@ export default function Navbar() {
         <div className={`h-[3.5px] w-full ${roleConfig.topGradient}`} />
       )}
 
-      {/* Modern Compact Categorized Header Bar */}
-      <header ref={navRef} className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-3">
+      {/* Modern Compact Header Bar */}
+      <header ref={navRef} className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 h-13 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-3">
           {/* 1. Left: Logo & Portal Brand */}
           <button
             onClick={() => {
               closeDropdowns()
               go(role === 'doctor' ? 'doctor' : role === 'asha' ? 'asha' : role === 'admin' ? 'admin' : 'home')
             }}
-            className="tap-press flex items-center gap-2 sm:gap-2.5 text-left shrink-0 group"
+            className="tap-press flex items-center gap-1.5 sm:gap-2.5 text-left shrink-0 group min-w-0"
           >
             <img
               src="/logo.png"
               alt="Arogya Setu Logo"
-              className="w-8 h-8 sm:w-9 sm:h-9 object-contain rounded-xl shadow-2xs border border-blue-100/60 p-0.5 bg-white group-hover:scale-105 transition-transform"
+              className="w-7 h-7 sm:w-9 sm:h-9 object-contain rounded-xl shadow-2xs border border-blue-100/60 p-0.5 bg-white group-hover:scale-105 transition-transform shrink-0"
             />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight leading-none whitespace-nowrap">
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="font-extrabold text-xs sm:text-base text-slate-900 tracking-tight leading-none truncate">
                   <span className="inline sm:hidden">Arogya Setu</span>
                   <span className="hidden sm:inline">{t('appName')}</span>
                 </span>
                 {role !== 'patient' && (
-                  <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded border hidden sm:inline ${roleConfig.badgeBg}`}>
+                  <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase px-1 py-0.2 rounded border shrink-0 ${roleConfig.badgeBg}`}>
                     {role}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] text-blue-600 font-bold tracking-wide uppercase mt-0.5 hidden sm:inline">
+              <span className="text-[9px] sm:text-[10px] text-blue-600 font-bold tracking-wide uppercase mt-0.5 hidden sm:inline truncate">
                 {roleConfig.roleTitle}
               </span>
             </div>
           </button>
 
-          {/* 2. Center: Compact Categorized Menu System */}
+          {/* 2. Center: Desktop Categorized Menu System (Hidden on mobile) */}
           <nav className="hidden lg:flex items-center gap-1">
             {/* Direct Link: Home */}
             <button
@@ -231,7 +238,7 @@ export default function Navbar() {
                     className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
                   >
                     <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Patient Clinical Care (Features 01, 05, 10, 11)
+                      Patient Clinical Care
                     </div>
 
                     <button
@@ -337,7 +344,7 @@ export default function Navbar() {
                     className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
                   >
                     <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Geospatial Network (Features 02, 03, 09)
+                      Geospatial Network
                     </div>
 
                     <button
@@ -412,7 +419,7 @@ export default function Navbar() {
                     className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
                   >
                     <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Role Workbenches (Features 13–20)
+                      Role Workbenches
                     </div>
 
                     <button
@@ -487,32 +494,32 @@ export default function Navbar() {
             </div>
           </nav>
 
-          {/* 3. Right: Compact User Profile & Quick Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Quick Live Video Call Button */}
+          {/* 3. Right: Compact User Profile & Mobile Actions */}
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {/* Desktop Only: Quick Live Video Call Button */}
             <button
               type="button"
               onClick={() => startVideoCall()}
-              className="tap-press inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all"
+              className="tap-press hidden md:inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all"
               title="Start Live Video Teleconsultation"
             >
               <Video className="w-3.5 h-3.5 animate-pulse" />
-              <span className="hidden md:inline">Video Call</span>
+              <span>Video Call</span>
             </button>
 
             {/* Profile / Role Dropdown Pill */}
             <div className="relative">
               <button
                 type="button"
-                onClick={() => toggleDropdown('profile')}
-                className={`tap-press inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs ${roleConfig.badgeBg}`}
+                onClick={() => (currentUser ? toggleDropdown('profile') : setAuthModalOpen(true))}
+                className={`tap-press inline-flex items-center gap-1 px-1.5 sm:px-2.5 py-1 rounded-xl border text-xs font-bold transition-all shadow-2xs ${roleConfig.badgeBg}`}
                 title="Account & Role Profile"
               >
                 <roleConfig.icon className="w-3.5 h-3.5 shrink-0" />
-                <span className="text-[11px] sm:text-xs font-bold max-w-[80px] sm:max-w-[110px] truncate">
-                  {roleConfig.name}
+                <span className="text-[10px] sm:text-xs font-bold max-w-[65px] sm:max-w-[100px] truncate">
+                  {currentUser ? roleConfig.name.split(' ')[0] : 'Login'}
                 </span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
+                <ChevronDown className="w-2.5 h-2.5 text-slate-400 shrink-0" />
               </button>
 
               <AnimatePresence>
@@ -522,7 +529,7 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.96 }}
                     transition={{ duration: 0.14 }}
-                    className="absolute right-0 top-full mt-1.5 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
+                    className="absolute right-0 top-full mt-1.5 w-52 sm:w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
                   >
                     <div className="p-2 bg-slate-50 rounded-xl mb-1">
                       <p className="font-bold text-slate-900 truncate">{roleConfig.name}</p>
@@ -575,25 +582,236 @@ export default function Navbar() {
             {/* 17-Language Toggle */}
             <LanguageToggle />
 
-            {/* 108 Emergency Shortcut */}
+            {/* Desktop Only: 108 Emergency Shortcut */}
             <button
               type="button"
               onClick={() => setSosOpen(true)}
-              className="tap-press inline-flex items-center gap-1 px-2.5 sm:px-3 h-8 sm:h-9 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs whitespace-nowrap"
+              className="tap-press hidden md:inline-flex items-center gap-1 px-2.5 sm:px-3 h-8 sm:h-9 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs whitespace-nowrap"
               aria-label={t('sosButton')}
             >
               <Siren className="w-3.5 h-3.5 animate-pulse" />
-              <span className="hidden md:inline">{t('sosButton')}</span>
-              <span className="inline md:hidden">108</span>
+              <span>{t('sosButton')}</span>
+            </button>
+
+            {/* Mobile Hamburger Menu Drawer Toggle (Visible only on < lg) */}
+            <button
+              type="button"
+              onClick={() => setMobileDrawerOpen(true)}
+              className="tap-press lg:hidden w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center border border-slate-200 shrink-0"
+              aria-label="Open Menu Drawer"
+            >
+              <Menu className="w-4 h-4" />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar */}
+      {/* Mobile Slide-Out Navigation Drawer */}
+      <AnimatePresence>
+        {mobileDrawerOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileDrawerOpen(false)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+            />
+
+            {/* Slide-out Sheet */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="relative w-4/5 max-w-sm bg-white h-full shadow-2xl z-10 flex flex-col overflow-y-auto"
+            >
+              {/* Drawer Top Header */}
+              <div className="p-4 bg-gradient-to-r from-blue-900 to-indigo-950 text-white flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img src="/logo.png" alt="Logo" className="w-7 h-7 object-contain bg-white rounded-lg p-0.5" />
+                  <div>
+                    <span className="font-bold text-sm block leading-tight">Arogya Setu Local</span>
+                    <span className="text-[10px] text-blue-200">{roleConfig.name}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="tap-press w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Quick 1-Tap Emergency SOS & Video Banner */}
+              <div className="p-3 bg-slate-50 border-b border-slate-200 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => { closeDropdowns(); startVideoCall() }}
+                  className="tap-press p-2 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <Video className="w-3.5 h-3.5" />
+                  <span>Video Doctor</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { closeDropdowns(); setSosOpen(true) }}
+                  className="tap-press p-2 rounded-xl bg-red-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <Siren className="w-3.5 h-3.5 animate-pulse" />
+                  <span>108 SOS</span>
+                </button>
+              </div>
+
+              {/* Drawer Navigation Links */}
+              <div className="p-3 space-y-3 text-xs flex-1">
+                {/* Clinical Section */}
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 block mb-1">
+                    Clinical Tools
+                  </span>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); go('home') }}
+                      className={`tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 ${screen === 'home' ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
+                    >
+                      <Home className="w-4 h-4 text-blue-600" />
+                      <span>Home Dashboard</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); go('check') }}
+                      className={`tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 ${screen === 'check' ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
+                    >
+                      <Stethoscope className="w-4 h-4 text-blue-600" />
+                      <span>Check Symptoms (AI Triage)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); go('medicines') }}
+                      className={`tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 ${screen === 'medicines' ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
+                    >
+                      <Pill className="w-4 h-4 text-amber-600" />
+                      <span>Medicines & Lab Tests</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); setHistoryModalOpen(true) }}
+                      className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-slate-50"
+                    >
+                      <FileText className="w-4 h-4 text-teal-600" />
+                      <span>My Medical History & Slips</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Facilities Section */}
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 block mb-1">
+                    Facilities & Radar
+                  </span>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); go('map') }}
+                      className={`tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 ${screen === 'map' ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
+                    >
+                      <MapPin className="w-4 h-4 text-emerald-600" />
+                      <span>Nearby Hospitals & GPS Radar</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); setReferralTrackerModalOpen(true) }}
+                      className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-slate-50"
+                    >
+                      <Activity className="w-4 h-4 text-purple-600" />
+                      <span>Referral Journey Tracker</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Specialized Desks Section */}
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 block mb-1">
+                    Specialized Role Portals
+                  </span>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); go('doctor') }}
+                      className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-emerald-50"
+                    >
+                      <Stethoscope className="w-4 h-4 text-emerald-600" />
+                      <span>Doctor AI Workbench</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); go('asha') }}
+                      className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-purple-50"
+                    >
+                      <Users className="w-4 h-4 text-purple-600" />
+                      <span>ASHA Field Super-App</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); go('admin') }}
+                      className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-amber-50"
+                    >
+                      <Building2 className="w-4 h-4 text-amber-600" />
+                      <span>District Admin Desk</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); setConsentVaultModalOpen(true) }}
+                      className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-indigo-50"
+                    >
+                      <KeyRound className="w-4 h-4 text-indigo-600" />
+                      <span>ABDM Consent Vault</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => { closeDropdowns(); setAuthModalOpen(true) }}
+                  className="tap-press w-full py-2.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Switch Role / Portal Gate</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { closeDropdowns(); logoutUser() }}
+                  className="tap-press w-full py-2 rounded-xl text-red-600 font-bold text-xs flex items-center justify-center gap-1.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Log Out & Lock</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Bottom Navigation Bar (Thumb Friendly) */}
       <nav
         aria-label="Mobile Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-1 py-1.5"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200 shadow-lg px-1 py-1.5"
       >
         <div className="grid grid-cols-5 gap-0.5">
           {mobileNavItems.map((item) => {
@@ -603,10 +821,13 @@ export default function Navbar() {
               <button
                 key={item.key}
                 type="button"
-                onClick={() => go(item.key)}
+                onClick={() => {
+                  if (item.action) item.action()
+                  else go(item.key)
+                }}
                 className={`tap-press flex flex-col items-center justify-center py-1 rounded-xl transition-all relative ${
                   active
-                    ? 'text-blue-700 font-extrabold bg-blue-50/80'
+                    ? 'text-blue-700 font-extrabold bg-blue-50/90'
                     : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
