@@ -598,239 +598,338 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => { closeDropdowns(); go('home') }}
-            className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all ${
+            className={`tap-press px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 transition-all flex items-center gap-1 ${
               screen === 'home' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200'
             }`}
           >
-            🏠 Home
+            <span>🏠 Home</span>
           </button>
 
-          {/* Category: Clinical Care Popover */}
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => toggleMobileCategory('clinical')}
-              className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all ${
-                ['check', 'history'].includes(screen) || mobileCategoryOpen === 'clinical'
-                  ? 'bg-blue-600 text-white shadow-2xs'
-                  : 'bg-blue-50 text-blue-900 border border-blue-200'
-              }`}
-            >
-              <Stethoscope className="w-3 h-3" />
-              <span>Clinical ▾</span>
-            </button>
+          {/* Category: Clinical Care Popover Trigger */}
+          <button
+            type="button"
+            onClick={() => toggleMobileCategory('clinical')}
+            className={`tap-press px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 flex items-center gap-1 transition-all ${
+              ['check', 'history'].includes(screen) || mobileCategoryOpen === 'clinical'
+                ? 'bg-blue-600 text-white shadow-2xs font-extrabold'
+                : 'bg-blue-50 text-blue-900 border border-blue-200'
+            }`}
+          >
+            <Stethoscope className="w-3 h-3" />
+            <span>Clinical ▾</span>
+          </button>
 
-            <AnimatePresence>
-              {mobileCategoryOpen === 'clinical' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className="absolute left-0 top-full mt-1 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
+          {/* Category: Facilities Popover Trigger */}
+          <button
+            type="button"
+            onClick={() => toggleMobileCategory('facilities')}
+            className={`tap-press px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 flex items-center gap-1 transition-all ${
+              ['map', 'medicines'].includes(screen) || mobileCategoryOpen === 'facilities'
+                ? 'bg-emerald-600 text-white shadow-2xs font-extrabold'
+                : 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+            }`}
+          >
+            <Building2 className="w-3 h-3" />
+            <span>Facilities ▾</span>
+          </button>
+
+          {/* Category: Role Portals Popover Trigger */}
+          <button
+            type="button"
+            onClick={() => toggleMobileCategory('portals')}
+            className={`tap-press px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 flex items-center gap-1 transition-all ${
+              ['doctor', 'asha', 'admin'].includes(screen) || mobileCategoryOpen === 'portals'
+                ? 'bg-purple-600 text-white shadow-2xs font-extrabold'
+                : 'bg-purple-50 text-purple-900 border border-purple-200'
+            }`}
+          >
+            <Users className="w-3 h-3" />
+            <span>Portals ▾</span>
+          </button>
+
+          {/* Category: Upgrades Popover Trigger */}
+          <button
+            type="button"
+            onClick={() => toggleMobileCategory('upgrades')}
+            className={`tap-press px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 flex items-center gap-1 transition-all ${
+              mobileCategoryOpen === 'upgrades'
+                ? 'bg-indigo-600 text-white shadow-2xs font-extrabold'
+                : 'bg-indigo-50 text-indigo-900 border border-indigo-200'
+            }`}
+          >
+            <Sparkles className="w-3 h-3 text-amber-500" />
+            <span>Upgrades ▾</span>
+          </button>
+        </div>
+      </header>
+
+      {/* 5. Fixed Mobile Floating Category Popover (Unclipped, Full Viewport Access) */}
+      <AnimatePresence>
+        {mobileCategoryOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-start pt-24 px-3 sm:px-6 pointer-events-auto">
+            {/* Dim Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileCategoryOpen(null)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+            />
+
+            {/* Floating Action Menu Card */}
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.96 }}
+              transition={{ duration: 0.15 }}
+              className="relative w-full max-w-sm mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200 p-3.5 z-50 space-y-2"
+            >
+              {/* Card Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2 px-1">
+                <span className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
+                  {mobileCategoryOpen === 'clinical' && (
+                    <>
+                      <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Clinical Care Services</span>
+                    </>
+                  )}
+                  {mobileCategoryOpen === 'facilities' && (
+                    <>
+                      <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Facilities & Logistics</span>
+                    </>
+                  )}
+                  {mobileCategoryOpen === 'portals' && (
+                    <>
+                      <Users className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Role Portals & Desks</span>
+                    </>
+                  )}
+                  {mobileCategoryOpen === 'upgrades' && (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Advanced Upgrades</span>
+                    </>
+                  )}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileCategoryOpen(null)}
+                  className="tap-press w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
                 >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Action List for Clinical */}
+              {mobileCategoryOpen === 'clinical' && (
+                <div className="space-y-1 text-xs">
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); go('check') }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-blue-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-blue-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
-                    <span>AI Symptom Triage</span>
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                      <Stethoscope className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">AI Care Navigator (Triage)</span>
+                      <span className="text-[10px] text-slate-500">Symptom check & severity advice</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); startVideoCall() }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-emerald-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-emerald-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <Video className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Live Video Doctor</span>
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <Video className="w-4 h-4 animate-pulse" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900 flex items-center gap-1">
+                        Live Video Consult
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                      </span>
+                      <span className="text-[10px] text-slate-500">Real-time consultation with AI doctor</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); go('history') }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-teal-50 text-slate-700 font-bold flex items-center gap-2 border-t border-slate-100"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-teal-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <FileText className="w-3.5 h-3.5 text-teal-600" />
-                    <span>My Health History</span>
+                    <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">My Health History & Rx Vault</span>
+                      <span className="text-[10px] text-slate-500">Past prescriptions, slips & reports</span>
+                    </div>
                   </button>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
-          </div>
 
-          {/* Category: Facilities Popover */}
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => toggleMobileCategory('facilities')}
-              className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all ${
-                ['map', 'medicines'].includes(screen) || mobileCategoryOpen === 'facilities'
-                  ? 'bg-emerald-600 text-white shadow-2xs'
-                  : 'bg-emerald-50 text-emerald-900 border border-emerald-200'
-              }`}
-            >
-              <Building2 className="w-3 h-3" />
-              <span>Facilities ▾</span>
-            </button>
-
-            <AnimatePresence>
+              {/* Action List for Facilities */}
               {mobileCategoryOpen === 'facilities' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className="absolute left-0 top-full mt-1 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
-                >
+                <div className="space-y-1 text-xs">
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); go('map') }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-blue-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-blue-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Hospital Command Map</span>
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">Hospital Command Map</span>
+                      <span className="text-[10px] text-slate-500">Nearby PHCs, CHCs & Live GPS radar</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); go('medicines') }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-amber-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-amber-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <Pill className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Medicines & Diagnostics</span>
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <Pill className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">Medicines & Diagnostic Labs</span>
+                      <span className="text-[10px] text-slate-500">Stock availability & medical tests</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); setSosOpen(true) }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-red-50 text-red-700 font-bold flex items-center gap-2 border-t border-slate-100"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-red-50 bg-red-50/50 text-slate-800 flex items-center gap-3 transition-all border border-red-200"
                   >
-                    <Siren className="w-3.5 h-3.5 text-red-600 animate-pulse" />
-                    <span>108 Ambulance SOS</span>
+                    <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0">
+                      <Siren className="w-4 h-4 animate-pulse" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-red-700">108 Emergency Ambulance</span>
+                      <span className="text-[10px] text-red-500">Immediate GPS dispatch service</span>
+                    </div>
                   </button>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
-          </div>
 
-          {/* Category: Role Portals Popover */}
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => toggleMobileCategory('portals')}
-              className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all ${
-                ['doctor', 'asha', 'admin'].includes(screen) || mobileCategoryOpen === 'portals'
-                  ? 'bg-purple-600 text-white shadow-2xs'
-                  : 'bg-purple-50 text-purple-900 border border-purple-200'
-              }`}
-            >
-              <Users className="w-3 h-3" />
-              <span>Portals ▾</span>
-            </button>
-
-            <AnimatePresence>
+              {/* Action List for Portals */}
               {mobileCategoryOpen === 'portals' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className="absolute right-0 top-full mt-1 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
-                >
+                <div className="space-y-1 text-xs">
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); go('doctor') }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-emerald-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-emerald-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Doctor AI Workbench</span>
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <Stethoscope className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">Doctor AI Workbench</span>
+                      <span className="text-[10px] text-slate-500">Live OPD Queue & clinical records</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); go('asha') }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-purple-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-purple-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <Users className="w-3.5 h-3.5 text-purple-600" />
-                    <span>ASHA Super-App</span>
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">ASHA Field Super-App</span>
+                      <span className="text-[10px] text-slate-500">Offline maternal health & household survey</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); go('admin') }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-amber-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-amber-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <Building2 className="w-3.5 h-3.5 text-amber-600" />
-                    <span>District Directorate</span>
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">District Health Directorate</span>
+                      <span className="text-[10px] text-slate-500">Administrative analytics & supply logistics</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); setAuthModalOpen(true) }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-blue-50 text-blue-700 font-bold flex items-center gap-2 border-t border-slate-100"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-blue-50 bg-blue-50/60 text-blue-900 flex items-center gap-3 transition-all border border-blue-200"
                   >
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Switch Role / Login</span>
+                    <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-blue-950">Switch Role / Login</span>
+                      <span className="text-[10px] text-blue-700">Login with ABHA, Mobile OTP or Doctor ID</span>
+                    </div>
                   </button>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
-          </div>
 
-          {/* Category: Upgrades Popover */}
-          <div className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => toggleMobileCategory('upgrades')}
-              className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all ${
-                mobileCategoryOpen === 'upgrades'
-                  ? 'bg-indigo-600 text-white shadow-2xs'
-                  : 'bg-indigo-50 text-indigo-900 border border-indigo-200'
-              }`}
-            >
-              <Sparkles className="w-3 h-3 text-amber-500" />
-              <span>Upgrades ▾</span>
-            </button>
-
-            <AnimatePresence>
+              {/* Action List for Upgrades */}
               {mobileCategoryOpen === 'upgrades' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className="absolute right-0 top-full mt-1 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
-                >
+                <div className="space-y-1 text-xs">
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); setReferralTrackerModalOpen(true) }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-purple-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-purple-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <Activity className="w-3.5 h-3.5 text-purple-600" />
-                    <span>Referral Tracker</span>
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                      <Activity className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">Referral Journey Tracker</span>
+                      <span className="text-[10px] text-slate-500">Live ambulance tracking & Bed lock</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); setConsentVaultModalOpen(true) }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-indigo-50 text-slate-700 font-bold flex items-center gap-2"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-indigo-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <KeyRound className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Consent Vault (ABDM)</span>
+                    <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                      <KeyRound className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">Consent Vault (ABDM)</span>
+                      <span className="text-[10px] text-slate-500">Granular PHR consent management</span>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { closeDropdowns(); setFhirExportModalOpen(true) }}
-                    className="tap-press w-full text-left p-2 rounded-xl hover:bg-blue-50 text-slate-700 font-bold flex items-center gap-2 border-t border-slate-100"
+                    className="tap-press w-full text-left p-2.5 rounded-2xl hover:bg-blue-50 bg-slate-50 text-slate-800 flex items-center gap-3 transition-all"
                   >
-                    <FileCode className="w-3.5 h-3.5 text-blue-600" />
-                    <span>FHIR Bridge</span>
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                      <FileCode className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold block text-slate-900">FHIR R4 Bridge</span>
+                      <span className="text-[10px] text-slate-500">Interoperable health data export</span>
+                    </div>
                   </button>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </motion.div>
           </div>
-        </div>
-      </header>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Slide-Out Navigation Drawer */}
       <AnimatePresence>
