@@ -11,6 +11,7 @@ import DoctorWorkbench from './components/DoctorWorkbench.jsx'
 import HospitalAdminPortal from './components/HospitalAdminPortal.jsx'
 import HospitalDirectory from './components/HospitalDirectory.jsx'
 import MedicineDiagnosticsFinder from './components/MedicineDiagnosticsFinder.jsx'
+import HistoryView from './components/HistoryView.jsx'
 import About from './components/About.jsx'
 import EmergencyModal from './components/EmergencyModal.jsx'
 import DigitalHealthSlip from './components/DigitalHealthSlip.jsx'
@@ -33,7 +34,7 @@ function Shell() {
       <OfflineBanner />
       <Navbar />
 
-      {/* Main Content Router with Mandatory Login Enforcement */}
+      {/* Main Content Router with Real URL Synchronization & Mandatory Login */}
       <main className="flex-1 pb-24 lg:pb-10">
         {!currentUser ? (
           <LoginGate />
@@ -44,6 +45,7 @@ function Shell() {
             {screen === 'result' && <Result />}
             {screen === 'map' && <HospitalDirectory />}
             {screen === 'medicines' && <MedicineDiagnosticsFinder />}
+            {screen === 'history' && <HistoryView />}
             {screen === 'doctor' && <DoctorWorkbench />}
             {screen === 'asha' && <AshaWorkerPortal />}
             {screen === 'admin' && <HospitalAdminPortal />}
@@ -64,7 +66,7 @@ function Shell() {
       {/* 4. Real-Time Teleconsultation Video Call Room */}
       <TeleconsultVideoCallModal />
 
-      {/* 5. Patient Health Assessment History & Reports Modal */}
+      {/* 5. Patient Health Assessment History & Reports Modal (Fallback) */}
       <PatientHistoryModal />
 
       {/* 6. Feature 06: Referral Journey Tracker Modal */}

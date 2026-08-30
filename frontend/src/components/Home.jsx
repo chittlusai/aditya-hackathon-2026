@@ -149,7 +149,7 @@ export default function Home() {
 
             <button
               type="button"
-              onClick={() => setHistoryModalOpen(true)}
+              onClick={() => go('history')}
               className="tap-press p-2.5 sm:p-3 rounded-2xl bg-teal-50/70 hover:bg-teal-100 border border-teal-200 text-slate-800 text-left flex flex-col justify-between group transition-all"
             >
               <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">

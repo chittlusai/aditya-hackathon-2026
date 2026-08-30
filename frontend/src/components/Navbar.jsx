@@ -302,7 +302,7 @@ export default function Navbar() {
 
                     <button
                       type="button"
-                      onClick={() => { closeDropdowns(); setHistoryModalOpen(true) }}
+                      onClick={() => { closeDropdowns(); go('history') }}
                       className="tap-press w-full text-left p-2 rounded-xl hover:bg-teal-50 text-slate-700 hover:text-teal-700 flex items-center gap-2.5 transition-all border-t border-slate-100"
                     >
                       <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
@@ -511,7 +511,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 type="button"
-                onClick={() => (currentUser ? toggleDropdown('profile') : setAuthModalOpen(true))}
+                onClick={() => setAuthModalOpen(true)}
                 className={`tap-press inline-flex items-center gap-1 px-1.5 sm:px-2.5 py-1 rounded-xl border text-xs font-bold transition-all shadow-2xs ${roleConfig.badgeBg}`}
                 title="Account & Role Profile"
               >
@@ -550,7 +550,7 @@ export default function Navbar() {
 
                     <button
                       type="button"
-                      onClick={() => { closeDropdowns(); setHistoryModalOpen(true) }}
+                      onClick={() => { closeDropdowns(); go('history') }}
                       className="tap-press w-full text-left p-2 rounded-xl hover:bg-slate-100 text-slate-700 font-bold flex items-center gap-2"
                     >
                       <FileText className="w-3.5 h-3.5 text-blue-600" />
@@ -703,8 +703,8 @@ export default function Navbar() {
 
                     <button
                       type="button"
-                      onClick={() => { closeDropdowns(); setHistoryModalOpen(true) }}
-                      className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-slate-50"
+                      onClick={() => { closeDropdowns(); go('history') }}
+                      className={`tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 ${screen === 'history' ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
                     >
                       <FileText className="w-4 h-4 text-teal-600" />
                       <span>My Medical History & Slips</span>

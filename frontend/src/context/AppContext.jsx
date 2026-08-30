@@ -3,10 +3,12 @@
  * Comprehensive Central State Store for Arogya Setu Local (SIH26133).
  * Integrates all 20 upgrade blueprint features:
  * Roles & Auth (Patient, Doctor, ASHA, Admin) with SQLite Backend Database Persistence,
+ * Real HTML5 URL Routing Synchronization (/home, /check, /hospitals, /medicines, /history, /doctor, /asha, /admin),
  * Multilingual Translations (17 languages), Live Hospital & Doctor Mesh,
  * Smart Queue Prediction, Medicine & Diagnostics Network,
+ * Dedicated Full-Page Medical Assessment History,
  * Referral Lifecycle Journey Tracking, High-Risk Watchlist, MCH Pathway, Chronic Care,
- * Teleconsultation Video Calling Room, Doctor Profile Desk, Patient Medical History & Reports Vault,
+ * Teleconsultation Video Calling Room, Doctor Profile Desk,
  * Consent Vault (ABDM) & FHIR Interoperability Bridge.
  */
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
@@ -30,6 +32,22 @@ const HOSPITALS_STORAGE_KEY = 'asl:hospital_capacity_v1'
 const USER_STORAGE_KEY = 'asl:current_user_v1'
 const REFERRALS_STORAGE_KEY = 'asl:referrals_v1'
 const REPORTS_STORAGE_KEY = 'asl:patient_assessment_history_v1'
+
+export const getScreenFromPath = (pathname) => {
+  if (typeof pathname !== 'string') return 'home'
+  const clean = pathname.replace(/^\/+|\/+$/g, '').toLowerCase()
+  if (!clean || clean === 'home') return 'home'
+  if (['check', 'symptoms', 'triage'].includes(clean)) return 'check'
+  if (['result', 'triage-result'].includes(clean)) return 'result'
+  if (['map', 'hospitals', 'facilities', 'directory'].includes(clean)) return 'map'
+  if (['medicines', 'tests', 'labs', 'pharmacy'].includes(clean)) return 'medicines'
+  if (['history', 'reports', 'medical-history'].includes(clean)) return 'history'
+  if (['doctor', 'opd', 'doctor-workbench'].includes(clean)) return 'doctor'
+  if (['asha', 'asha-portal', 'field-worker'].includes(clean)) return 'asha'
+  if (['admin', 'directorate', 'command'].includes(clean)) return 'admin'
+  if (['about', 'info'].includes(clean)) return 'about'
+  return 'home'
+}
 
 export function AppProvider({ children }) {
   // 1. Language State
@@ -58,9 +76,14 @@ export function AppProvider({ children }) {
   })
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
-  // 3. Navigation Screen
-  // 'home' | 'check' | 'result' | 'map' | 'asha' | 'doctor' | 'admin' | 'medicines' | 'about'
-  const [screen, setScreen] = useState('home')
+  // 3. Navigation Screen & Real URL Synchronization
+  // 'home' | 'check' | 'result' | 'map' | 'asha' | 'doctor' | 'admin' | 'medicines' | 'history' | 'about'
+  const [screen, setScreen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return getScreenFromPath(window.location.pathname)
+    }
+    return 'home'
+  })
   const [result, setResult] = useState(null)
   const [activeSlip, setActiveSlip] = useState(null)
 
@@ -136,6 +159,18 @@ export function AppProvider({ children }) {
     }
   }, [])
 
+  // Browser History & URL Popstate Listener
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const targetScreen = getScreenFromPath(window.location.pathname)
+        setScreen(targetScreen)
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
   // Auto-open Auth modal after first-time language selection is done
   useEffect(() => {
     if (!langModalOpen && !currentUser) {
@@ -145,6 +180,18 @@ export function AppProvider({ children }) {
       return () => clearTimeout(timer)
     }
   }, [langModalOpen, currentUser])
+
+  // Screen navigation helper with real URL updates
+  const go = useCallback((targetScreen) => {
+    setScreen(targetScreen)
+    if (typeof window !== 'undefined') {
+      const targetPath = targetScreen === 'home' ? '/' : `/${targetScreen}`
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({ screen: targetScreen }, '', targetPath)
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
   // Login handler with persistent SQLite Database synchronization
   const loginUser = useCallback((userObj) => {
@@ -164,23 +211,21 @@ export function AppProvider({ children }) {
     } catch (e) {}
 
     // Auto navigate to role specific dashboard
-    if (userObj.role === 'doctor') setScreen('doctor')
-    else if (userObj.role === 'asha') setScreen('asha')
-    else if (userObj.role === 'admin') setScreen('admin')
-    else setScreen('home')
-
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+    if (userObj.role === 'doctor') go('doctor')
+    else if (userObj.role === 'asha') go('asha')
+    else if (userObj.role === 'admin') go('admin')
+    else go('home')
+  }, [go])
 
   // Logout handler
   const logoutUser = useCallback(() => {
     setCurrentUser(null)
     setRole('patient')
-    setScreen('home')
+    go('home')
     try {
       localStorage.removeItem(USER_STORAGE_KEY)
     } catch (e) {}
-  }, [])
+  }, [go])
 
   // Switch role directly
   const switchRole = useCallback((newRole) => {
@@ -197,7 +242,7 @@ export function AppProvider({ children }) {
           specialty: 'General Medicine',
         })
       }
-      setScreen('doctor')
+      go('doctor')
     } else if (newRole === 'asha') {
       if (!currentUser || currentUser.role !== 'asha') {
         loginUser({
@@ -209,7 +254,7 @@ export function AppProvider({ children }) {
           sector: 'Rampur Village & South Tola',
         })
       }
-      setScreen('asha')
+      go('asha')
     } else if (newRole === 'admin') {
       if (!currentUser || currentUser.role !== 'admin') {
         loginUser({
@@ -220,18 +265,12 @@ export function AppProvider({ children }) {
           facility: 'Nagpur Rural District Health Directorate',
         })
       }
-      setScreen('admin')
+      go('admin')
     } else {
       setRole('patient')
-      setScreen('home')
+      go('home')
     }
-  }, [currentUser, loginUser])
-
-  // Screen navigation helper
-  const go = useCallback((targetScreen) => {
-    setScreen(targetScreen)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+  }, [currentUser, loginUser, go])
 
   // Translation helper
   const t = useCallback((key) => {
@@ -456,7 +495,7 @@ export function AppProvider({ children }) {
         logoutUser,
         switchRole,
 
-        // Navigation
+        // Navigation & URL Routing
         screen,
         go,
         result,
