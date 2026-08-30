@@ -34,6 +34,7 @@ venv.bak/
 .env.production.local
 frontend/.env
 frontend/.env.local
+backend/.env
 
 # Logs
 npm-debug.log*

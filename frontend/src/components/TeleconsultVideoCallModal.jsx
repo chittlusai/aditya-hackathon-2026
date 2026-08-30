@@ -52,6 +52,11 @@ import {
   LANGUAGE_SPEECH_CODES,
   getDoctorConsultResponse,
 } from '../utils/teleconsultAi.js'
+import {
+  playDoctorVoiceSpeech,
+  stopDoctorVoiceAudio,
+  ELEVENLABS_VOICE_IDS,
+} from '../utils/elevenLabsVoice.js'
 
 export default function TeleconsultVideoCallModal() {
   const {
@@ -79,13 +84,13 @@ export default function TeleconsultVideoCallModal() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [drawerTab, setDrawerTab] = useState('prescription') // 'prescription' | 'speech' | 'chat'
 
-  // Interactive AI Doctor Voice State
+  // Interactive AI Doctor Voice State (ElevenLabs Powered)
   const [isDoctorSpeaking, setIsDoctorSpeaking] = useState(false)
   const [doctorSpeechText, setDoctorSpeechText] = useState('')
   const [isPatientListening, setIsPatientListening] = useState(false)
   const [patientSpokenText, setPatientSpokenText] = useState('')
   const [isEvaluating, setIsEvaluating] = useState(false)
-  const [doctorVoicePersona, setDoctorVoicePersona] = useState('male') // 'male' | 'female' | 'specialist'
+  const [doctorVoicePersona, setDoctorVoicePersona] = useState('male') // 'male' | 'female'
 
   // Live AI Facial Emotion & Injury Scanner
   const [aiScanningActive, setAiScanningActive] = useState(true)
@@ -112,51 +117,23 @@ export default function TeleconsultVideoCallModal() {
 
   const patientVideoRef = useRef(null)
   const speechRecognitionRef = useRef(null)
-  const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null)
 
   const langKey = language || 'en'
   const speechCode = LANGUAGE_SPEECH_CODES[langKey] || 'en-IN'
 
-  // Natural Doctor Text-To-Speech Synthesis with Instant Interruption Capability
+  // Ultra-Realistic ElevenLabs Doctor Voice Synthesizer with Instant Interruption Capability
   const speakDoctorVoice = useCallback(
     (textToSpeak) => {
-      if (!synthRef.current) return
-      try {
-        synthRef.current.cancel()
-        const utterance = new SpeechSynthesisUtterance(textToSpeak)
-        utterance.lang = speechCode
-
-        if (doctorVoicePersona === 'female') {
-          utterance.pitch = 1.18
-          utterance.rate = 0.94
-        } else if (doctorVoicePersona === 'specialist') {
-          utterance.pitch = 1.0
-          utterance.rate = 0.88
-        } else {
-          utterance.pitch = 0.90
-          utterance.rate = 0.92
-        }
-
-        const voices = synthRef.current.getVoices()
-        const matchingVoice = voices.find(
-          (v) =>
-            v.lang.toLowerCase().includes(speechCode.toLowerCase()) ||
-            v.lang.startsWith(langKey) ||
-            v.name.toLowerCase().includes('india') ||
-            v.name.toLowerCase().includes('google')
-        )
-        if (matchingVoice) utterance.voice = matchingVoice
-
-        utterance.onstart = () => setIsDoctorSpeaking(true)
-        utterance.onend = () => setIsDoctorSpeaking(false)
-        utterance.onerror = () => setIsDoctorSpeaking(false)
-
-        synthRef.current.speak(utterance)
-      } catch (e) {
-        console.warn('Speech synthesis error:', e)
-      }
+      playDoctorVoiceSpeech(
+        textToSpeak,
+        doctorVoicePersona,
+        speechCode,
+        () => setIsDoctorSpeaking(true),
+        () => setIsDoctorSpeaking(false),
+        () => setIsDoctorSpeaking(false)
+      )
     },
-    [speechCode, langKey, doctorVoicePersona]
+    [speechCode, doctorVoicePersona]
   )
 
   // Start initial doctor greeting when WhatsApp call connects
@@ -263,10 +240,8 @@ export default function TeleconsultVideoCallModal() {
 
   // Patient Voice Dictation Handler with IMMEDIATE DOCTOR VOICE CANCELLATION / INTERRUPTION
   const startPatientSpeaking = () => {
-    // 1. Immediately silence and stop doctor voice speech when user starts talking!
-    if (synthRef.current) {
-      synthRef.current.cancel()
-    }
+    // 1. Immediately silence and stop doctor voice speech (ElevenLabs & browser speech) when user starts talking!
+    stopDoctorVoiceAudio()
     setIsDoctorSpeaking(false)
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -370,10 +345,8 @@ export default function TeleconsultVideoCallModal() {
     const text = (textToSend || patientSpokenText || chatInput).trim()
     if (!text) return
 
-    // Silence doctor
-    if (synthRef.current) {
-      synthRef.current.cancel()
-    }
+    // Silence doctor voice immediately
+    stopDoctorVoiceAudio()
     setIsDoctorSpeaking(false)
 
     const frameSnapshot = captureVideoFrame()
@@ -448,7 +421,7 @@ export default function TeleconsultVideoCallModal() {
 
   // End Call Button Handler: Automatically Saves to History with Exact Date, Time, Duration & Medicine Purpose
   const handleEndWhatsAppCall = () => {
-    if (synthRef.current) synthRef.current.cancel()
+    stopDoctorVoiceAudio()
 
     const savedRecord = autoSaveToHistoryPanel(
       consultDiagnosis || 'General Clinical Teleconsultation',
@@ -542,8 +515,42 @@ export default function TeleconsultVideoCallModal() {
               </div>
             </div>
 
-            {/* Right Header Menu Button: Drawer Toggle */}
+            {/* Right Header Menu Button: Voice Persona Switcher & Drawer Toggle */}
             <div className="flex items-center gap-1.5">
+              {/* ElevenLabs Voice Persona Switcher */}
+              <div className="flex items-center bg-black/40 backdrop-blur-md p-0.5 rounded-xl border border-white/20 text-[10px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDoctorVoicePersona('male')
+                    stopDoctorVoiceAudio()
+                  }}
+                  className={`px-1.5 py-1 rounded-lg font-bold transition-all flex items-center gap-0.5 ${
+                    doctorVoicePersona === 'male'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                  title="Dr. Rajesh Sharma (Male Voice - ElevenLabs AI)"
+                >
+                  <span>👨‍⚕️ Male</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDoctorVoicePersona('female')
+                    stopDoctorVoiceAudio()
+                  }}
+                  className={`px-1.5 py-1 rounded-lg font-bold transition-all flex items-center gap-0.5 ${
+                    doctorVoicePersona === 'female'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                  title="Dr. Ananya Rao (Female Voice - ElevenLabs AI)"
+                >
+                  <span>👩‍⚕️ Female</span>
+                </button>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen((prev) => !prev)}
@@ -556,7 +563,7 @@ export default function TeleconsultVideoCallModal() {
                 }`}
               >
                 <Pill className="w-3.5 h-3.5" />
-                <span className="text-[11px]">Rx & Speech Menu</span>
+                <span className="text-[11px] hidden xs:inline">Rx Menu</span>
                 {prescribedMedicines.length > 0 && (
                   <span className="w-2 h-2 rounded-full bg-amber-300" />
                 )}
