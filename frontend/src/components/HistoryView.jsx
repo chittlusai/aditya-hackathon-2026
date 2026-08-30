@@ -256,77 +256,91 @@ export default function HistoryView() {
     sos: [],
   }
 
-  reports.forEach((rep) => {
-    if (rep.medicines_list && Array.isArray(rep.medicines_list)) {
-      rep.medicines_list.forEach((med, idx) => {
-        const keyBase = `${rep.id}_${idx}`
-        const slotLower = (med.slot || med.schedule || med.timing || '').toLowerCase()
+  ;(reports || []).forEach((rep) => {
+    if (!rep) return
+    const medList = Array.isArray(rep.medicines_list) ? rep.medicines_list : []
+    medList.forEach((med, idx) => {
+      if (!med) return
+      const medObj =
+        typeof med === 'string'
+          ? {
+              name: med,
+              dosage: '1 Dose',
+              exactTime: '08:00 AM',
+              timing: 'After Food',
+              purpose: 'Clinical Medication',
+              schedule: 'Morning',
+            }
+          : med
 
-        const doseObj = {
-          ...med,
-          reportId: rep.id,
-          patientName: rep.patient_name,
-          doctorName: rep.doctor_name || 'Dr. Rajesh Sharma (MD)',
-          diagnosis: rep.diagnosis || 'Clinical Prescription',
-          index: idx,
-        }
+      const keyBase = `${rep.id || 'rx'}_${idx}`
+      const slotLower = String(medObj.slot || medObj.schedule || medObj.timing || '').toLowerCase()
 
-        if (
-          slotLower.includes('morning') ||
-          slotLower.includes('tds') ||
-          slotLower.includes('breakfast') ||
-          slotLower.includes('07:30') ||
-          slotLower.includes('08:00') ||
-          slotLower.includes('10:00')
-        ) {
-          categorizedDoses.morning.push({
-            ...doseObj,
-            key: `${keyBase}_morning`,
-            slotLabel: 'Morning Dose',
-            slotTime: med.exactTime?.includes('07:30') ? '07:30 AM' : '08:00 AM',
-          })
-        }
+      const doseObj = {
+        ...medObj,
+        name: medObj.name || (typeof med === 'string' ? med : 'Prescribed Tablet'),
+        reportId: rep.id || `rep_${idx}`,
+        patientName: rep.patient_name || rep.name || 'Citizen Patient',
+        doctorName: rep.doctor_name || 'Dr. Rajesh Sharma (MD)',
+        diagnosis: rep.diagnosis || 'Clinical Prescription',
+        index: idx,
+      }
 
-        if (
-          slotLower.includes('afternoon') ||
-          slotLower.includes('tds') ||
-          slotLower.includes('lunch') ||
-          slotLower.includes('01:30') ||
-          slotLower.includes('02:00')
-        ) {
-          categorizedDoses.afternoon.push({
-            ...doseObj,
-            key: `${keyBase}_afternoon`,
-            slotLabel: 'Afternoon Dose',
-            slotTime: '01:30 PM',
-          })
-        }
+      if (
+        slotLower.includes('morning') ||
+        slotLower.includes('tds') ||
+        slotLower.includes('breakfast') ||
+        slotLower.includes('07:30') ||
+        slotLower.includes('08:00') ||
+        slotLower.includes('10:00')
+      ) {
+        categorizedDoses.morning.push({
+          ...doseObj,
+          key: `${keyBase}_morning`,
+          slotLabel: 'Morning Dose',
+          slotTime: medObj.exactTime?.includes('07:30') ? '07:30 AM' : '08:00 AM',
+        })
+      }
 
-        if (
-          slotLower.includes('night') ||
-          slotLower.includes('tds') ||
-          slotLower.includes('dinner') ||
-          slotLower.includes('bedtime') ||
-          slotLower.includes('08:30')
-        ) {
-          categorizedDoses.night.push({
-            ...doseObj,
-            key: `${keyBase}_night`,
-            slotLabel: 'Night Dose',
-            slotTime: '08:30 PM',
-          })
-        }
+      if (
+        slotLower.includes('afternoon') ||
+        slotLower.includes('tds') ||
+        slotLower.includes('lunch') ||
+        slotLower.includes('01:30') ||
+        slotLower.includes('02:00')
+      ) {
+        categorizedDoses.afternoon.push({
+          ...doseObj,
+          key: `${keyBase}_afternoon`,
+          slotLabel: 'Afternoon Dose',
+          slotTime: '01:30 PM',
+        })
+      }
 
-        if (slotLower.includes('sos') || slotLower.includes('emergency') || slotLower.includes('needed')) {
-          categorizedDoses.sos.push({
-            ...doseObj,
-            key: `${keyBase}_sos`,
-            slotLabel: 'Emergency / SOS Dose',
-            slotTime: 'Immediate / As Needed',
-          })
-        }
-      })
-    }
+      if (
+        slotLower.includes('night') ||
+        slotLower.includes('tds') ||
+        slotLower.includes('dinner') ||
+        slotLower.includes('bedtime') ||
+        slotLower.includes('08:30')
+      ) {
+        categorizedDoses.night.push({
+          ...doseObj,
+          key: `${keyBase}_night`,
+          slotLabel: 'Night Dose',
+          slotTime: '08:30 PM',
+        })
+      }
+
+      if (slotLower.includes('sos') || slotLower.includes('emergency') || slotLower.includes('needed')) {
+        categorizedDoses.sos.push({
+          ...doseObj,
+          key: `${keyBase}_sos`,
+          slotLabel: 'Emergency / SOS Dose',
+          slotTime: 'Immediate / As Needed',
+        })
+      }
+    })
   })
 
   // Calculate Total Adherence Progress

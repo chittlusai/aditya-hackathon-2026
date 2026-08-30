@@ -20,18 +20,18 @@ export default function MedicineDiagnosticsFinder() {
   const [activeTab, setActiveTab] = useState('medicines') // 'medicines' | 'diagnostics'
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredMedicines = medicines.filter(
+  const filteredMedicines = (medicines || []).filter(
     (m) =>
-      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.usage.toLowerCase().includes(searchQuery.toLowerCase())
+      (m?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (m?.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (m?.usage || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredDiagnostics = diagnostics.filter(
+  const filteredDiagnostics = (diagnostics || []).filter(
     (d) =>
-      d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.importance.toLowerCase().includes(searchQuery.toLowerCase())
+      (d?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (d?.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (d?.importance || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (

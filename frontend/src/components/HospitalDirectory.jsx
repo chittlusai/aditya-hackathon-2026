@@ -10,12 +10,13 @@ export default function HospitalDirectory() {
   const [filterType, setFilterType] = useState('all') // 'all' | 'emergency' | 'govt' | 'doctors' | 'medicine'
 
   const filteredHospitals = useMemo(() => {
-    return hospitals.filter((h) => {
+    return (hospitals || []).filter((h) => {
+      if (!h) return false
       // 1. Text search match
       const q = search.toLowerCase().trim()
       const matchesSearch =
         !q ||
-        h.name.toLowerCase().includes(q) ||
+        (h.name || '').toLowerCase().includes(q) ||
         (h.address || '').toLowerCase().includes(q) ||
         (h.type || '').toLowerCase().includes(q) ||
         (h.specialist || '').toLowerCase().includes(q)

@@ -57,16 +57,21 @@ export class ErrorBoundary extends React.Component {
             <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-8 h-8 text-amber-400" />
             </div>
-            <h2 className="text-xl font-bold text-white">App Session Restored</h2>
+            <h2 className="text-xl font-bold text-white">App Session Diagnostics</h2>
             <p className="text-xs text-slate-300">
-              A temporary layout error was caught. Click below to reload the app with default settings.
+              A runtime layout error was caught. Please review details below:
             </p>
+            {this.state.error && (
+              <pre className="text-[11px] text-red-300 font-mono bg-red-950/70 p-3 rounded-xl border border-red-800 text-left overflow-auto max-h-40 whitespace-pre-wrap">
+                {this.state.error?.message || String(this.state.error)}
+              </pre>
+            )}
             <button
               onClick={this.handleReset}
               className="tap-press w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
-              <span>Reload Arogya Setu Local</span>
+              <span>Reset & Reload Arogya Setu</span>
             </button>
           </div>
         </div>

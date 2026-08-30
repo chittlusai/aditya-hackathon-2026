@@ -41,7 +41,8 @@ export default function LanguageSelectModal() {
     )
   })
 
-  const currentSelectedLang = INDIAN_LANGUAGES.find((l) => l.code === (selected || language))
+  const currentSelectedLang =
+    INDIAN_LANGUAGES.find((l) => l.code === (selected || language)) || INDIAN_LANGUAGES[0]
 
   return (
     <AnimatePresence>

@@ -49,10 +49,11 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showFeatureHub, setShowFeatureHub] = useState(false) // Collapsed by default on mobile to prioritize clinical actions
 
-  const filteredHospitals = hospitals.filter((h) =>
-    h.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    h.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (h.specialist || '').toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredHospitals = (hospitals || []).filter(
+    (h) =>
+      (h?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (h?.type || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (h?.specialist || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleVisualSelect = (item) => {
