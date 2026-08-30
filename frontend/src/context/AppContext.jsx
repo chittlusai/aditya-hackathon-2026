@@ -291,10 +291,11 @@ export function AppProvider({ children }) {
     setHospitals(nearby)
   }, [])
 
-  // Save Assessment / Triage Report to SQLite database
+  // Save Assessment / Triage Report or Digital Prescription to SQLite database
   const saveAssessmentReport = useCallback((reportData) => {
+    const isRx = reportData.is_prescription || Boolean(reportData.medicines_list?.length)
     const newReport = {
-      id: `REP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: reportData.id || `${isRx ? 'RX' : 'REP'}-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       user_id: currentUser?.id || 'PAT-DEMO-01',
       patient_name: reportData.name || currentUser?.name || 'Citizen (Patient)',
       phone: reportData.phone || currentUser?.phone || '',
@@ -302,13 +303,17 @@ export function AppProvider({ children }) {
       gender: reportData.gender || 'Male',
       symptoms: reportData.symptoms || reportData.inputText || 'Health assessment check',
       urgency: reportData.urgency || 'Moderate',
+      is_prescription: isRx,
+      diagnosis: reportData.diagnosis || 'Clinical Assessment',
+      doctor_name: reportData.doctor_name || 'Dr. Rajesh Sharma (Chief Medical Officer)',
       vitals: reportData.vitals || {},
       advice: reportData.advice || '',
       hospital: reportData.hospital || null,
-      hospital_name: reportData.hospital?.name || 'Rampur Primary Health Centre',
-      hospital_distance: reportData.hospital?.distance_km || 3.2,
+      hospital_name: reportData.hospital?.name || reportData.hospital_name || 'Rampur Primary Health Centre',
+      hospital_distance: reportData.hospital?.distance_km || reportData.hospital_distance || 3.2,
       prescribed_medicines: reportData.prescribed_medicines || ['Paracetamol 500mg (1 TDS)'],
-      doctor_notes: reportData.doctor_notes || 'Triage completed.',
+      medicines_list: reportData.medicines_list || [],
+      doctor_notes: reportData.doctor_notes || 'Teleconsultation triage completed.',
       risk_factors: reportData.risk_factors || [],
       created_at: new Date().toLocaleDateString('en-IN', {
         day: '2-digit',

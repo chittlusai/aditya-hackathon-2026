@@ -29,9 +29,15 @@ import {
   Download,
   Check,
   RefreshCw,
+  Camera,
+  SwitchCamera,
+  Scan,
+  Eye,
+  Smile,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import {
+  DOCTOR_PROFILE,
   DOCTOR_GREETINGS,
   LANGUAGE_SPEECH_CODES,
   getDoctorConsultResponse,
@@ -45,6 +51,7 @@ export default function TeleconsultVideoCallModal() {
     setActiveSlip,
     setSosOpen,
     saveAssessmentReport,
+    go,
     language,
     t,
   } = useApp()
@@ -52,15 +59,16 @@ export default function TeleconsultVideoCallModal() {
   // Video & Audio States
   const [micActive, setMicActive] = useState(true)
   const [videoActive, setVideoActive] = useState(true)
-  const [isMirrored, setIsMirrored] = useState(false) // Default UNMIRRORED as requested
+  const [facingMode, setFacingMode] = useState('user') // 'user' | 'environment'
+  const [isMirrored, setIsMirrored] = useState(false) // Natural true-to-life orientation by default
   const [cameraStream, setCameraStream] = useState(null)
   const [cameraError, setCameraError] = useState(false)
   const [secondsElapsed, setSecondsElapsed] = useState(0)
 
-  // Mobile Tabs: 'video' | 'prescription' | 'chat' | 'vitals'
+  // Mobile Tabs: 'video' | 'prescription' | 'vision' | 'chat'
   const [activeTab, setActiveTab] = useState('video')
 
-  // Interactive Voice & Speech State
+  // Interactive AI Doctor Voice State
   const [isDoctorSpeaking, setIsDoctorSpeaking] = useState(false)
   const [doctorSpeechText, setDoctorSpeechText] = useState('')
   const [isPatientListening, setIsPatientListening] = useState(false)
@@ -68,38 +76,54 @@ export default function TeleconsultVideoCallModal() {
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [savedToHistoryNotice, setSavedToHistoryNotice] = useState(false)
 
+  // Live AI Facial Emotion & Injury Scanner State
+  const [aiScanningActive, setAiScanningActive] = useState(true)
+  const [facialAnalysisData, setFacialAnalysisData] = useState({
+    emotion: 'Fatigued / Mild Discomfort',
+    painScore: 65,
+    visualSigns: 'Facial pallor, mild eye conjunctival strain',
+    injuryCheck: 'No open acute lacerations detected',
+    lastScanned: 'Live Active',
+  })
+
   // Clinical Prescription State
   const [consultDiagnosis, setConsultDiagnosis] = useState('Acute Viral Febrile Illness')
   const [prescribedMedicines, setPrescribedMedicines] = useState([
     {
       name: 'Paracetamol 650mg Tablet',
       dosage: '1 Tablet',
-      frequency: '3 Times a day (After food)',
+      timing: 'After Food',
+      schedule: 'Morning (☀️) • Afternoon (🌤️) • Night (🌙)',
+      frequency: 'TDS (3 times daily)',
       duration: '3 to 5 Days',
-      purpose: 'Fever & body ache relief',
+      purpose: 'Fever & body pain relief',
     },
     {
       name: 'ORS (Oral Rehydration Solution)',
       dosage: '1 Sachet in 1 Litre boiled & cooled water',
-      frequency: 'Drink throughout the day',
+      timing: 'Throughout the day',
+      schedule: 'Sip frequently every 2 hours',
+      frequency: 'Continuous hydration',
       duration: 'Until hydration normalizes',
-      purpose: 'Prevents dehydration & weakness',
+      purpose: 'Prevents dehydration & electrolyte loss',
     },
     {
       name: 'Cetirizine 10mg Tablet',
       dosage: '1 Tablet',
-      frequency: 'Once daily at night',
+      timing: 'After Food',
+      schedule: 'Night Only (🌙)',
+      frequency: 'Once daily at bedtime',
       duration: '3 Days',
-      purpose: 'Relieves runny nose and throat irritation',
+      purpose: 'Relieves runny nose, sneezing & throat irritation',
     },
   ])
   const [recoveryAdviceList, setRecoveryAdviceList] = useState([
     'Drink plenty of boiled warm water and ORS solution.',
-    'Eat light, warm home-cooked meals (khichdi, porridge, warm soup).',
+    'Eat light, easily digestible meals (khichdi, warm soup, porridge).',
     'Get complete bed rest for 3 days and monitor body temperature.',
   ])
   const [whenToVisitWarning, setWhenToVisitWarning] = useState(
-    'If fever stays above 102°F or if you experience chest pain / shortness of breath, visit PHC immediately.'
+    'If fever stays above 102°F or if you experience shortness of breath, visit your nearest PHC immediately.'
   )
 
   // In-Call Chat Messages
@@ -113,20 +137,24 @@ export default function TeleconsultVideoCallModal() {
   const langKey = language || 'en'
   const speechCode = LANGUAGE_SPEECH_CODES[langKey] || 'en-IN'
 
-  // Text-To-Speech Speaker Helper
+  // Natural Doctor Text-To-Speech Synthesis
   const speakDoctorVoice = useCallback((textToSpeak) => {
     if (!synthRef.current) return
     try {
       synthRef.current.cancel()
       const utterance = new SpeechSynthesisUtterance(textToSpeak)
       utterance.lang = speechCode
-      utterance.rate = 0.95
-      utterance.pitch = 1.0
+      utterance.rate = 0.92 // Calm, realistic doctor cadence
+      utterance.pitch = 0.98
 
-      // Try to find native voice
+      // Select natural voice
       const voices = synthRef.current.getVoices()
       const matchingVoice = voices.find(
-        (v) => v.lang.toLowerCase().includes(speechCode.toLowerCase()) || v.lang.startsWith(langKey)
+        (v) =>
+          v.lang.toLowerCase().includes(speechCode.toLowerCase()) ||
+          v.lang.startsWith(langKey) ||
+          v.name.toLowerCase().includes('india') ||
+          v.name.toLowerCase().includes('google')
       )
       if (matchingVoice) utterance.voice = matchingVoice
 
@@ -167,7 +195,7 @@ export default function TeleconsultVideoCallModal() {
     }
   }, [videoCallModalOpen, langKey, speakDoctorVoice])
 
-  // Camera & Mic stream
+  // Camera & Mic stream with flip support (user vs environment)
   useEffect(() => {
     if (!videoCallModalOpen) {
       if (cameraStream) {
@@ -181,9 +209,12 @@ export default function TeleconsultVideoCallModal() {
     let stream = null
     const startCam = async () => {
       try {
+        if (cameraStream) {
+          cameraStream.getTracks().forEach((track) => track.stop())
+        }
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'user' },
+            video: { facingMode: facingMode },
             audio: true,
           })
           setCameraStream(stream)
@@ -192,7 +223,7 @@ export default function TeleconsultVideoCallModal() {
           }
         }
       } catch (err) {
-        console.warn('Webcam not granted or unavailable:', err)
+        console.warn('Webcam error:', err)
         setCameraError(true)
       }
     }
@@ -206,13 +237,18 @@ export default function TeleconsultVideoCallModal() {
       clearInterval(interval)
       if (stream) stream.getTracks().forEach((t) => t.stop())
     }
-  }, [videoCallModalOpen])
+  }, [videoCallModalOpen, facingMode])
 
   useEffect(() => {
     if (patientVideoRef.current && cameraStream) {
       patientVideoRef.current.srcObject = cameraStream
     }
   }, [cameraStream])
+
+  // Flip Camera between Front (user) and Rear (environment)
+  const handleToggleCameraFacing = () => {
+    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'))
+  }
 
   // Patient Voice Dictation Handler
   const startPatientSpeaking = () => {
@@ -269,12 +305,11 @@ export default function TeleconsultVideoCallModal() {
     }
   }
 
-  // Submit Patient Speech to Doctor AI
+  // Submit Patient Speech to Doctor AI + Live Facial Analysis
   const handleSendProblem = async (textToSend = null) => {
     const text = (textToSend || patientSpokenText || chatInput).trim()
     if (!text) return
 
-    // Add to chat history
     const newMsg = {
       sender: 'patient',
       text,
@@ -285,12 +320,22 @@ export default function TeleconsultVideoCallModal() {
     setChatInput('')
     setIsEvaluating(true)
 
-    // Call Teleconsult AI
     try {
-      const response = await getDoctorConsultResponse(text, langKey, activeVideoSession?.patient?.vitals || {})
+      const response = await getDoctorConsultResponse(
+        text,
+        langKey,
+        activeVideoSession?.patient?.vitals || {},
+        facialAnalysisData
+      )
       setIsEvaluating(false)
 
       setConsultDiagnosis(response.diagnosis)
+      if (response.facialAnalysis) {
+        setFacialAnalysisData({
+          ...response.facialAnalysis,
+          lastScanned: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        })
+      }
       if (response.medicines?.length > 0) {
         setPrescribedMedicines(response.medicines)
       }
@@ -311,7 +356,7 @@ export default function TeleconsultVideoCallModal() {
         },
       ])
 
-      // Speak aloud in chosen language!
+      // Speak aloud with natural doctor cadence!
       speakDoctorVoice(response.doctorReplySpeech)
     } catch (err) {
       setIsEvaluating(false)
@@ -319,20 +364,28 @@ export default function TeleconsultVideoCallModal() {
     }
   }
 
-  // Save Prescription to SQLite Medical History
-  const handleSaveToHistory = () => {
+  // Save Prescription to SQLite Database & Dedicated Prescriptions Vault
+  const handleSaveToPrescriptionsVault = () => {
     const patient = activeVideoSession?.patient || {}
-    const medSummary = prescribedMedicines.map((m) => `${m.name} (${m.dosage} - ${m.frequency})`)
+    const medSummary = prescribedMedicines.map(
+      (m) => `${m.name} (${m.dosage} • ${m.schedule || m.frequency})`
+    )
 
     saveAssessmentReport({
+      id: `RX-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       name: patient.name || 'Citizen (Patient)',
       age: patient.age || 34,
       gender: patient.gender || 'Male',
-      symptoms: patientSpokenText || 'Teleconsultation assessment completed',
+      symptoms: patientSpokenText || 'Teleconsultation clinical diagnosis completed',
       urgency: 'Moderate',
+      is_prescription: true,
+      diagnosis: consultDiagnosis,
+      doctor_name: `${DOCTOR_PROFILE.name} (${DOCTOR_PROFILE.qualifications})`,
+      hospital_name: DOCTOR_PROFILE.facility,
       advice: recoveryAdviceList.join(' | '),
       prescribed_medicines: medSummary,
-      doctor_notes: `Diagnosis: ${consultDiagnosis}. Doctor: ${activeVideoSession?.doctor?.name || 'Dr. Rajesh Sharma'}.`,
+      medicines_list: prescribedMedicines,
+      doctor_notes: `Facial Signs: ${facialAnalysisData.visualSigns}. Pain Score: ${facialAnalysisData.painScore}%. Injuries: ${facialAnalysisData.injuryCheck}.`,
     })
 
     setSavedToHistoryNotice(true)
@@ -347,12 +400,7 @@ export default function TeleconsultVideoCallModal() {
 
   if (!videoCallModalOpen || !activeVideoSession) return null
 
-  const doctor = activeVideoSession.doctor || {
-    name: 'Dr. Rajesh Sharma',
-    specialty: 'Chief Medical Officer (General Medicine)',
-    hospitalName: 'Rampur Primary Health Centre (PHC)',
-  }
-
+  const doctor = DOCTOR_PROFILE
   const patient = activeVideoSession.patient || {
     name: 'Citizen Resident',
     age: 34,
@@ -362,77 +410,77 @@ export default function TeleconsultVideoCallModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          initial={{ opacity: 0, scale: 0.96, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
+          exit={{ opacity: 0, scale: 0.96, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="w-full max-w-5xl bg-slate-950 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[96vh] flex flex-col"
+          className="w-full max-w-5xl bg-white border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[96vh] flex flex-col"
           role="dialog"
           aria-modal="true"
         >
-          {/* 1. Header Bar with Call Meta */}
-          <div className="bg-slate-900 px-3 sm:px-6 py-2.5 sm:py-3 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0">
+          {/* 1. Light Medical Header Bar */}
+          <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-800 text-white px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center shrink-0">
-                <Video className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 animate-pulse" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white/20 border border-white/25 flex items-center justify-center shrink-0">
+                <Video className="w-5 h-5 text-white animate-pulse" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.2 rounded border border-emerald-500/30 flex items-center gap-1 shrink-0">
+                  <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.2 rounded-full border border-white/25 flex items-center gap-1 shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                    HD Doctor Teleconsult
+                    Live Clinical Teleconsultation
                   </span>
-                  <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                  <span className="text-[11px] font-mono text-emerald-300 font-bold">
                     {formatTimer(secondsElapsed)}
                   </span>
                 </div>
                 <h3 className="text-xs sm:text-sm font-bold text-white truncate mt-0.5">
-                  {doctor.name} ↔ {patient.name}
+                  {doctor.name} ({doctor.qualifications}) ↔ {patient.name}
                 </h3>
               </div>
             </div>
 
-            {/* Top Quick Actions (108 SOS & End Call) */}
+            {/* Top Header Actions (108 SOS & End Call) */}
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setSosOpen(true)}
-                className="tap-press inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-red-600/30 hover:bg-red-600/50 border border-red-500/40 text-red-300 text-[11px] font-bold transition-all"
+                className="tap-press inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold shadow-xs transition-all"
                 title="Dispatch 108 Ambulance"
               >
-                <Siren className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+                <Siren className="w-3.5 h-3.5 animate-pulse" />
                 <span className="hidden sm:inline">108 SOS</span>
               </button>
 
               <button
                 type="button"
                 onClick={endVideoCall}
-                className="tap-press px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1 shadow-sm transition-all"
+                className="tap-press px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-950 text-white font-bold text-xs flex items-center gap-1 transition-all"
               >
-                <PhoneOff className="w-3.5 h-3.5" />
+                <PhoneOff className="w-3.5 h-3.5 text-red-400" />
                 <span>End</span>
               </button>
             </div>
           </div>
 
-          {/* 2. Main Content Grid (Left: Live Video feeds, Right: Rx & Spoken Advice) */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-[360px] sm:min-h-[440px]">
-            {/* Left 7 Cols: Video Stream Area */}
-            <div className="lg:col-span-7 bg-black relative flex flex-col justify-between p-2.5 sm:p-4 overflow-hidden">
-              {/* Doctor Main Video Stream Simulation */}
-              <div className="w-full h-full rounded-2xl bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 border border-slate-800 flex flex-col items-center justify-center relative overflow-hidden shadow-inner min-h-[220px] sm:min-h-[300px]">
+          {/* 2. Main Content Grid (Left: Light Video feeds, Right: Rx Vault & Clinical Vision) */}
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden min-h-[380px] sm:min-h-[460px]">
+            {/* Left 7 Cols: Video Stream Area (Light Medical Theme) */}
+            <div className="lg:col-span-7 bg-slate-100/90 relative flex flex-col justify-between p-2.5 sm:p-4 overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-200">
+              {/* Doctor Main Video Stream Card */}
+              <div className="w-full h-full rounded-2xl bg-gradient-to-b from-blue-50 via-white to-slate-50 border border-slate-200/90 flex flex-col items-center justify-center relative overflow-hidden shadow-xs min-h-[240px] sm:min-h-[320px]">
                 {/* Doctor Avatar / Presence */}
                 <div className="flex flex-col items-center text-center p-4 space-y-2 relative z-10">
                   <div className="relative">
-                    <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-emerald-600/20 border-4 border-emerald-400/40 flex items-center justify-center text-4xl sm:text-6xl shadow-xl">
+                    <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-3xl bg-blue-100 border-2 border-blue-300 flex items-center justify-center text-4xl sm:text-5xl shadow-sm">
                       👨‍⚕️
                     </div>
                     {isDoctorSpeaking && (
                       <span className="absolute -top-1 -right-1 flex h-5 w-5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500 text-white text-[10px] font-bold items-center justify-center">
+                        <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-600 text-white text-[10px] font-bold items-center justify-center shadow-xs">
                           🔊
                         </span>
                       </span>
@@ -440,68 +488,100 @@ export default function TeleconsultVideoCallModal() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm sm:text-lg font-bold text-white font-display">
+                    <h4 className="text-sm sm:text-lg font-bold text-slate-900 font-display">
                       {doctor.name}
                     </h4>
-                    <p className="text-[11px] sm:text-xs text-emerald-300 font-semibold">
-                      {doctor.specialty}
+                    <p className="text-[11px] sm:text-xs text-blue-700 font-bold">
+                      {doctor.title} · {doctor.qualifications}
                     </p>
-                    <p className="text-[10px] text-slate-400">
-                      {doctor.hospitalName}
+                    <p className="text-[10px] text-slate-500 font-medium">
+                      {doctor.facility} • Reg: {doctor.regNo}
                     </p>
                   </div>
 
-                  {/* Doctor Voice Status Bubble */}
-                  <div className="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-2 max-w-sm text-left text-xs shadow-lg space-y-1">
-                    <div className="flex items-center justify-between gap-1 border-b border-slate-800 pb-1">
-                      <span className="text-[10px] font-bold text-emerald-400 uppercase flex items-center gap-1">
-                        <Volume2 className={`w-3 h-3 ${isDoctorSpeaking ? 'animate-pulse text-emerald-400' : ''}`} />
+                  {/* Doctor Voice Bubble in Light Theme */}
+                  <div className="bg-white border border-blue-200 rounded-2xl p-2.5 max-w-sm text-left text-xs shadow-xs space-y-1">
+                    <div className="flex items-center justify-between gap-1 border-b border-slate-100 pb-1">
+                      <span className="text-[10px] font-bold text-blue-700 uppercase flex items-center gap-1">
+                        <Volume2 className={`w-3 h-3 ${isDoctorSpeaking ? 'animate-pulse text-emerald-600' : 'text-blue-600'}`} />
                         Doctor Spoken Advice ({language.toUpperCase()})
                       </span>
                       <button
                         type="button"
                         onClick={() => speakDoctorVoice(doctorSpeechText)}
-                        className="tap-press text-[10px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-0.5"
+                        className="tap-press text-[10px] text-blue-600 hover:text-blue-800 font-bold flex items-center gap-0.5"
                       >
                         <RotateCcw className="w-2.5 h-2.5" />
                         Replay
                       </button>
                     </div>
-                    <p className="text-slate-200 text-[11px] leading-relaxed italic">
+                    <p className="text-slate-800 text-[11px] leading-relaxed">
                       "{doctorSpeechText}"
                     </p>
                   </div>
                 </div>
 
-                {/* Patient Picture-in-Picture (Unmirrored Webcam feed) */}
-                <div className="absolute bottom-3 right-3 w-28 sm:w-40 h-20 sm:h-28 rounded-2xl bg-slate-900/95 border-2 border-emerald-500/60 overflow-hidden shadow-2xl z-20 flex items-center justify-center">
+                {/* Patient Video (True-to-life orientation + AI Facial Scan Overlay) */}
+                <div className="absolute bottom-3 right-3 w-32 sm:w-44 h-24 sm:h-32 rounded-2xl bg-slate-900 border-2 border-blue-500 overflow-hidden shadow-xl z-20 flex items-center justify-center">
                   {videoActive && !cameraError ? (
-                    <video
-                      ref={patientVideoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      style={{
-                        transform: isMirrored ? 'scaleX(-1)' : 'none', // Controlled mirror mode
-                      }}
-                      className="w-full h-full object-cover"
-                    />
+                    <div className="relative w-full h-full">
+                      <video
+                        ref={patientVideoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        style={{
+                          transform: isMirrored ? 'scaleX(-1)' : 'none', // Natural orientation by default
+                        }}
+                        className="w-full h-full object-cover"
+                      />
+
+                      {/* AI Face & Injury Scanning Bounding Box Overlay */}
+                      {aiScanningActive && (
+                        <div className="absolute inset-2 border border-emerald-400/80 rounded-xl pointer-events-none flex flex-col justify-between p-1">
+                          <div className="flex items-center justify-between text-[8px] font-bold font-mono text-emerald-400 bg-black/60 px-1 rounded">
+                            <span className="flex items-center gap-0.5">
+                              <Scan className="w-2.5 h-2.5 animate-spin" />
+                              AI Vision
+                            </span>
+                            <span>{facialAnalysisData.painScore}% Pain</span>
+                          </div>
+                          <div className="w-full h-[1px] bg-emerald-400/80 shadow-[0_0_8px_#34d399] animate-pulse" />
+                          <span className="text-[7.5px] font-mono text-emerald-300 bg-black/60 px-1 rounded truncate">
+                            {facialAnalysisData.emotion}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center p-2 text-center">
+                    <div className="flex flex-col items-center justify-center p-2 text-center text-white">
                       <User className="w-5 h-5 text-slate-400 mb-1" />
-                      <span className="text-[9px] text-slate-300 font-bold">{patient.name}</span>
+                      <span className="text-[9px] font-bold">{patient.name}</span>
                     </div>
                   )}
 
-                  {/* Mirror / Flip Toggle Button */}
-                  <button
-                    type="button"
-                    onClick={() => setIsMirrored((m) => !m)}
-                    className="tap-press absolute top-1 right-1 bg-black/70 hover:bg-black text-white text-[8px] px-1 py-0.5 rounded font-bold transition-all"
-                    title="Toggle Video Mirroring"
-                  >
-                    {isMirrored ? 'Mirrored' : 'Natural'}
-                  </button>
+                  {/* Top-Right Camera Controls Overlay */}
+                  <div className="absolute top-1 right-1 flex items-center gap-1 z-30">
+                    {/* Camera Switcher (Front ↔ Back) */}
+                    <button
+                      type="button"
+                      onClick={handleToggleCameraFacing}
+                      className="tap-press bg-black/75 hover:bg-black text-white p-1 rounded-lg text-[9px] transition-all shadow-xs"
+                      title="Switch Front / Rear Camera"
+                    >
+                      <SwitchCamera className="w-3 h-3 text-emerald-300" />
+                    </button>
+
+                    {/* Mirror / Natural Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setIsMirrored((m) => !m)}
+                      className="tap-press bg-black/75 hover:bg-black text-white px-1 py-0.5 rounded text-[8px] font-bold transition-all"
+                      title="Toggle Mirror orientation"
+                    >
+                      {isMirrored ? 'Mirrored' : 'Natural'}
+                    </button>
+                  </div>
 
                   <span className="absolute bottom-1 left-1.5 text-[8px] font-bold text-white bg-black/70 px-1 py-0.2 rounded font-mono">
                     You
@@ -509,35 +589,35 @@ export default function TeleconsultVideoCallModal() {
                 </div>
               </div>
 
-              {/* In-Call Patient Voice Dictation Strip */}
+              {/* Patient Voice Dictation & Video Controls Strip */}
               <div className="pt-2 flex items-center justify-between gap-2">
-                {/* 1 Big Speech Button for Patient to Speak in Native Language */}
+                {/* Primary Voice Button for Patient */}
                 <button
                   type="button"
                   onClick={isPatientListening ? stopPatientSpeaking : startPatientSpeaking}
-                  className={`tap-press flex-1 py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+                  className={`tap-press flex-1 py-2.5 px-3 rounded-2xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm ${
                     isPatientListening
                       ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
-                      : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
                 >
                   <Mic className="w-4 h-4" />
                   <span>
                     {isPatientListening
-                      ? 'Listening… Tap to Finish & Send'
-                      : `🎤 Speak Problem to Doctor (${language.toUpperCase()})`}
+                      ? 'Listening… Tap to Send'
+                      : `🎤 Speak Symptoms to Doctor (${language.toUpperCase()})`}
                   </span>
                 </button>
 
-                {/* Camera / Video Controls */}
+                {/* Control Toggles */}
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => setVideoActive((v) => !v)}
                     className={`tap-press p-2.5 rounded-xl border transition-all ${
                       videoActive
-                        ? 'bg-slate-800 text-white border-slate-700'
-                        : 'bg-red-600 text-white border-red-500'
+                        ? 'bg-white text-slate-700 border-slate-300 shadow-2xs hover:bg-slate-50'
+                        : 'bg-red-600 text-white border-red-600'
                     }`}
                     title={videoActive ? 'Turn Off Camera' : 'Turn On Camera'}
                   >
@@ -549,8 +629,8 @@ export default function TeleconsultVideoCallModal() {
                     onClick={() => setMicActive((m) => !m)}
                     className={`tap-press p-2.5 rounded-xl border transition-all ${
                       micActive
-                        ? 'bg-slate-800 text-white border-slate-700'
-                        : 'bg-red-600 text-white border-red-500'
+                        ? 'bg-white text-slate-700 border-slate-300 shadow-2xs hover:bg-slate-50'
+                        : 'bg-red-600 text-white border-red-600'
                     }`}
                     title={micActive ? 'Mute Mic' : 'Unmute Mic'}
                   >
@@ -559,40 +639,53 @@ export default function TeleconsultVideoCallModal() {
                 </div>
               </div>
 
-              {/* Real-Time Speech Recognition Buffer Feedback */}
+              {/* Patient Live Spoken Text Bubble */}
               {patientSpokenText && (
-                <div className="mt-2 p-2 rounded-xl bg-blue-950/80 border border-blue-600/40 text-blue-200 text-xs flex items-center justify-between gap-2">
+                <div className="mt-2 p-2.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950 text-xs flex items-center justify-between gap-2 shadow-2xs">
                   <div className="truncate flex-1">
-                    <strong className="text-white">You said:</strong> "{patientSpokenText}"
+                    <strong className="text-blue-900 font-bold">You said:</strong> "{patientSpokenText}"
                   </div>
                   <button
                     type="button"
                     onClick={() => handleSendProblem(patientSpokenText)}
                     disabled={isEvaluating}
-                    className="tap-press px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[11px] font-bold shrink-0 flex items-center gap-1"
+                    className="tap-press px-3 py-1 rounded-xl bg-blue-600 text-white text-xs font-bold shrink-0 flex items-center gap-1 shadow-xs"
                   >
-                    {isEvaluating ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-                    <span>Get Doctor Reply</span>
+                    {isEvaluating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    <span>Send to Doctor</span>
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Right 5 Cols: Digital Prescription & Recovery Care Panel */}
-            <div className="lg:col-span-5 bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col overflow-hidden">
+            {/* Right 5 Cols: Prescriptions Vault, AI Vision Radar & Chat */}
+            <div className="lg:col-span-5 bg-white flex flex-col overflow-hidden">
               {/* Tab Switcher */}
-              <div className="p-2 bg-slate-950 border-b border-slate-800 grid grid-cols-3 gap-1">
+              <div className="p-2 bg-slate-50 border-b border-slate-200 grid grid-cols-3 gap-1">
                 <button
                   type="button"
                   onClick={() => setActiveTab('prescription')}
                   className={`tap-press py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                     activeTab === 'prescription'
                       ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
                   }`}
                 >
                   <Pill className="w-3.5 h-3.5" />
-                  <span>Prescription (Rx)</span>
+                  <span>Rx Tablets</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('vision')}
+                  className={`tap-press py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                    activeTab === 'vision'
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
+                  }`}
+                >
+                  <Scan className="w-3.5 h-3.5" />
+                  <span>AI Vision</span>
                 </button>
 
                 <button
@@ -601,111 +694,96 @@ export default function TeleconsultVideoCallModal() {
                   className={`tap-press py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                     activeTab === 'chat'
                       ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-white'
+                      : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
                   }`}
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Chat Log</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('vitals')}
-                  className={`tap-press py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                    activeTab === 'vitals'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Activity className="w-3.5 h-3.5" />
-                  <span>Vitals Pulse</span>
+                  <span>Consult Chat</span>
                 </button>
               </div>
 
-              {/* Tab 1: Digital Prescription & Tablet Recovery Plan */}
+              {/* Tab 1: Prescriptions & Tablets Vault */}
               {activeTab === 'prescription' && (
-                <div className="p-3 sm:p-4 overflow-y-auto flex-1 space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="p-3.5 sm:p-4 overflow-y-auto flex-1 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">
-                        Official Teleconsult Rx
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                        Digital Prescription (Rx)
                       </span>
-                      <h4 className="text-sm font-bold text-white">
+                      <h4 className="text-sm font-bold text-slate-900 mt-1">
                         {consultDiagnosis}
                       </h4>
                     </div>
 
-                    <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
-                      Doctor Verified
+                    <span className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded font-bold">
+                      {doctor.name}
                     </span>
                   </div>
 
-                  {/* Tablet List */}
+                  {/* Tablet List with Schedule Badges */}
                   <div className="space-y-2">
-                    <span className="text-[11px] font-bold text-slate-300 block">
+                    <span className="text-[11px] font-bold text-slate-700 block">
                       💊 Prescribed Tablets & Dosages:
                     </span>
 
                     {prescribedMedicines.map((med, index) => (
                       <div
                         key={index}
-                        className="bg-slate-800/90 border border-slate-700/80 rounded-xl p-2.5 text-xs space-y-1"
+                        className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1 shadow-2xs"
                       >
                         <div className="flex items-center justify-between">
-                          <strong className="text-emerald-300 font-bold text-xs">{med.name}</strong>
-                          <span className="text-[10px] font-mono bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded border border-emerald-800">
+                          <strong className="text-emerald-950 font-bold text-xs">{med.name}</strong>
+                          <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
                             {med.duration}
                           </span>
                         </div>
-                        <p className="text-slate-300 text-[11px]">
-                          <strong>Dosage:</strong> {med.dosage} · <strong className="text-amber-300">{med.frequency}</strong>
+                        <p className="text-slate-700 text-[11px]">
+                          <strong>Dosage:</strong> {med.dosage} · <strong className="text-blue-700">{med.timing || 'After Food'}</strong>
                         </p>
-                        {med.purpose && (
-                          <p className="text-[10px] text-slate-400">
-                            {med.purpose}
-                          </p>
-                        )}
+                        <div className="text-[10.5px] font-medium text-slate-600 bg-white p-1.5 rounded-xl border border-slate-200/80 mt-1">
+                          🕒 Schedule: <strong className="text-slate-900">{med.schedule || med.frequency}</strong>
+                        </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Recovery Advice */}
-                  <div className="bg-blue-950/40 border border-blue-800/40 rounded-xl p-2.5 text-xs space-y-1">
-                    <span className="text-[11px] font-bold text-blue-300 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-amber-300" />
-                      Recovery & Care Guidelines:
+                  {/* Recovery Guidelines */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-xs space-y-1">
+                    <span className="text-[11px] font-bold text-blue-950 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-amber-500" />
+                      Home Recovery & Care Steps:
                     </span>
-                    <ul className="list-disc pl-4 space-y-0.5 text-[10.5px] text-slate-300">
+                    <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-slate-700">
                       {recoveryAdviceList.map((adv, idx) => (
                         <li key={idx}>{adv}</li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* Hospital Warning */}
+                  {/* Hospital Red Flag Warning */}
                   {whenToVisitWarning && (
-                    <div className="bg-red-950/40 border border-red-800/40 rounded-xl p-2 text-[10.5px] text-red-200 flex items-start gap-1.5">
-                      <AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                    <div className="bg-red-50 border border-red-200 rounded-2xl p-2.5 text-[11px] text-red-900 flex items-start gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
                       <span>{whenToVisitWarning}</span>
                     </div>
                   )}
 
                   {savedToHistoryNotice && (
-                    <div className="p-2 rounded-xl bg-emerald-900/60 border border-emerald-500 text-emerald-200 text-xs font-bold flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Prescription successfully saved to your Medical History!</span>
+                    <div className="p-2.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Prescription saved to your dedicated Medical History Vault!</span>
                     </div>
                   )}
 
-                  {/* Action Buttons */}
-                  <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row gap-2">
+                  {/* Save to History & Print Slip Buttons */}
+                  <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
                     <button
                       type="button"
-                      onClick={handleSaveToHistory}
-                      className="tap-press flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs"
+                      onClick={handleSaveToPrescriptionsVault}
+                      className="tap-press flex-1 py-2.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Save to Health History</span>
+                      <span>Save to Prescriptions Vault</span>
                     </button>
 
                     <button
@@ -719,34 +797,100 @@ export default function TeleconsultVideoCallModal() {
                           urgency: 'Moderate',
                           advice: recoveryAdviceList.join(' | '),
                           vitals: patient.vitals,
-                          hospital: { name: doctor.hospitalName, distance_km: 3.2 },
+                          hospital: { name: doctor.facility, distance_km: 3.2 },
                           date: new Date().toLocaleDateString('en-IN'),
                           refId: `RX-${Date.now().toString().slice(-6)}`,
                         })
                       }
-                      className="tap-press py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+                      className="tap-press py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
                     >
                       <Printer className="w-3.5 h-3.5" />
-                      <span>Official Slip</span>
+                      <span>Print Slip</span>
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Tab 2: Chat Log */}
+              {/* Tab 2: AI Facial Emotion & Injury Scanner */}
+              {activeTab === 'vision' && (
+                <div className="p-3.5 sm:p-4 space-y-3 text-xs overflow-y-auto flex-1">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 flex items-center gap-1">
+                      <Scan className="w-3 h-3 text-purple-600" />
+                      AI Facial & Injury Vision Radar
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">
+                      ● Live AI Active
+                    </span>
+                  </div>
+
+                  {/* Emotion & Pain Score Cards */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                        <Smile className="w-3.5 h-3.5 text-blue-600" />
+                        Emotion Detected:
+                      </span>
+                      <strong className="text-slate-900 text-xs block">{facialAnalysisData.emotion}</strong>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 space-y-1">
+                      <span className="text-[10px] font-bold text-amber-800 flex items-center gap-1">
+                        <Activity className="w-3.5 h-3.5 text-amber-600" />
+                        Pain Distress Score:
+                      </span>
+                      <strong className="text-amber-950 text-xs block">{facialAnalysisData.painScore}% (Moderate)</strong>
+                    </div>
+                  </div>
+
+                  {/* Visual Signs Check */}
+                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+                      <Eye className="w-3.5 h-3.5 text-blue-600" />
+                      Facial Signs & Pallor Check:
+                    </span>
+                    <p className="text-slate-800 text-[11px] leading-relaxed">
+                      {facialAnalysisData.visualSigns}
+                    </p>
+                  </div>
+
+                  {/* Physical Injury Check */}
+                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
+                    <span className="text-[10px] font-bold text-emerald-800 flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      Injury & Trauma Vision Check:
+                    </span>
+                    <p className="text-emerald-950 text-[11px] font-semibold">
+                      {facialAnalysisData.injuryCheck}
+                    </p>
+                  </div>
+
+                  {/* Manual AI Scan Refresh Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleSendProblem('Please analyze my face for injuries and pain.')}
+                    className="tap-press w-full py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                  >
+                    <Scan className="w-3.5 h-3.5" />
+                    <span>Re-Scan Facial Emotions & Injuries</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Tab 3: Consultation Chat Log */}
               {activeTab === 'chat' && (
                 <div className="flex-1 flex flex-col p-3 overflow-hidden">
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                     {chatMessages.map((msg, index) => (
                       <div
                         key={index}
-                        className={`flex flex-col text-xs max-w-[85%] rounded-2xl p-2.5 ${
+                        className={`flex flex-col text-xs max-w-[85%] rounded-2xl p-2.5 shadow-2xs ${
                           msg.sender === 'doctor'
-                            ? 'bg-slate-800 text-slate-100 self-start border border-slate-700'
+                            ? 'bg-slate-100 text-slate-900 self-start border border-slate-200'
                             : 'bg-blue-600 text-white self-end'
                         }`}
                       >
-                        <span className="text-[9px] opacity-60 mb-0.5 font-bold">
+                        <span className="text-[9px] opacity-75 mb-0.5 font-bold">
                           {msg.sender === 'doctor' ? doctor.name : 'You (Patient)'} • {msg.time}
                         </span>
                         <p className="leading-relaxed">{msg.text}</p>
@@ -759,49 +903,22 @@ export default function TeleconsultVideoCallModal() {
                       e.preventDefault()
                       handleSendProblem(chatInput)
                     }}
-                    className="pt-2 flex items-center gap-1.5 border-t border-slate-800"
+                    className="pt-2 flex items-center gap-1.5 border-t border-slate-100"
                   >
                     <input
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={`Type symptoms in ${language.toUpperCase()}...`}
-                      className="flex-1 px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder:text-slate-500 outline-none focus:border-blue-500"
+                      placeholder={`Type message in ${language.toUpperCase()}...`}
+                      className="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-600 transition-all"
                     />
                     <button
                       type="submit"
-                      className="tap-press p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white"
+                      className="tap-press p-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
                     >
                       <Send className="w-4 h-4" />
                     </button>
                   </form>
-                </div>
-              )}
-
-              {/* Tab 3: Patient Vitals */}
-              {activeTab === 'vitals' && (
-                <div className="p-4 space-y-3 text-xs overflow-y-auto flex-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block">
-                    Patient Live Telemetry Vitals
-                  </span>
-                  <div className="grid grid-cols-2 gap-2 font-mono">
-                    <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700">
-                      <span className="text-slate-400 text-[10px] block">Blood Pressure</span>
-                      <strong className="text-white text-sm">{patient.vitals?.bp || '120/80'}</strong>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700">
-                      <span className="text-slate-400 text-[10px] block">Oxygen (SpO2)</span>
-                      <strong className="text-emerald-400 text-sm">{patient.vitals?.spo2 || '98%'}</strong>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700">
-                      <span className="text-slate-400 text-[10px] block">Pulse Rate</span>
-                      <strong className="text-white text-sm">{patient.vitals?.pulse || '76'} bpm</strong>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700">
-                      <span className="text-slate-400 text-[10px] block">Temperature</span>
-                      <strong className="text-white text-sm">{patient.vitals?.temp || '99.2°F'}</strong>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>

@@ -23,6 +23,8 @@ import {
   ArrowLeft,
   RefreshCw,
   PlusCircle,
+  Eye,
+  Smile,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 
@@ -39,6 +41,7 @@ export default function HistoryView() {
 
   const [reports, setReports] = useState([])
   const [search, setSearch] = useState('')
+  const [activeSection, setActiveSection] = useState('all') // 'all' | 'prescriptions' | 'triage'
   const [filterUrgency, setFilterUrgency] = useState('all') // 'all' | 'Emergency' | 'Moderate' | 'Mild'
   const [loading, setLoading] = useState(false)
   const [syncNotice, setSyncNotice] = useState('')
@@ -78,28 +81,63 @@ export default function HistoryView() {
     if (loadedReports.length === 0) {
       loadedReports = [
         {
-          id: 'REP-2026-8801',
+          id: 'RX-2026-901',
+          is_prescription: true,
           patient_name: currentUser?.name || 'Ramesh Kumar (Citizen)',
           age: 54,
           gender: 'Male',
           symptoms: 'High fever for 3 days with severe headache, body pain, and dry cough',
           urgency: 'Moderate',
+          diagnosis: 'Acute Viral Febrile Illness & Pharyngitis',
+          doctor_name: 'Dr. Rajesh Sharma (MBBS, MD)',
           created_at: '30 Aug 2026, 09:30 AM',
           vitals: { bp: '124/80', spo2: '97%', pulse: '82', temp: '101.4°F' },
-          advice: 'Hydrate with ORS, take Paracetamol 500mg, and consult PHC doctor if fever persists.',
+          advice: 'Hydrate with ORS, take Paracetamol 650mg TDS, and consult PHC doctor if fever persists.',
           hospital_name: 'Rampur Primary Health Centre (PHC)',
           hospital_distance: 3.2,
-          prescribed_medicines: ['Paracetamol 500mg (1 TDS)', 'ORS Solution'],
-          doctor_notes: 'Patient advised warm fluids and rest.',
+          prescribed_medicines: [
+            'Paracetamol 650mg Tablet (1 Tablet TDS after food)',
+            'ORS Solution (1 Sachet in 1L boiled water)',
+            'Cetirizine 10mg Tablet (1 Tablet at night)',
+          ],
+          medicines_list: [
+            {
+              name: 'Paracetamol 650mg Tablet',
+              dosage: '1 Tablet',
+              timing: 'After Food',
+              schedule: 'Morning (☀️) • Afternoon (🌤️) • Night (🌙)',
+              duration: '3 to 5 Days',
+              purpose: 'Fever & body ache relief',
+            },
+            {
+              name: 'ORS (Oral Rehydration Solution)',
+              dosage: '1 Sachet in 1L Water',
+              timing: 'Throughout the day',
+              schedule: 'Sip frequently every 2 hours',
+              duration: '3 Days',
+              purpose: 'Continuous hydration & electrolytes',
+            },
+            {
+              name: 'Cetirizine 10mg Tablet',
+              dosage: '1 Tablet',
+              timing: 'After Food',
+              schedule: 'Night Only (🌙)',
+              duration: '3 Days',
+              purpose: 'Relieves runny nose and sneezing',
+            },
+          ],
+          doctor_notes: 'Facial Signs: Mild pallor. Pain Score: 65%. Physical Injuries: None detected.',
           risk_factors: ['Fever > 101°F'],
         },
         {
           id: 'REP-2026-8802',
+          is_prescription: false,
           patient_name: 'Savita Devi',
           age: 28,
           gender: 'Female',
           symptoms: 'Routine ANC visit checkup with mild swelling in feet at 28 weeks gestation',
           urgency: 'Mild',
+          diagnosis: 'Routine Antenatal Care (2nd Trimester)',
           created_at: '29 Aug 2026, 03:45 PM',
           vitals: { bp: '118/76', spo2: '99%', pulse: '74', temp: '98.4°F', isPregnant: true },
           advice: 'Continue daily IFA and Calcium supplements. Schedule 3rd ANC scan.',
@@ -127,18 +165,35 @@ export default function HistoryView() {
       (r.patient_name || '').toLowerCase().includes(q) ||
       (r.symptoms || '').toLowerCase().includes(q) ||
       (r.id || '').toLowerCase().includes(q) ||
+      (r.diagnosis || '').toLowerCase().includes(q) ||
       (r.hospital_name || '').toLowerCase().includes(q)
 
     if (!matchesSearch) return false
 
+    // Section Filter (Prescriptions vs Triage)
+    if (activeSection === 'prescriptions') {
+      if (!r.is_prescription && !r.id?.startsWith('RX') && !r.medicines_list?.length) {
+        return false
+      }
+    } else if (activeSection === 'triage') {
+      if (r.is_prescription || r.id?.startsWith('RX')) {
+        return false
+      }
+    }
+
+    // Urgency Filter
     if (filterUrgency !== 'all') {
       return (r.urgency || '').toLowerCase().includes(filterUrgency.toLowerCase())
     }
     return true
   })
 
+  const rxCount = reports.filter(
+    (r) => r.is_prescription || r.id?.startsWith('RX') || r.medicines_list?.length
+  ).length
+
   const handleDelete = async (reportId) => {
-    if (!window.confirm(`Delete medical report #${reportId}?`)) return
+    if (!window.confirm(`Delete record #${reportId}?`)) return
     try {
       await fetch(`/api/reports/${reportId}`, { method: 'DELETE' })
     } catch (e) {}
@@ -148,7 +203,7 @@ export default function HistoryView() {
     try {
       localStorage.setItem('asl:patient_assessment_history_v1', JSON.stringify(updated))
     } catch (e) {}
-    setSyncNotice(`Report #${reportId} deleted`)
+    setSyncNotice(`Record #${reportId} deleted`)
     setTimeout(() => setSyncNotice(''), 2500)
   }
 
@@ -157,7 +212,7 @@ export default function HistoryView() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `Arogya_Medical_Report_${report.id}.json`
+    a.download = `Arogya_Medical_Record_${report.id}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -180,7 +235,7 @@ export default function HistoryView() {
             type="button"
             onClick={() => loadReports()}
             className="tap-press inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 transition-all"
-            title="Refresh from Database"
+            title="Refresh from SQLite Database"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Sync Database</span>
@@ -188,11 +243,11 @@ export default function HistoryView() {
 
           <button
             type="button"
-            onClick={() => go('check')}
-            className="tap-press inline-flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-xl shadow-sm transition-all"
+            onClick={() => startVideoCall()}
+            className="tap-press inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-xl shadow-sm transition-all"
           >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>New Health Check</span>
+            <Video className="w-3.5 h-3.5" />
+            <span>Consult Doctor (Video)</span>
           </button>
         </div>
       </div>
@@ -208,24 +263,66 @@ export default function HistoryView() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-400/20 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                  Persistent SQLite Storage Active
+                  SQLite Medical Vault Active
                 </span>
                 <span className="text-xs text-blue-200 font-mono">
-                  {reports.length} Total Records
+                  {reports.length} Total Records · {rxCount} Prescriptions
                 </span>
               </div>
               <h1 className="text-xl sm:text-3xl font-extrabold font-display text-white mt-1">
-                My Health Assessment History & Reports
+                Medical Records & Prescriptions Vault
               </h1>
               <p className="text-xs sm:text-sm text-blue-100 mt-0.5">
-                Full dedicated medical history record: Triage assessments, doctor prescriptions, and priority slips
+                Official digital prescriptions, doctor tablet schedules, triage evaluations, and priority referral slips
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Search & Filter Toolbar */}
+      {/* Section Switcher Tabs: All vs Prescriptions & Tablets vs Triage */}
+      <div className="grid grid-cols-3 gap-2 bg-slate-200/80 p-1.5 rounded-2xl">
+        <button
+          type="button"
+          onClick={() => setActiveSection('all')}
+          className={`tap-press py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 ${
+            activeSection === 'all'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5 text-blue-600" />
+          <span>All Records ({reports.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSection('prescriptions')}
+          className={`tap-press py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 ${
+            activeSection === 'prescriptions'
+              ? 'bg-white text-emerald-800 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Pill className="w-3.5 h-3.5 text-emerald-600" />
+          <span>💊 Prescriptions & Tablets ({rxCount})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSection('triage')}
+          className={`tap-press py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1.5 ${
+            activeSection === 'triage'
+              ? 'bg-white text-blue-800 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
+          <span>Triage Slips ({reports.length - rxCount})</span>
+        </button>
+      </div>
+
+      {/* Search & Urgency Filter Toolbar */}
       <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -233,7 +330,7 @@ export default function HistoryView() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search report ID, patient name, symptoms, hospital..."
+            placeholder="Search report ID, patient name, diagnosis, tablet, hospital..."
             className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs sm:text-sm outline-none focus:bg-white focus:border-blue-600 transition-all"
           />
         </div>
@@ -249,7 +346,7 @@ export default function HistoryView() {
                 : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
             }`}
           >
-            All ({reports.length})
+            All ({filteredReports.length})
           </button>
           <button
             type="button"
@@ -294,39 +391,44 @@ export default function HistoryView() {
         </div>
       )}
 
-      {/* Reports List */}
+      {/* Records List */}
       <div className="space-y-4">
         {loading ? (
           <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-400">
             <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
-            <p className="font-bold text-slate-600">Loading Medical History from SQLite...</p>
+            <p className="font-bold text-slate-600">Loading Medical Vault from SQLite...</p>
           </div>
         ) : filteredReports.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-400 space-y-3">
             <FileText className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="font-bold text-base text-slate-700">No Assessment Records Found</h3>
+            <h3 className="font-bold text-base text-slate-700">No Records Found</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              You have not recorded any clinical triage assessments yet. Start a new symptom check to generate a report.
+              {activeSection === 'prescriptions'
+                ? 'No digital prescriptions have been issued yet. Start a video teleconsultation to receive a doctor prescription.'
+                : 'No triage records match your search criteria.'}
             </p>
             <button
               type="button"
-              onClick={() => go('check')}
-              className="tap-press inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-sm"
+              onClick={() => startVideoCall()}
+              className="tap-press inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-sm"
             >
-              <PlusCircle className="w-4 h-4" />
-              <span>Start Health Check</span>
+              <Video className="w-4 h-4" />
+              <span>Consult Doctor (Video)</span>
             </button>
           </div>
         ) : (
-          filteredReports.map((report) => {
-            const isEmergency = report.urgency?.toLowerCase().includes('emergency')
-            const isModerate = report.urgency?.toLowerCase().includes('moderate')
+          filteredReports.map((record) => {
+            const isRx = record.is_prescription || record.id?.startsWith('RX') || record.medicines_list?.length > 0
+            const isEmergency = record.urgency?.toLowerCase().includes('emergency')
+            const isModerate = record.urgency?.toLowerCase().includes('moderate')
 
             return (
               <div
-                key={report.id}
+                key={record.id}
                 className={`bg-white rounded-3xl border p-4 sm:p-6 shadow-xs transition-all space-y-3.5 ${
-                  isEmergency
+                  isRx
+                    ? 'border-emerald-200 bg-emerald-50/10 ring-1 ring-emerald-500/10'
+                    : isEmergency
                     ? 'border-red-200 bg-red-50/15'
                     : isModerate
                     ? 'border-amber-200 bg-amber-50/15'
@@ -336,9 +438,23 @@ export default function HistoryView() {
                 {/* Top Meta Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-xs text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200">
-                      {report.id}
+                    <span
+                      className={`font-mono font-bold text-xs px-2.5 py-0.5 rounded-lg border ${
+                        isRx
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          : 'bg-blue-50 text-blue-700 border-blue-200'
+                      }`}
+                    >
+                      {record.id}
                     </span>
+
+                    {isRx && (
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-600 text-white flex items-center gap-1">
+                        <Pill className="w-3 h-3" />
+                        Digital Prescription (Rx)
+                      </span>
+                    )}
+
                     <span
                       className={`text-[10px] sm:text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${
                         isEmergency
@@ -348,66 +464,105 @@ export default function HistoryView() {
                           : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       }`}
                     >
-                      {report.urgency} Urgency
+                      {record.urgency || 'Moderate'} Urgency
                     </span>
                   </div>
 
                   <span className="text-xs text-slate-400 flex items-center gap-1.5 font-mono">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    {report.created_at || 'Recently Recorded'}
+                    {record.created_at || 'Recently Recorded'}
                   </span>
                 </div>
 
-                {/* Patient & Symptoms */}
+                {/* Patient & Doctor/Facility Details */}
                 <div className="space-y-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                    <h3 className="font-bold text-sm sm:text-lg text-slate-900">
-                      {report.patient_name || 'Citizen Patient'} {report.age ? `(${report.age} Yrs, ${report.gender || 'Patient'})` : ''}
-                    </h3>
-                    {report.hospital_name && (
-                      <span className="text-xs text-slate-600 flex items-center gap-1 font-semibold bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/80">
-                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>{report.hospital_name} {report.hospital_distance ? `(${report.hospital_distance} km)` : ''}</span>
-                      </span>
-                    )}
+                    <div>
+                      <h3 className="font-bold text-sm sm:text-lg text-slate-900">
+                        {record.patient_name || 'Citizen Patient'} {record.age ? `(${record.age} Yrs, ${record.gender || 'Patient'})` : ''}
+                      </h3>
+                      {record.diagnosis && (
+                        <p className="text-xs font-bold text-emerald-800 mt-0.5 flex items-center gap-1">
+                          <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Diagnosis: {record.diagnosis}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      {record.doctor_name && (
+                        <span className="text-xs font-bold text-slate-800 block">
+                          👨‍⚕️ {record.doctor_name}
+                        </span>
+                      )}
+                      {record.hospital_name && (
+                        <span className="text-[11px] text-slate-500 flex items-center sm:justify-end gap-1">
+                          <MapPin className="w-3 h-3 text-blue-600 shrink-0" />
+                          <span>{record.hospital_name}</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="text-xs text-slate-800 leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                    <strong className="text-slate-900 block mb-0.5">Chief Symptoms Recorded:</strong>
-                    "{report.symptoms}"
+                    <strong className="text-slate-900 block mb-0.5">Symptoms & Clinical Summary:</strong>
+                    "{record.symptoms}"
                   </div>
                 </div>
 
+                {/* Structured Prescribed Tablets List if present */}
+                {record.medicines_list && record.medicines_list.length > 0 ? (
+                  <div className="space-y-2 bg-emerald-50/40 p-3 rounded-2xl border border-emerald-200/80">
+                    <span className="text-[11px] font-bold text-emerald-950 flex items-center gap-1">
+                      <Pill className="w-3.5 h-3.5 text-emerald-600" />
+                      Prescribed Tablets & Dosages:
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {record.medicines_list.map((med, idx) => (
+                        <div key={idx} className="bg-white p-2.5 rounded-xl border border-emerald-200 text-xs space-y-0.5">
+                          <div className="flex items-center justify-between">
+                            <strong className="text-emerald-900 font-bold">{med.name}</strong>
+                            <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                              {med.duration}
+                            </span>
+                          </div>
+                          <p className="text-slate-600 text-[11px]">
+                            <strong>Dose:</strong> {med.dosage} · <strong className="text-blue-700">{med.timing || 'After Food'}</strong>
+                          </p>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            🕒 {med.schedule || med.frequency}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : record.prescribed_medicines?.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase py-0.5">Rx Prescriptions:</span>
+                    {record.prescribed_medicines.map((m, idx) => (
+                      <span key={idx} className="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-0.5 rounded-xl text-xs font-medium flex items-center gap-1">
+                        <Pill className="w-3 h-3 text-emerald-600" />
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
                 {/* Vitals Grid if available */}
-                {report.vitals && Object.keys(report.vitals).length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50/70 p-3 rounded-2xl border border-slate-200/80 text-xs font-mono">
-                    {report.vitals.bp && <div>BP: <strong className="text-slate-900">{report.vitals.bp}</strong></div>}
-                    {report.vitals.spo2 && <div>SpO2: <strong className="text-emerald-700">{report.vitals.spo2}</strong></div>}
-                    {report.vitals.pulse && <div>Pulse: <strong className="text-slate-900">{report.vitals.pulse} bpm</strong></div>}
-                    {report.vitals.temp && <div>Temp: <strong className="text-slate-900">{report.vitals.temp}</strong></div>}
+                {record.vitals && Object.keys(record.vitals).length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50/70 p-2.5 rounded-2xl border border-slate-200/80 text-xs font-mono">
+                    {record.vitals.bp && <div>BP: <strong className="text-slate-900">{record.vitals.bp}</strong></div>}
+                    {record.vitals.spo2 && <div>SpO2: <strong className="text-emerald-700">{record.vitals.spo2}</strong></div>}
+                    {record.vitals.pulse && <div>Pulse: <strong className="text-slate-900">{record.vitals.pulse} bpm</strong></div>}
+                    {record.vitals.temp && <div>Temp: <strong className="text-slate-900">{record.vitals.temp}</strong></div>}
                   </div>
                 )}
 
-                {/* Prescribed Medicines & Doctor Advice */}
-                {(report.prescribed_medicines?.length > 0 || report.advice) && (
-                  <div className="space-y-1.5 pt-1">
-                    {report.advice && (
-                      <p className="text-xs text-slate-700 leading-relaxed">
-                        <strong className="text-slate-900">Clinical Advice:</strong> {report.advice}
-                      </p>
-                    )}
-                    {report.prescribed_medicines?.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase py-0.5">Rx Prescriptions:</span>
-                        {report.prescribed_medicines.map((m, idx) => (
-                          <span key={idx} className="bg-purple-50 text-purple-900 border border-purple-200 px-2.5 py-0.5 rounded-xl text-xs font-medium flex items-center gap-1">
-                            <Pill className="w-3 h-3 text-purple-600" />
-                            {m}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                {/* Clinical Recovery Advice */}
+                {record.advice && (
+                  <p className="text-xs text-slate-700 leading-relaxed bg-blue-50/40 p-2.5 rounded-2xl border border-blue-200/60">
+                    <strong className="text-blue-950">Recovery Advice:</strong> {record.advice}
+                  </p>
                 )}
 
                 {/* Interactive Actions Row */}
@@ -417,16 +572,16 @@ export default function HistoryView() {
                       type="button"
                       onClick={() =>
                         setActiveSlip({
-                          name: report.patient_name,
-                          age: report.age,
-                          gender: report.gender,
-                          symptoms: report.symptoms,
-                          urgency: report.urgency,
-                          advice: report.advice,
-                          vitals: report.vitals,
-                          hospital: { name: report.hospital_name, distance_km: report.hospital_distance },
-                          date: report.created_at?.split(',')?.[0] || 'Today',
-                          refId: report.id,
+                          name: record.patient_name,
+                          age: record.age,
+                          gender: record.gender,
+                          symptoms: record.diagnosis || record.symptoms,
+                          urgency: record.urgency,
+                          advice: record.advice,
+                          vitals: record.vitals,
+                          hospital: { name: record.hospital_name, distance_km: record.hospital_distance },
+                          date: record.created_at?.split(',')?.[0] || 'Today',
+                          refId: record.id,
                         })
                       }
                       className="tap-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold text-xs shadow-2xs transition-all"
@@ -439,11 +594,11 @@ export default function HistoryView() {
                       type="button"
                       onClick={() =>
                         startVideoCall({
-                          name: report.patient_name,
-                          age: report.age,
-                          gender: report.gender,
-                          symptoms: `Follow up consultation for report #${report.id}: ${report.symptoms}`,
-                          vitals: report.vitals,
+                          name: record.patient_name,
+                          age: record.age,
+                          gender: record.gender,
+                          symptoms: `Follow-up for record #${record.id}: ${record.symptoms}`,
+                          vitals: record.vitals,
                         })
                       }
                       className="tap-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs transition-all"
@@ -456,9 +611,9 @@ export default function HistoryView() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => handleDownloadJson(report)}
+                      onClick={() => handleDownloadJson(record)}
                       className="tap-press inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all"
-                      title="Download JSON Report"
+                      title="Download JSON Record"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>JSON</span>
@@ -466,9 +621,9 @@ export default function HistoryView() {
 
                     <button
                       type="button"
-                      onClick={() => handleDelete(report.id)}
+                      onClick={() => handleDelete(record.id)}
                       className="tap-press p-2 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all"
-                      title="Delete Report"
+                      title="Delete Record"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
