@@ -48,10 +48,9 @@ export default function Navbar() {
     setReferralTrackerModalOpen,
     setConsentVaultModalOpen,
     setFhirExportModalOpen,
-    setHistoryModalOpen,
   } = useApp()
 
-  // State for categorized dropdown menus: null | 'clinical' | 'facilities' | 'portals' | 'profile'
+  // Dropdown states: null | 'portals' | 'upgrades' | 'profile' | 'mobile_portals'
   const [openDropdown, setOpenDropdown] = useState(null)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const navRef = useRef(null)
@@ -134,18 +133,18 @@ export default function Navbar() {
     }
   })()
 
-  // Mobile Bottom Navigation Bar Items
+  // Mobile Bottom Navigation Bar Items (Thumb Friendly)
   const mobileNavItems = [
     { key: 'home', label: 'Home', icon: Home },
     { key: 'check', label: 'AI Check', icon: Stethoscope },
     { key: 'map', label: 'Hospitals', icon: MapPin },
     { key: 'medicines', label: 'Medicines', icon: Pill },
     {
-      key: role === 'doctor' ? 'doctor' : role === 'asha' ? 'asha' : role === 'admin' ? 'admin' : 'history',
-      label: role === 'doctor' ? 'Dr. Desk' : role === 'asha' ? 'ASHA' : role === 'admin' ? 'Admin' : 'History',
-      icon: role === 'doctor' ? Stethoscope : role === 'asha' ? Users : role === 'admin' ? Building2 : FileText,
+      key: 'history',
+      label: 'History',
+      icon: FileText,
       badge: role === 'asha' && patientRecords.length > 0 ? patientRecords.length : null,
-      action: role === 'patient' ? () => setHistoryModalOpen(true) : null,
+      action: () => go('history'),
     },
   ]
 
@@ -162,14 +161,15 @@ export default function Navbar() {
         <div className={`h-[3.5px] w-full ${roleConfig.topGradient}`} />
       )}
 
-      {/* Modern Compact Header Bar */}
-      <header ref={navRef} className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs w-full overflow-x-hidden">
+      {/* Main Header Bar */}
+      <header ref={navRef} className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs w-full">
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 h-13 sm:h-16 flex items-center justify-between gap-1.5 sm:gap-3">
-          {/* 1. Left: Logo & Portal Brand */}
+          {/* 1. Left: Brand Logo & Title */}
           <button
+            type="button"
             onClick={() => {
               closeDropdowns()
-              go(role === 'doctor' ? 'doctor' : role === 'asha' ? 'asha' : role === 'admin' ? 'admin' : 'home')
+              go('home')
             }}
             className="tap-press flex items-center gap-1.5 sm:gap-2.5 text-left shrink-0 group min-w-0"
           >
@@ -196,8 +196,8 @@ export default function Navbar() {
             </div>
           </button>
 
-          {/* 2. Center: Desktop Categorized Menu System (Hidden on mobile) */}
-          <nav className="hidden lg:flex items-center gap-1">
+          {/* 2. Center: Desktop Menu System (Visible on md and up) */}
+          <nav className="hidden md:flex items-center gap-1">
             {/* Direct Link: Home */}
             <button
               type="button"
@@ -212,24 +212,80 @@ export default function Navbar() {
               <span>{t('navHome')}</span>
             </button>
 
-            {/* Category 1: Clinical Services Dropdown */}
+            {/* Direct Link: AI Triage */}
+            <button
+              type="button"
+              onClick={() => { closeDropdowns(); go('check') }}
+              className={`tap-press px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                screen === 'check'
+                  ? 'bg-blue-50 text-blue-700 font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
+              <span>AI Triage</span>
+            </button>
+
+            {/* Direct Link: Hospitals & Map */}
+            <button
+              type="button"
+              onClick={() => { closeDropdowns(); go('map') }}
+              className={`tap-press px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                screen === 'map'
+                  ? 'bg-blue-50 text-blue-700 font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Hospitals & Map</span>
+            </button>
+
+            {/* Direct Link: Medicines & Labs */}
+            <button
+              type="button"
+              onClick={() => { closeDropdowns(); go('medicines') }}
+              className={`tap-press px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                screen === 'medicines'
+                  ? 'bg-blue-50 text-blue-700 font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Pill className="w-3.5 h-3.5 text-amber-600" />
+              <span>Medicines</span>
+            </button>
+
+            {/* Direct Link: Dedicated History Page */}
+            <button
+              type="button"
+              onClick={() => { closeDropdowns(); go('history') }}
+              className={`tap-press px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                screen === 'history'
+                  ? 'bg-blue-50 text-blue-700 font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5 text-teal-600" />
+              <span>Health History</span>
+            </button>
+
+            {/* Dropdown: Role Desks & Portals */}
             <div className="relative">
               <button
                 type="button"
-                onClick={() => toggleDropdown('clinical')}
+                onClick={() => toggleDropdown('portals')}
                 className={`tap-press px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
-                  ['check', 'medicines'].includes(screen) || openDropdown === 'clinical'
+                  ['doctor', 'asha', 'admin'].includes(screen) || openDropdown === 'portals'
                     ? 'bg-blue-50 text-blue-700 font-extrabold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
-                <span>Clinical Services</span>
-                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${openDropdown === 'clinical' ? 'rotate-180' : ''}`} />
+                <Users className="w-3.5 h-3.5 text-purple-600" />
+                <span>Role Portals</span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${openDropdown === 'portals' ? 'rotate-180' : ''}`} />
               </button>
 
               <AnimatePresence>
-                {openDropdown === 'clinical' && (
+                {openDropdown === 'portals' && (
                   <motion.div
                     initial={{ opacity: 0, y: 8, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -238,53 +294,83 @@ export default function Navbar() {
                     className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
                   >
                     <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Patient Clinical Care
+                      Select Healthcare Desk
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => { closeDropdowns(); go('check') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-blue-700 flex items-center gap-2.5 transition-all"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                        <Stethoscope className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <span className="font-bold block text-slate-900">AI Care Navigator</span>
-                        <span className="text-[10px] text-slate-500">Adaptive symptom triage</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); startVideoCall() }}
+                      onClick={() => { closeDropdowns(); go('doctor') }}
                       className="tap-press w-full text-left p-2 rounded-xl hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 flex items-center gap-2.5 transition-all"
                     >
                       <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                        <Video className="w-3.5 h-3.5" />
+                        <Stethoscope className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <span className="font-bold block text-slate-900 flex items-center gap-1">
-                          Live Video Call
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        </span>
-                        <span className="text-[10px] text-slate-500">Teleconsult with on-duty doctor</span>
+                        <span className="font-bold block text-slate-900">Doctor AI Workbench</span>
+                        <span className="text-[10px] text-slate-500">Live OPD, AI Rx & Queue</span>
                       </div>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => { closeDropdowns(); go('medicines') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-amber-50 text-slate-700 hover:text-amber-700 flex items-center gap-2.5 transition-all"
+                      onClick={() => { closeDropdowns(); go('asha') }}
+                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-purple-700 flex items-center gap-2.5 transition-all"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                        <Pill className="w-3.5 h-3.5" />
+                      <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                        <Users className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <span className="font-bold block text-slate-900">Medicine & Diagnostics</span>
-                        <span className="text-[10px] text-slate-500">Essential stock & lab tests</span>
+                        <span className="font-bold block text-slate-900">ASHA Field Super-App</span>
+                        <span className="text-[10px] text-slate-500">Offline MCH & Household triage</span>
                       </div>
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); go('admin') }}
+                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-amber-50 text-slate-700 hover:text-amber-950 flex items-center gap-2.5 transition-all"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                        <Building2 className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <span className="font-bold block text-slate-900">District Health Directorate</span>
+                        <span className="text-[10px] text-slate-500">Resource allocation & analytics</span>
+                      </div>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Dropdown: Upgrades & Interoperability */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => toggleDropdown('upgrades')}
+                className={`tap-press px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
+                  openDropdown === 'upgrades'
+                    ? 'bg-blue-50 text-blue-700 font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>Upgrades</span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${openDropdown === 'upgrades' ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {openDropdown === 'upgrades' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.14 }}
+                    className="absolute right-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
+                  >
+                    <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      SIH26133 Architecture
+                    </div>
 
                     <button
                       type="button"
@@ -302,199 +388,38 @@ export default function Navbar() {
 
                     <button
                       type="button"
-                      onClick={() => { closeDropdowns(); go('history') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-teal-50 text-slate-700 hover:text-teal-700 flex items-center gap-2.5 transition-all border-t border-slate-100"
+                      onClick={() => { closeDropdowns(); setConsentVaultModalOpen(true) }}
+                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 flex items-center gap-2.5 transition-all"
                     >
-                      <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
-                        <FileText className="w-3.5 h-3.5" />
+                      <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                        <KeyRound className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <span className="font-bold block text-slate-900">My Health History & Reports</span>
-                        <span className="text-[10px] text-slate-500">Triage history, slips & prescriptions</span>
+                        <span className="font-bold block text-slate-900">Consent Vault (ABDM)</span>
+                        <span className="text-[10px] text-slate-500">DPDP Act consent tokens</span>
                       </div>
                     </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Category 2: Facilities & Map Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => toggleDropdown('facilities')}
-                className={`tap-press px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
-                  screen === 'map' || openDropdown === 'facilities'
-                    ? 'bg-blue-50 text-blue-700 font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                <span>Facilities & Map</span>
-                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${openDropdown === 'facilities' ? 'rotate-180' : ''}`} />
-              </button>
-
-              <AnimatePresence>
-                {openDropdown === 'facilities' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.14 }}
-                    className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
-                  >
-                    <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Geospatial Network
-                    </div>
 
                     <button
                       type="button"
-                      onClick={() => { closeDropdowns(); go('map') }}
+                      onClick={() => { closeDropdowns(); setFhirExportModalOpen(true) }}
                       className="tap-press w-full text-left p-2 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-blue-700 flex items-center gap-2.5 transition-all"
                     >
                       <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                        <MapPin className="w-3.5 h-3.5" />
+                        <FileCode className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <span className="font-bold block text-slate-900">Hospital Command Map</span>
-                        <span className="text-[10px] text-slate-500">Live GPS proximity radar</span>
+                        <span className="font-bold block text-slate-900">FHIR Bridge</span>
+                        <span className="text-[10px] text-slate-500">HL7 / ABDM export</span>
                       </div>
                     </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); go('map') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-slate-50 text-slate-700 flex items-center gap-2.5 transition-all"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-                        <Building2 className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <span className="font-bold block text-slate-900">PHC / CHC Directory</span>
-                        <span className="text-[10px] text-slate-500">On-duty doctors & beds</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); go('map') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-amber-50 text-slate-700 flex items-center gap-2.5 transition-all"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                        <Clock className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <span className="font-bold block text-slate-900">Smart Wait-Time Predictor</span>
-                        <span className="text-[10px] text-slate-500">Live OPD queue forecast</span>
-                      </div>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Category 3: Special Role Portals Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => toggleDropdown('portals')}
-                className={`tap-press px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
-                  ['doctor', 'asha', 'admin'].includes(screen) || openDropdown === 'portals'
-                    ? 'bg-blue-50 text-blue-700 font-extrabold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                <span>Specialized Portals</span>
-                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${openDropdown === 'portals' ? 'rotate-180' : ''}`} />
-              </button>
-
-              <AnimatePresence>
-                {openDropdown === 'portals' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.14 }}
-                    className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
-                  >
-                    <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Role Workbenches
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); go('doctor') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 flex items-center gap-2.5 transition-all"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                        <Stethoscope className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <span className="font-bold block text-slate-900">Doctor AI Workbench</span>
-                        <span className="text-[10px] text-slate-500">OPD Queue, Rx & Consultations</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); go('asha') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-purple-50 text-slate-700 hover:text-purple-700 flex items-center gap-2.5 transition-all"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                        <Users className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <span className="font-bold block text-slate-900 flex items-center justify-between">
-                          <span>ASHA Field Super-App</span>
-                          {patientRecords.length > 0 && (
-                            <span className="text-[9px] bg-purple-600 text-white px-1.5 rounded-full">{patientRecords.length}</span>
-                          )}
-                        </span>
-                        <span className="text-[10px] text-slate-500">MCH, Watchlist, Household survey</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); go('admin') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-amber-50 text-slate-700 hover:text-amber-700 flex items-center gap-2.5 transition-all"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                        <Building2 className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <span className="font-bold block text-slate-900">District Admin Desk</span>
-                        <span className="text-[10px] text-slate-500">Care capacity heatmap & beds</span>
-                      </div>
-                    </button>
-
-                    <div className="pt-1 border-t border-slate-100 space-y-1">
-                      <button
-                        type="button"
-                        onClick={() => { closeDropdowns(); setConsentVaultModalOpen(true) }}
-                        className="tap-press w-full text-left p-1.5 rounded-lg hover:bg-indigo-50 text-[11px] text-indigo-900 flex items-center gap-2"
-                      >
-                        <KeyRound className="w-3 h-3 text-indigo-600 shrink-0" />
-                        <span>Privacy & Consent Vault (ABDM)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => { closeDropdowns(); setFhirExportModalOpen(true) }}
-                        className="tap-press w-full text-left p-1.5 rounded-lg hover:bg-blue-50 text-[11px] text-blue-900 flex items-center gap-2"
-                      >
-                        <FileCode className="w-3 h-3 text-blue-600 shrink-0" />
-                        <span>FHIR Interoperability Bridge</span>
-                      </button>
-                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
           </nav>
 
-          {/* 3. Right: Compact User Profile & Mobile Actions */}
+          {/* 3. Right: Quick Actions (Language, Profile, SOS) */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Desktop Only: Quick Live Video Call Button */}
             <button
@@ -508,108 +433,119 @@ export default function Navbar() {
             </button>
 
             {/* Profile / Role Dropdown Pill */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setAuthModalOpen(true)}
-                className={`tap-press inline-flex items-center gap-1 px-1.5 sm:px-2.5 py-1 rounded-xl border text-xs font-bold transition-all shadow-2xs ${roleConfig.badgeBg}`}
-                title="Account & Role Profile"
-              >
-                <roleConfig.icon className="w-3.5 h-3.5 shrink-0" />
-                <span className="text-[10px] sm:text-xs font-bold max-w-[65px] sm:max-w-[100px] truncate">
-                  {currentUser ? roleConfig.name.split(' ')[0] : 'Login'}
-                </span>
-                <ChevronDown className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-              </button>
-
-              <AnimatePresence>
-                {openDropdown === 'profile' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.14 }}
-                    className="absolute right-0 top-full mt-1.5 w-52 sm:w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 space-y-1 text-xs"
-                  >
-                    <div className="p-2 bg-slate-50 rounded-xl mb-1">
-                      <p className="font-bold text-slate-900 truncate">{roleConfig.name}</p>
-                      <p className="text-[10.5px] text-slate-500">{roleConfig.roleTitle}</p>
-                      <span className="text-[10px] font-mono text-emerald-700 font-bold">{roleConfig.status}</span>
-                    </div>
-
-                    {role === 'doctor' && (
-                      <button
-                        type="button"
-                        onClick={() => { closeDropdowns(); openDoctorProfile() }}
-                        className="tap-press w-full text-left p-2 rounded-xl hover:bg-slate-100 text-slate-700 font-bold flex items-center gap-2"
-                      >
-                        <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
-                        <span>My Clinician Profile</span>
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); go('history') }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-slate-100 text-slate-700 font-bold flex items-center gap-2"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-blue-600" />
-                      <span>My Medical History & Reports</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); setAuthModalOpen(true) }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-blue-50 text-blue-700 font-bold flex items-center gap-2"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Switch Role (Login Gate)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); logoutUser() }}
-                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-red-50 text-red-600 font-bold flex items-center gap-2 border-t border-slate-100"
-                    >
-                      <LogOut className="w-3.5 h-3.5 text-red-600" />
-                      <span>Log Out & Lock</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <button
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
+              className={`tap-press inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl border text-xs font-bold transition-all shadow-2xs ${roleConfig.badgeBg}`}
+              title="Account & Role Profile"
+            >
+              <roleConfig.icon className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold max-w-[75px] sm:max-w-[110px] truncate">
+                {currentUser ? roleConfig.name.split(' ')[0] : 'Login'}
+              </span>
+              <ChevronDown className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+            </button>
 
             {/* 17-Language Toggle */}
             <LanguageToggle />
 
-            {/* Desktop Only: 108 Emergency Shortcut */}
+            {/* 108 Emergency SOS Button */}
             <button
               type="button"
               onClick={() => setSosOpen(true)}
-              className="tap-press hidden md:inline-flex items-center gap-1 px-2.5 sm:px-3 h-8 sm:h-9 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs whitespace-nowrap"
+              className="tap-press hidden sm:inline-flex items-center gap-1 px-2.5 sm:px-3 h-8 sm:h-9 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs whitespace-nowrap"
               aria-label={t('sosButton')}
             >
               <Siren className="w-3.5 h-3.5 animate-pulse" />
               <span>{t('sosButton')}</span>
             </button>
 
-            {/* Mobile Hamburger Menu Drawer Toggle (Visible only on < lg) */}
+            {/* Mobile Hamburger Menu Drawer Toggle (Visible on small screens) */}
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(true)}
-              className="tap-press lg:hidden w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center border border-slate-200 shrink-0"
+              className="tap-press md:hidden w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center border border-slate-200 shrink-0"
               aria-label="Open Menu Drawer"
             >
               <Menu className="w-4 h-4" />
             </button>
           </div>
         </div>
+
+        {/* 4. Sub-Header Quick Menu Strip for Mobile (< md) */}
+        <div className="md:hidden border-t border-slate-100 bg-slate-50/95 px-2 py-1.5 overflow-x-auto flex items-center gap-1.5 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => { closeDropdowns(); go('home') }}
+            className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all ${
+              screen === 'home' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200'
+            }`}
+          >
+            🏠 Home
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { closeDropdowns(); go('check') }}
+            className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all ${
+              screen === 'check' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200'
+            }`}
+          >
+            🩺 AI Triage
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { closeDropdowns(); go('map') }}
+            className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all ${
+              screen === 'map' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200'
+            }`}
+          >
+            🏥 Hospitals
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { closeDropdowns(); go('medicines') }}
+            className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all ${
+              screen === 'medicines' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200'
+            }`}
+          >
+            💊 Medicines
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { closeDropdowns(); go('history') }}
+            className={`tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all ${
+              screen === 'history' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200'
+            }`}
+          >
+            📋 Health History
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { closeDropdowns(); startVideoCall() }}
+            className="tap-press px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all bg-emerald-50 text-emerald-800 border border-emerald-200"
+          >
+            📹 Video Dr
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileDrawerOpen(true)}
+            className="tap-press px-2 py-1 rounded-xl text-[11px] font-bold shrink-0 transition-all bg-purple-50 text-purple-800 border border-purple-200"
+          >
+            Portals ▾
+          </button>
+        </div>
       </header>
 
       {/* Mobile Slide-Out Navigation Drawer */}
       <AnimatePresence>
         {mobileDrawerOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
+          <div className="fixed inset-0 z-50 md:hidden flex justify-end">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -768,30 +704,21 @@ export default function Navbar() {
                       className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-amber-50"
                     >
                       <Building2 className="w-4 h-4 text-amber-600" />
-                      <span>District Admin Desk</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { closeDropdowns(); setConsentVaultModalOpen(true) }}
-                      className="tap-press w-full text-left p-2.5 rounded-xl font-bold flex items-center gap-2.5 text-slate-700 hover:bg-indigo-50"
-                    >
-                      <KeyRound className="w-4 h-4 text-indigo-600" />
-                      <span>ABDM Consent Vault</span>
+                      <span>District Health Directorate</span>
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Drawer Footer Actions */}
-              <div className="p-4 border-t border-slate-200 bg-slate-50 space-y-2">
+              {/* Drawer Bottom Controls */}
+              <div className="p-4 bg-slate-50 border-t border-slate-200 space-y-2">
                 <button
                   type="button"
                   onClick={() => { closeDropdowns(); setAuthModalOpen(true) }}
-                  className="tap-press w-full py-2.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs flex items-center justify-center gap-2"
+                  className="tap-press w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm"
                 >
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Switch Role / Portal Gate</span>
+                  <span>Switch Role / Login</span>
                 </button>
 
                 <button
@@ -811,7 +738,7 @@ export default function Navbar() {
       {/* Mobile Bottom Navigation Bar (Thumb Friendly) */}
       <nav
         aria-label="Mobile Navigation"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200 shadow-lg px-1 py-1.5"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200 shadow-lg px-1 py-1.5"
       >
         <div className="grid grid-cols-5 gap-0.5">
           {mobileNavItems.map((item) => {
