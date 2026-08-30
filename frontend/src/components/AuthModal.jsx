@@ -115,36 +115,36 @@ export default function AuthModal() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.18 }}
-          className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
+          className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[88vh] sm:max-h-[85vh] flex flex-col"
           role="dialog"
           aria-modal="true"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white p-5 sm:p-6 relative shrink-0">
+          <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white p-3.5 sm:p-5 relative shrink-0">
             {currentUser && (
               <button
                 onClick={() => setAuthModalOpen(false)}
-                className="tap-press absolute top-4 right-4 w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-all"
+                className="tap-press absolute top-3 right-3 w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-all"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
 
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
-                <Fingerprint className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-2.5 pr-6">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
+                <Fingerprint className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded-full border border-white/25">
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.2 rounded-full border border-white/25">
                   <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                  National Health Authority • Secure Login
+                  National Health Authority Login
                 </span>
-                <h2 className="text-lg sm:text-xl font-bold font-display mt-0.5">
+                <h2 className="text-sm sm:text-lg font-bold font-display truncate mt-0.5">
                   Arogya Setu Local Portal Login
                 </h2>
-                <p className="text-[11px] text-blue-100 mt-0.5">
-                  Select your role to access customized clinical tools & records
+                <p className="text-[10.5px] text-blue-100 truncate">
+                  Select your role to access clinical tools & records
                 </p>
               </div>
             </div>
