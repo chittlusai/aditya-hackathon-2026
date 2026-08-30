@@ -21,6 +21,7 @@ import ConsentVaultModal from './components/ConsentVaultModal.jsx'
 import FhirExportModal from './components/FhirExportModal.jsx'
 import DoctorProfileModal from './components/DoctorProfileModal.jsx'
 import TeleconsultVideoCallModal from './components/TeleconsultVideoCallModal.jsx'
+import PatientHistoryModal from './components/PatientHistoryModal.jsx'
 import { PhoneCall } from 'lucide-react'
 
 function Shell() {
@@ -56,22 +57,25 @@ function Shell() {
       {/* 4. Real-Time Teleconsultation Video Call Room */}
       <TeleconsultVideoCallModal />
 
-      {/* 5. Feature 06: Referral Journey Tracker Modal */}
+      {/* 5. Patient Health Assessment History & Reports Modal */}
+      <PatientHistoryModal />
+
+      {/* 6. Feature 06: Referral Journey Tracker Modal */}
       <ReferralTrackerModal />
 
-      {/* 6. Feature 19: Privacy & Consent Vault Modal */}
+      {/* 7. Feature 19: Privacy & Consent Vault Modal */}
       <ConsentVaultModal />
 
-      {/* 7. Feature 20: FHIR Interoperability Bridge Modal */}
+      {/* 8. Feature 20: FHIR Interoperability Bridge Modal */}
       <FhirExportModal />
 
-      {/* 8. GPS Permission Modal */}
+      {/* 9. GPS Permission Modal */}
       <GpsPermissionPrompt />
 
-      {/* 9. Emergency 108 SOS Modal */}
+      {/* 10. Emergency 108 SOS Modal */}
       <EmergencyModal />
 
-      {/* 10. Digital Health Referral Slip Modal */}
+      {/* 11. Digital Health Referral Slip Modal */}
       {activeSlip && (
         <DigitalHealthSlip
           slipData={activeSlip}

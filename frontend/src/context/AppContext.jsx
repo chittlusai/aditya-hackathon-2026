@@ -2,10 +2,11 @@
  * AppContext.jsx
  * Comprehensive Central State Store for Arogya Setu Local (SIH26133).
  * Integrates all 20 upgrade blueprint features:
- * Roles & Auth (Patient, Doctor, ASHA, Admin), Multilingual Translations (17 languages),
- * Live Hospital & Doctor Mesh, Smart Queue Prediction, Medicine & Diagnostics Network,
+ * Roles & Auth (Patient, Doctor, ASHA, Admin) with SQLite Backend Database Persistence,
+ * Multilingual Translations (17 languages), Live Hospital & Doctor Mesh,
+ * Smart Queue Prediction, Medicine & Diagnostics Network,
  * Referral Lifecycle Journey Tracking, High-Risk Watchlist, MCH Pathway, Chronic Care,
- * Teleconsultation Video Calling Room, Doctor Profile Desk,
+ * Teleconsultation Video Calling Room, Doctor Profile Desk, Patient Medical History & Reports Vault,
  * Consent Vault (ABDM) & FHIR Interoperability Bridge.
  */
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
@@ -28,6 +29,7 @@ const PATIENTS_STORAGE_KEY = 'asl:patient_records_v1'
 const HOSPITALS_STORAGE_KEY = 'asl:hospital_capacity_v1'
 const USER_STORAGE_KEY = 'asl:current_user_v1'
 const REFERRALS_STORAGE_KEY = 'asl:referrals_v1'
+const REPORTS_STORAGE_KEY = 'asl:patient_assessment_history_v1'
 
 export function AppProvider({ children }) {
   // 1. Language State
@@ -69,6 +71,7 @@ export function AppProvider({ children }) {
   const [referralTrackerModalOpen, setReferralTrackerModalOpen] = useState(false)
   const [consentVaultModalOpen, setConsentVaultModalOpen] = useState(false)
   const [fhirExportModalOpen, setFhirExportModalOpen] = useState(false)
+  const [historyModalOpen, setHistoryModalOpen] = useState(false)
   const [selectedReferral, setSelectedReferral] = useState(null)
 
   // 5. Doctor Profile & Teleconsultation Video Call
@@ -143,12 +146,21 @@ export function AppProvider({ children }) {
     }
   }, [langModalOpen, currentUser])
 
-  // Login handler
+  // Login handler with persistent SQLite Database synchronization
   const loginUser = useCallback((userObj) => {
     setCurrentUser(userObj)
     setRole(userObj.role || 'patient')
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userObj))
+    } catch (e) {}
+
+    // Send login to SQLite database
+    try {
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userObj),
+      }).catch((err) => console.warn('Offline mode: Saved login to local storage'))
     } catch (e) {}
 
     // Auto navigate to role specific dashboard
@@ -240,6 +252,52 @@ export function AppProvider({ children }) {
     setHospitals(nearby)
   }, [])
 
+  // Save Assessment / Triage Report to SQLite database
+  const saveAssessmentReport = useCallback((reportData) => {
+    const newReport = {
+      id: `REP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      user_id: currentUser?.id || 'PAT-DEMO-01',
+      patient_name: reportData.name || currentUser?.name || 'Citizen (Patient)',
+      phone: reportData.phone || currentUser?.phone || '',
+      age: reportData.age || 34,
+      gender: reportData.gender || 'Male',
+      symptoms: reportData.symptoms || reportData.inputText || 'Health assessment check',
+      urgency: reportData.urgency || 'Moderate',
+      vitals: reportData.vitals || {},
+      advice: reportData.advice || '',
+      hospital: reportData.hospital || null,
+      hospital_name: reportData.hospital?.name || 'Rampur Primary Health Centre',
+      hospital_distance: reportData.hospital?.distance_km || 3.2,
+      prescribed_medicines: reportData.prescribed_medicines || ['Paracetamol 500mg (1 TDS)'],
+      doctor_notes: reportData.doctor_notes || 'Triage completed.',
+      risk_factors: reportData.risk_factors || [],
+      created_at: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    }
+
+    // Save to local cache
+    try {
+      const localReports = JSON.parse(localStorage.getItem(REPORTS_STORAGE_KEY) || '[]')
+      localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify([newReport, ...localReports]))
+    } catch (e) {}
+
+    // Save to SQLite backend database
+    try {
+      fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newReport),
+      }).catch(() => {})
+    } catch (e) {}
+
+    return newReport
+  }, [currentUser])
+
   // Start Real-Time Teleconsultation Video Call
   const startVideoCall = useCallback((patientData = null, doctorData = null, isDoctorView = false) => {
     const defaultDoctor = doctorData || doctors[0]
@@ -252,11 +310,28 @@ export function AppProvider({ children }) {
       phone: currentUser?.phone || '+91 98221 55432',
     }
 
+    const callId = `CALL-${Date.now().toString().slice(-6)}`
+
+    // Log call start to SQLite
+    try {
+      fetch('/api/teleconsult', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          call_id: callId,
+          patient_name: defaultPatient.name,
+          doctor_name: defaultDoctor.name,
+          symptoms: defaultPatient.symptoms,
+          vitals: defaultPatient.vitals,
+        }),
+      }).catch(() => {})
+    } catch (e) {}
+
     setActiveVideoSession({
       doctor: defaultDoctor,
       patient: defaultPatient,
       isDoctorView,
-      callId: `CALL-${Date.now().toString().slice(-6)}`,
+      callId,
       startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     })
     setVideoCallModalOpen(true)
@@ -371,7 +446,7 @@ export function AppProvider({ children }) {
         langModalOpen,
         setLangModalOpen,
 
-        // Auth & Roles
+        // Auth & Roles & SQLite DB
         currentUser,
         role,
         setRole: switchRole,
@@ -410,6 +485,11 @@ export function AppProvider({ children }) {
         activeVideoSession,
         startVideoCall,
         endVideoCall,
+
+        // History & Assessment Reports
+        historyModalOpen,
+        setHistoryModalOpen,
+        saveAssessmentReport,
 
         // 20-Feature Workflows
         referrals,

@@ -29,6 +29,7 @@ export default function SymptomInput() {
     setGpsModalOpen,
     requestGpsLocation,
     hospitals,
+    saveAssessmentReport,
   } = useApp()
 
   const [text, setText] = useState('')
@@ -103,7 +104,7 @@ export default function SymptomInput() {
         userCoords
       )
 
-      setResult({
+      const finalResult = {
         ...geminiResult,
         hospital: matchedFacility?.best,
         alternatives: matchedFacility?.alternatives || [],
@@ -111,7 +112,10 @@ export default function SymptomInput() {
         vitals,
         offline: false,
         ai_powered: true,
-      })
+      }
+
+      setResult(finalResult)
+      saveAssessmentReport(finalResult)
       go('result')
     } catch (apiError) {
       console.warn('Gemini API unreachable, falling back to local clinical rule engine:', apiError)
@@ -123,7 +127,7 @@ export default function SymptomInput() {
         userCoords
       )
 
-      setResult({
+      const finalLocalResult = {
         ...localUrgency,
         hospital: localMatches?.best,
         alternatives: localMatches?.alternatives || [],
@@ -131,7 +135,10 @@ export default function SymptomInput() {
         vitals,
         offline: true,
         ai_powered: false,
-      })
+      }
+
+      setResult(finalLocalResult)
+      saveAssessmentReport(finalLocalResult)
       go('result')
     } finally {
       setLoading(false)

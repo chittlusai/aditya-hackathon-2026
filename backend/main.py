@@ -6,6 +6,14 @@ REST API endpoints:
   - POST /match-hospital   / /api/match-hospital   : proximity-based PHC/CHC allocation
   - GET  /hospitals        / /api/hospitals        : list all hospitals with real-time distance
   - PUT  /hospitals/{id}   / /api/hospitals/{id}   : live capacity update for PHC admin portal
+  - POST /api/auth/login                           : authenticate and log user session to SQLite
+  - GET  /api/auth/users                           : list registered users from database
+  - GET  /api/auth/login-logs                      : view security login audit trail
+  - POST /api/reports                              : save patient health assessment / triage report
+  - GET  /api/reports                              : get patient historical health reports
+  - DELETE /api/reports/{id}                       : delete patient health report
+  - POST /api/teleconsult                          : save teleconsultation video call session
+  - GET  /api/teleconsult                          : get teleconsultation records
   - GET  /api/status                               : health check endpoint
   - GET  /*                                        : serves React Single Page Application (SPA)
 """
@@ -19,18 +27,19 @@ _current_dir = os.path.dirname(os.path.abspath(__file__))
 if _current_dir not in sys.path:
     sys.path.insert(0, _current_dir)
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from triage import classify_urgency, match_hospital, load_hospitals
+import database
 
 app = FastAPI(
-    title="Arogya Setu Local API",
-    description="National Rural Health Mission Clinical Triage & PHC Referral Engine",
-    version="2.1.0",
+    title="Arogya Setu Local API & Database Engine",
+    description="National Rural Health Mission Clinical Triage, Persistent Database & Teleconsultation API",
+    version="2.2.0",
 )
 
 app.add_middleware(
@@ -65,7 +74,6 @@ if dist_dir:
     assets_dir = os.path.join(dist_dir, "assets")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-
 
 
 # ---------- Request / Response models ----------
@@ -116,6 +124,34 @@ class HospitalUpdate(BaseModel):
     emergency_ready: Optional[bool] = None
 
 
+class LoginRequest(BaseModel):
+    id: Optional[str] = None
+    name: str
+    role: str
+    phone: Optional[str] = None
+    abha_id: Optional[str] = None
+    facility: Optional[str] = None
+    specialty: Optional[str] = None
+    reg_no: Optional[str] = None
+
+
+class ReportPayload(BaseModel):
+    id: Optional[str] = None
+    user_id: Optional[str] = None
+    patient_name: str
+    phone: Optional[str] = ""
+    age: Optional[int] = 30
+    gender: Optional[str] = "Other"
+    symptoms: str
+    urgency: str
+    vitals: Optional[Dict[str, Any]] = None
+    advice: Optional[str] = ""
+    hospital: Optional[Dict[str, Any]] = None
+    prescribed_medicines: Optional[List[str]] = None
+    doctor_notes: Optional[str] = None
+    risk_factors: Optional[List[str]] = None
+
+
 # ---------- API Endpoints ----------
 
 @app.get("/api/status")
@@ -124,7 +160,8 @@ def api_status():
     return {
         "app": "Arogya Setu Local",
         "status": "running",
-        "version": "2.1.0",
+        "version": "2.2.0",
+        "database": "SQLite Relational Storage Active (arogya_setu.db)",
         "hospitals_loaded": len(HOSPITALS),
         "protocol": "National Rural Health Clinical Protocol (ESI & WHO Standards)",
     }
@@ -193,6 +230,80 @@ def update_hospital(hospital_id: int, update_data: HospitalUpdate):
     raise HTTPException(status_code=404, detail=f"Hospital with id {hospital_id} not found")
 
 
+# ---------- Database Endpoints (Auth, Login Logs, Reports, Teleconsult) ----------
+
+@app.post("/api/auth/login")
+def api_login(login_req: LoginRequest, request: Request):
+    """Authenticates user, saves profile to SQLite, and logs audit record."""
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    user_dict = login_req.dict()
+    saved_user = database.save_or_update_user(user_dict)
+    database.log_login_event(
+        user_id=saved_user["id"],
+        user_name=saved_user["name"],
+        role=saved_user["role"],
+        ip_address=client_ip,
+        status="SUCCESS"
+    )
+    return {
+        "status": "success",
+        "message": f"Authenticated successfully as {saved_user['name']} ({saved_user['role']})",
+        "user": saved_user,
+    }
+
+
+@app.get("/api/auth/users")
+def get_users():
+    """Returns all registered users stored in SQLite."""
+    return database.get_all_users()
+
+
+@app.get("/api/auth/login-logs")
+def get_logs():
+    """Returns login audit trail from SQLite."""
+    return database.get_login_logs(limit=100)
+
+
+@app.post("/api/reports")
+def create_report(payload: ReportPayload):
+    """Saves a patient health assessment & triage report to SQLite."""
+    report_dict = payload.dict()
+    saved = database.save_patient_report(report_dict)
+    return {
+        "status": "success",
+        "message": "Health assessment report saved to SQLite database successfully",
+        "report": saved,
+    }
+
+
+@app.get("/api/reports")
+def get_reports(user_id: Optional[str] = None):
+    """Retrieves patient historical assessment reports from SQLite."""
+    return database.get_patient_reports(user_id=user_id, limit=100)
+
+
+@app.delete("/api/reports/{report_id}")
+def delete_report(report_id: str):
+    """Deletes a report by ID."""
+    success = database.delete_patient_report(report_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+    return {"status": "success", "message": f"Report {report_id} deleted successfully"}
+
+
+@app.post("/api/teleconsult")
+def create_teleconsult(call_data: Dict[str, Any]):
+    """Saves a teleconsultation video call record to SQLite."""
+    saved = database.save_teleconsult_record(call_data)
+    return {"status": "success", "record": saved}
+
+
+@app.get("/api/teleconsult")
+def get_teleconsult():
+    """Retrieves teleconsultation video call records."""
+    return database.get_teleconsult_records(limit=50)
+
+
 # ---------- Root & SPA Catch-All Route ----------
 
 @app.get("/")
@@ -219,9 +330,9 @@ async def serve_root_or_spa(full_path: str = ""):
     return {
         "app": "Arogya Setu Local",
         "status": "running",
-        "version": "2.1.0",
+        "version": "2.2.0",
+        "database": "SQLite Relational Storage Active (arogya_setu.db)",
         "hospitals_loaded": len(HOSPITALS),
         "protocol": "National Rural Health Clinical Protocol (ESI & WHO Standards)",
         "notice": "Frontend build not found. Please run 'npm run build' in the frontend folder.",
     }
-

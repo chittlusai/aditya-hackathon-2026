@@ -46,6 +46,7 @@ export default function Navbar() {
     setReferralTrackerModalOpen,
     setConsentVaultModalOpen,
     setFhirExportModalOpen,
+    setHistoryModalOpen,
   } = useApp()
 
   // State for categorized dropdown menus: null | 'clinical' | 'facilities' | 'portals' | 'profile'
@@ -278,6 +279,20 @@ export default function Navbar() {
                       <div>
                         <span className="font-bold block text-slate-900">Referral Journey Tracker</span>
                         <span className="text-[10px] text-slate-500">6-Stage lifecycle tracker</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); setHistoryModalOpen(true) }}
+                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-teal-50 text-slate-700 hover:text-teal-700 flex items-center gap-2.5 transition-all border-t border-slate-100"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                        <FileText className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <span className="font-bold block text-slate-900">My Health History & Reports</span>
+                        <span className="text-[10px] text-slate-500">Triage history, slips & prescriptions</span>
                       </div>
                     </button>
                   </motion.div>
@@ -514,6 +529,15 @@ export default function Navbar() {
                         <span>My Clinician Profile</span>
                       </button>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => { closeDropdowns(); setHistoryModalOpen(true) }}
+                      className="tap-press w-full text-left p-2 rounded-xl hover:bg-slate-100 text-slate-700 font-bold flex items-center gap-2"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-blue-600" />
+                      <span>My Medical History & Reports</span>
+                    </button>
 
                     <button
                       type="button"

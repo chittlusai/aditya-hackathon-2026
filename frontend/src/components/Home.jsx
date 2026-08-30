@@ -18,6 +18,9 @@ import {
   Activity,
   Mic,
   Volume2,
+  FileText,
+  Video,
+  X,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import VisualSymptomSelector from './VisualSymptomSelector.jsx'
@@ -34,9 +37,16 @@ export default function Home() {
     userCoords,
     setGpsModalOpen,
     requestGpsLocation,
+    setHistoryModalOpen,
+    startVideoCall,
+    setSelectedReferral,
+    setReferralTrackerModalOpen,
+    setConsentVaultModalOpen,
+    setFhirExportModalOpen,
   } = useApp()
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [showFeatureHub, setShowFeatureHub] = useState(true)
 
   const filteredHospitals = hospitals.filter((h) =>
     h.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -116,6 +126,22 @@ export default function Home() {
             </button>
 
             <button
+              onClick={() => setHistoryModalOpen(true)}
+              className="tap-press inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 font-bold text-xs sm:text-sm shadow-2xs transition-all"
+            >
+              <FileText className="w-4 h-4 text-teal-700" />
+              <span>{language === 'hi' ? 'मेरी जांच रिपोर्ट व इतिहास' : language === 'mr' ? 'माझा आरोग्य इतिहास' : 'My Health History'}</span>
+            </button>
+
+            <button
+              onClick={() => startVideoCall()}
+              className="tap-press inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-sm transition-all"
+            >
+              <Video className="w-4 h-4" />
+              <span>{language === 'hi' ? 'डॉक्टर वीडियो कॉल' : language === 'mr' ? 'व्हिडिओ सल्ला' : 'Doctor Video Call'}</span>
+            </button>
+
+            <button
               onClick={() => setSosOpen(true)}
               className="tap-press inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm shadow-sm transition-all"
             >
@@ -126,22 +152,33 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 2. Next-Gen 20-Feature Upgrade Blueprint Hub (SIH26133) */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-5 sm:p-7 shadow-xl border border-blue-700/30 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-400/20 inline-flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-300" />
-              SIH26133 • Next-Gen Feature Upgrade Stack
+      {/* 2. Next-Gen 20-Feature Upgrade Blueprint Hub (Dismissible with X Button) */}
+      {showFeatureHub && (
+        <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-5 sm:p-7 shadow-xl border border-blue-700/30 space-y-4 relative">
+          {/* Dismissible X Button */}
+          <button
+            type="button"
+            onClick={() => setShowFeatureHub(false)}
+            className="tap-press absolute top-4 right-4 w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center border border-white/20 transition-all z-20"
+            title="Dismiss Feature Stack"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3 pr-8">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-400/20 inline-flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-amber-300" />
+                SIH26133 • Next-Gen Feature Upgrade Stack
+              </span>
+              <h2 className="text-lg sm:text-xl font-bold font-display mt-1">
+                Rural Healthcare Access & Intelligence Grid
+              </h2>
+            </div>
+            <span className="text-xs text-blue-200 font-medium hidden sm:inline">
+              20 Integrated Upgrades
             </span>
-            <h2 className="text-lg sm:text-xl font-bold font-display mt-1">
-              Rural Healthcare Access & Intelligence Grid
-            </h2>
           </div>
-          <span className="text-xs text-blue-200 font-medium">
-            20 Integrated Upgrades
-          </span>
-        </div>
 
         {/* Feature Cards Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
@@ -239,6 +276,7 @@ export default function Home() {
           </button>
         </div>
       </div>
+      )}
 
       {/* 3. Visual Illustrated Problem Cards */}
       <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-7 shadow-xs">
