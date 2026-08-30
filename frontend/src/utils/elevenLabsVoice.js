@@ -49,7 +49,7 @@ export function stopDoctorVoiceAudio() {
 
 /**
  * Synthesize ultra-realistic doctor voice speech via ElevenLabs API
- * with automatic fallback to Web Speech API.
+ * with backend proxy endpoint and automatic fallback.
  */
 export async function playDoctorVoiceSpeech(
   text,
@@ -64,38 +64,25 @@ export async function playDoctorVoiceSpeech(
   const cleanText = (text || '').trim()
   if (!cleanText) return
 
-  const apiKey =
-    (typeof localStorage !== 'undefined' && localStorage.getItem('asl:elevenlabs_api_key')) ||
-    DEFAULT_ELEVENLABS_API_KEY
-
   const voiceConfig = ELEVENLABS_VOICE_IDS[persona] || ELEVENLABS_VOICE_IDS.male
   const voiceId = voiceConfig.id
 
-  // 1. Try ElevenLabs High-Fidelity Audio API if API key is provided
-  if (apiKey) {
-    try {
-      onStart()
-      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: 'POST',
-        headers: {
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json',
-          Accept: 'audio/mpeg',
-        },
-        body: JSON.stringify({
-          text: cleanText,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: voiceConfig.stability,
-            similarity_boost: voiceConfig.similarity_boost,
-            style: 0.2,
-            use_speaker_boost: true,
-          },
-        }),
-      })
+  // 1. First Tier: Dedicated Backend Streaming Proxy (Guarantees zero CORS & full audio headers)
+  try {
+    onStart()
+    const proxyRes = await fetch('/api/tts/doctor-voice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: cleanText,
+        voice_id: voiceId,
+        persona,
+      }),
+    })
 
-      if (res.ok) {
-        const audioBlob = await res.blob()
+    if (proxyRes.ok) {
+      const audioBlob = await proxyRes.blob()
+      if (audioBlob && audioBlob.size > 500) {
         const audioUrl = URL.createObjectURL(audioBlob)
         const audio = new Audio(audioUrl)
         activeAudioElement = audio
@@ -114,15 +101,65 @@ export async function playDoctorVoiceSpeech(
 
         await audio.play()
         return
-      } else {
-        console.warn('ElevenLabs API returned non-200 status:', res.status)
       }
-    } catch (err) {
-      console.warn('ElevenLabs speech synthesis fetch error:', err)
+    }
+  } catch (err) {
+    console.warn('Backend ElevenLabs audio stream attempt failed, trying direct API:', err)
+  }
+
+  // 2. Second Tier: Direct ElevenLabs API Call
+  const apiKey =
+    (typeof localStorage !== 'undefined' && localStorage.getItem('asl:elevenlabs_api_key')) ||
+    DEFAULT_ELEVENLABS_API_KEY
+
+  if (apiKey) {
+    try {
+      const directRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': apiKey,
+          'Content-Type': 'application/json',
+          Accept: 'audio/mpeg',
+        },
+        body: JSON.stringify({
+          text: cleanText,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: voiceConfig.stability,
+            similarity_boost: voiceConfig.similarity_boost,
+            style: voiceConfig.style || 0.15,
+            use_speaker_boost: true,
+          },
+        }),
+      })
+
+      if (directRes.ok) {
+        const audioBlob = await directRes.blob()
+        const audioUrl = URL.createObjectURL(audioBlob)
+        const audio = new Audio(audioUrl)
+        activeAudioElement = audio
+
+        audio.onplay = () => onStart()
+        audio.onended = () => {
+          activeAudioElement = null
+          URL.revokeObjectURL(audioUrl)
+          onEnd()
+        }
+        audio.onerror = () => {
+          activeAudioElement = null
+          URL.revokeObjectURL(audioUrl)
+          fallbackBrowserSpeech(cleanText, persona, languageCode, onStart, onEnd, onError)
+        }
+
+        await audio.play()
+        return
+      }
+    } catch (e) {
+      console.warn('Direct ElevenLabs API failed:', e)
     }
   }
 
-  // 2. Fallback to Browser Speech Synthesis
+  // 3. Fallback to Browser Speech Synthesis
   fallbackBrowserSpeech(cleanText, persona, languageCode, onStart, onEnd, onError)
 }
 

@@ -227,7 +227,53 @@ def update_hospital(hospital_id: int, update_data: HospitalUpdate):
                 h["emergency_ready"] = update_data.emergency_ready
             return {"status": "success", "hospital": h}
 
-    raise HTTPException(status_code=404, detail=f"Hospital with id {hospital_id} not found")
+class VoiceSynthesisRequest(BaseModel):
+    text: str
+    voice_id: Optional[str] = "2DRBj9T2XZ7Jmkcm6WCZ"
+    persona: Optional[str] = "male"
+
+
+@app.post("/api/tts/doctor-voice")
+def synthesize_doctor_voice(req: VoiceSynthesisRequest):
+    """Synthesizes human speech via ElevenLabs API with multi-tier fallback."""
+    api_key = os.environ.get("ELEVENLABS_API_KEY", "sk_c9ce4df483a542eaaa9cbfc02214aac7e900b84ec00f5078")
+    
+    candidate_voices = []
+    if req.voice_id:
+        candidate_voices.append(req.voice_id)
+    
+    if req.persona == "female":
+        candidate_voices.extend(["EXAVITQu4vr4xnSDxMaL", "FGY2WhTYpPnrIDTdsKH5", "XrExE9yKIg1WjnnlVkGX"])
+    else:
+        candidate_voices.extend(["pNInz6obpgDQGcFmaJgB", "JBFqnCBsd6RMkjVDRZzb", "VR6AewLTigWG4xSOukaG"])
+    
+    import requests
+    from fastapi.responses import Response
+    
+    for v_id in candidate_voices:
+        try:
+            url = f"https://api.elevenlabs.io/v1/text-to-speech/{v_id}"
+            headers = {
+                "xi-api-key": api_key,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg",
+            }
+            body = {
+                "text": req.text,
+                "model_id": "eleven_multilingual_v2",
+                "voice_settings": {
+                    "stability": 0.50,
+                    "similarity_boost": 0.80,
+                    "use_speaker_boost": True,
+                },
+            }
+            res = requests.post(url, json=body, headers=headers, timeout=15)
+            if res.status_code == 200 and len(res.content) > 0:
+                return Response(content=res.content, media_type="audio/mpeg")
+        except Exception:
+            continue
+            
+    raise HTTPException(status_code=500, detail="Voice synthesis failed across candidates")
 
 
 # ---------- Database Endpoints (Auth, Login Logs, Reports, Teleconsult) ----------
