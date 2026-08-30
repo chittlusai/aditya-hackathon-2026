@@ -26,8 +26,8 @@ export default function DigitalHealthSlip({ slipData, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-white border border-slate-200 rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-800 my-auto print:border-none print:shadow-none print:m-0 print:p-0">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-slate-950/75 backdrop-blur-sm overflow-hidden">
+      <div className="relative w-full max-w-xl bg-white border border-slate-200 rounded-3xl p-3.5 sm:p-7 shadow-2xl text-slate-800 my-auto max-h-[88vh] sm:max-h-[85vh] overflow-y-auto print:border-none print:shadow-none print:m-0 print:p-0">
         
         {/* Prominent High-Visibility Floating Close "X" Button */}
         <button
