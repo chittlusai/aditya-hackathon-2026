@@ -12,11 +12,12 @@ export const DEFAULT_ELEVENLABS_API_KEY =
 // ElevenLabs Voice Personas
 export const ELEVENLABS_VOICE_IDS = {
   male: {
-    id: 'JBFqnCBsd6RMkjVDRZzb', // George - Deep, calm, authoritative male doctor
+    id: '2DRBj9T2XZ7Jmkcm6WCZ', // Realistic Doctor Voice ID provided by User
     name: 'Dr. Rajesh Sharma (Chief Medical Officer)',
     persona: 'Male Doctor',
-    stability: 0.55,
-    similarity_boost: 0.75,
+    stability: 0.50,
+    similarity_boost: 0.80,
+    style: 0.15,
   },
   female: {
     id: '21m00Tcm4TlvDq8ikWAM', // Rachel - Warm, compassionate female clinician
@@ -24,6 +25,7 @@ export const ELEVENLABS_VOICE_IDS = {
     persona: 'Female Doctor',
     stability: 0.55,
     similarity_boost: 0.75,
+    style: 0.15,
   },
 }
 
