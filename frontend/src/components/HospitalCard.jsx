@@ -10,11 +10,12 @@ import {
   Stethoscope,
   Bed,
   Pill,
+  Video,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 
 export default function HospitalCard({ hospital, urgency, isTop = true }) {
-  const { t } = useApp()
+  const { t, startVideoCall } = useApp()
   const [open, setOpen] = useState(false)
 
   if (!hospital) return null
@@ -143,6 +144,28 @@ export default function HospitalCard({ hospital, urgency, isTop = true }) {
 
         {/* Action Buttons */}
         <div className="mt-3.5 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-2 sm:gap-2.5">
+          <button
+            type="button"
+            onClick={() =>
+              startVideoCall(
+                {
+                  name: 'Citizen Patient',
+                  symptoms: `Consultation request for ${hospital.name}`,
+                  vitals: { bp: '120/80', spo2: '98%', pulse: '76', temp: '98.6°F' },
+                },
+                {
+                  name: `Duty Doctor (${hospital.name.split(' ')[0]})`,
+                  hospitalName: hospital.name,
+                  specialty: hospital.specialist || 'General Medicine',
+                }
+              )
+            }
+            className="tap-press w-full sm:flex-1 min-h-[42px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all"
+          >
+            <Video className="w-3.5 h-3.5" />
+            <span>Video Consult</span>
+          </button>
+
           <a
             href={mapsUrl}
             target="_blank"
@@ -159,7 +182,7 @@ export default function HospitalCard({ hospital, urgency, isTop = true }) {
               className="tap-press w-full sm:flex-1 min-h-[42px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all"
             >
               <Phone className="w-3.5 h-3.5 text-white" />
-              <span>{t('callDesk')}: {hospital.phone}</span>
+              <span>{t('callDesk')}</span>
             </a>
           )}
         </div>

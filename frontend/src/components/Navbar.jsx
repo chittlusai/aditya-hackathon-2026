@@ -10,6 +10,10 @@ import {
   ShieldCheck,
   User,
   Fingerprint,
+  Video,
+  Activity,
+  LogOut,
+  Sparkles,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import LanguageToggle from './LanguageToggle.jsx'
@@ -25,6 +29,9 @@ export default function Navbar() {
     currentUser,
     setAuthModalOpen,
     patientRecords,
+    openDoctorProfile,
+    startVideoCall,
+    logoutUser,
   } = useApp()
 
   const desktopLinks = [
@@ -37,43 +44,54 @@ export default function Navbar() {
     { key: 'admin', label: t('navAdmin'), icon: Building2 },
   ]
 
-  // Role Pill formatting
-  const roleDisplay = (() => {
+  // Role Theme Accents & Configurations
+  const roleConfig = (() => {
     if (role === 'doctor') {
       return {
-        label: currentUser?.name?.split(' ')?.[1] ? `Dr. ${currentUser.name.split(' ')[1]}` : 'Doctor',
-        roleBadge: 'Dr.',
-        style: 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100',
+        themeColor: 'bg-emerald-600',
+        topGradient: 'grid-cols-1 bg-gradient-to-r from-teal-500 via-emerald-600 to-teal-700',
+        badgeBg: 'bg-emerald-50 text-emerald-900 border-emerald-300',
+        roleTitle: 'Doctor Portal (Chief Medical Officer)',
+        name: currentUser?.name || 'Dr. Rajesh Sharma (MD)',
+        status: '🟢 OPD Room #03 Active',
         icon: Stethoscope,
       }
     }
     if (role === 'asha') {
       return {
-        label: currentUser?.name ? currentUser.name.split(' ')[0] : 'ASHA',
-        roleBadge: 'ASHA',
-        style: 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100',
+        themeColor: 'bg-purple-600',
+        topGradient: 'grid-cols-1 bg-gradient-to-r from-purple-500 via-indigo-600 to-purple-700',
+        badgeBg: 'bg-purple-50 text-purple-900 border-purple-300',
+        roleTitle: 'ASHA Super-App (Frontline Worker)',
+        name: currentUser?.name || 'Anita Devi (ASHA)',
+        status: '📶 Offline-First • Rampur Sector',
         icon: Users,
       }
     }
     if (role === 'admin') {
       return {
-        label: 'Admin',
-        roleBadge: 'CMO',
-        style: 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100',
-        icon: ShieldCheck,
+        themeColor: 'bg-amber-600',
+        topGradient: 'grid-cols-1 bg-gradient-to-r from-amber-500 via-slate-800 to-amber-600',
+        badgeBg: 'bg-amber-50 text-amber-950 border-amber-300',
+        roleTitle: 'District Health Directorate (Command)',
+        name: currentUser?.name || 'Dr. K. Verma (Admin CMO)',
+        status: '🏛️ Nagpur Rural Command',
+        icon: Building2,
       }
     }
+    // Citizen / Patient
     return {
-      label: currentUser?.name ? currentUser.name.split(' ')[0] : 'Citizen',
-      roleBadge: 'User',
-      style: 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200',
+      themeColor: 'bg-blue-600',
+      topGradient: 'grid-cols-3',
+      badgeBg: 'bg-slate-100 text-slate-800 border-slate-300',
+      roleTitle: 'Citizen Health Portal',
+      name: currentUser?.name || 'Citizen Patient',
+      status: 'ABHA Linked',
       icon: User,
     }
   })()
 
-  const RoleIcon = roleDisplay.icon
-
-  // Mobile Bottom Bar items
+  // Mobile Bottom Navigation Bar Items
   const mobileNavItems = [
     { key: 'home', label: 'Home', icon: Home },
     { key: 'check', label: 'AI Check', icon: Stethoscope },
@@ -89,19 +107,23 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Subtle National Flag Color Accent Line */}
-      <div className="h-[2.5px] w-full grid grid-cols-3">
-        <div className="bg-[#FF9933]" />
-        <div className="bg-slate-100" />
-        <div className="bg-[#138808]" />
-      </div>
+      {/* Top Banner Stripe - Adapts to Role */}
+      {role === 'patient' ? (
+        <div className="h-[2.5px] w-full grid grid-cols-3">
+          <div className="bg-[#FF9933]" />
+          <div className="bg-slate-100" />
+          <div className="bg-[#138808]" />
+        </div>
+      ) : (
+        <div className={`h-[3.5px] w-full ${roleConfig.topGradient}`} />
+      )}
 
-      {/* Modern, Single Single-Row Header */}
+      {/* Role-Adaptive Specialized Header Bar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
-          {/* Logo & Brand */}
+          {/* Logo & Portal Brand */}
           <button
-            onClick={() => go('home')}
+            onClick={() => go(role === 'doctor' ? 'doctor' : role === 'asha' ? 'asha' : role === 'admin' ? 'admin' : 'home')}
             className="tap-press flex items-center gap-2 sm:gap-2.5 text-left shrink-0 group"
           >
             <img
@@ -110,12 +132,19 @@ export default function Navbar() {
               className="w-8 h-8 sm:w-9 sm:h-9 object-contain rounded-xl shadow-2xs border border-blue-100/60 p-0.5 bg-white group-hover:scale-105 transition-transform"
             />
             <div className="flex flex-col">
-              <span className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight leading-none whitespace-nowrap">
-                <span className="inline sm:hidden">Arogya Setu</span>
-                <span className="hidden sm:inline">{t('appName')}</span>
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight leading-none whitespace-nowrap">
+                  <span className="inline sm:hidden">Arogya Setu</span>
+                  <span className="hidden sm:inline">{t('appName')}</span>
+                </span>
+                {role !== 'patient' && (
+                  <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded border hidden sm:inline ${roleConfig.badgeBg}`}>
+                    {role.toUpperCase()} MODE
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] text-blue-600 font-bold tracking-wide uppercase mt-0.5 hidden sm:inline">
-                National Rural Health Mission
+                {roleConfig.roleTitle}
               </span>
             </div>
           </button>
@@ -147,28 +176,64 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right Header Utilities: Role Switcher, Language Toggle, 108 SOS */}
+          {/* Right Header Controls (Role-Specific Actions) */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* User Role Profile Pill */}
+            {/* SPECIAL DOCTOR ACTIONS: Profile & Live Teleconsult */}
+            {role === 'doctor' && (
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => startVideoCall(null, null, true)}
+                  className="tap-press inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all"
+                  title="Launch Teleconsultation Room"
+                >
+                  <Video className="w-3.5 h-3.5 animate-pulse" />
+                  <span className="hidden md:inline">Teleconsult Video</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openDoctorProfile()}
+                  className="tap-press inline-flex items-center gap-1 px-2.5 py-1 sm:py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 text-xs font-bold transition-all"
+                  title="View Doctor Profile & Credentials"
+                >
+                  <Stethoscope className="w-3.5 h-3.5 text-teal-600" />
+                  <span className="hidden sm:inline">My Profile</span>
+                </button>
+              </div>
+            )}
+
+            {/* PATIENT VIDEO CALL BUTTON (For clients suffering from problems) */}
+            {role === 'patient' && (
+              <button
+                type="button"
+                onClick={() => startVideoCall()}
+                className="tap-press inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all"
+                title="Connect Live Video Call with Doctor"
+              >
+                <Video className="w-3.5 h-3.5 animate-pulse" />
+                <span className="hidden sm:inline">Doctor Video Call</span>
+                <span className="inline sm:hidden">Video</span>
+              </button>
+            )}
+
+            {/* Active User Role Badge & Switcher */}
             <button
               type="button"
               onClick={() => setAuthModalOpen(true)}
-              className={`tap-press inline-flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs ${roleDisplay.style}`}
-              title="Click to Switch Role or View Profile"
+              className={`tap-press inline-flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs ${roleConfig.badgeBg}`}
+              title="Click to Switch Role or Log Out"
             >
-              <RoleIcon className="w-3.5 h-3.5" />
-              <span className="text-[11px] sm:text-xs font-bold max-w-[80px] sm:max-w-[110px] truncate">
-                {roleDisplay.label}
-              </span>
-              <span className="text-[9px] uppercase font-mono px-1 py-0.2 bg-white/70 rounded font-extrabold hidden sm:inline">
-                {roleDisplay.roleBadge}
+              <roleConfig.icon className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[11px] sm:text-xs font-bold max-w-[85px] sm:max-w-[120px] truncate">
+                {roleConfig.name}
               </span>
             </button>
 
-            {/* 17-Language Selector Toggle */}
+            {/* 17-Language Toggle */}
             <LanguageToggle />
 
-            {/* 108 Emergency Ambulance Button */}
+            {/* 108 Emergency Shortcut */}
             <button
               type="button"
               onClick={() => setSosOpen(true)}
@@ -183,7 +248,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar (Fixed for Mobile Screens) */}
+      {/* Mobile Bottom Navigation Bar */}
       <nav
         aria-label="Mobile Navigation"
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-1 py-1.5"

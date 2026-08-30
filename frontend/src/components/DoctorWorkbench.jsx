@@ -16,6 +16,7 @@ import {
   Pill,
   Activity,
   ChevronRight,
+  User,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 
@@ -29,6 +30,8 @@ export default function DoctorWorkbench() {
     doctors,
     medicines,
     t,
+    openDoctorProfile,
+    startVideoCall,
   } = useApp()
 
   const [activeTab, setActiveTab] = useState('queue') // 'queue' | 'referrals' | 'prescribe'
@@ -126,14 +129,38 @@ export default function DoctorWorkbench() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto">
-          <div className="px-4 py-2 rounded-2xl bg-white/10 border border-white/15 text-center">
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          <button
+            type="button"
+            onClick={() => startVideoCall(
+              {
+                name: activePatient?.name || 'Walk-in Patient',
+                age: activePatient?.age || 40,
+                gender: activePatient?.gender || 'Male',
+                symptoms: activePatient?.symptoms || 'OPD Teleconsultation',
+                vitals: activePatient?.vitals,
+              },
+              null,
+              true // isDoctorView
+            )}
+            className="tap-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all"
+          >
+            <Video className="w-3.5 h-3.5 animate-pulse" />
+            <span>Launch Video Call</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => openDoctorProfile()}
+            className="tap-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-all"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>My Profile</span>
+          </button>
+
+          <div className="px-3.5 py-2 rounded-2xl bg-white/10 border border-white/15 text-center hidden sm:block">
             <span className="text-[10px] uppercase text-slate-400 block font-bold">OPD Queue</span>
-            <span className="text-base font-extrabold text-white">3 Patients Waiting</span>
-          </div>
-          <div className="px-4 py-2 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-center">
-            <span className="text-[10px] uppercase text-emerald-300 block font-bold">Tele-Consult</span>
-            <span className="text-base font-extrabold text-emerald-400">Ready</span>
+            <span className="text-sm font-extrabold text-white">3 Waiting</span>
           </div>
         </div>
       </div>

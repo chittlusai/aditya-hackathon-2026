@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   FileText,
@@ -8,6 +7,8 @@ import {
   Sparkles,
   ShieldAlert,
   HeartPulse,
+  Video,
+  Phone,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import UrgencyBadge from './UrgencyBadge.jsx'
@@ -16,7 +17,7 @@ import SpeechReader from './SpeechReader.jsx'
 import HospitalMap from './HospitalMap.jsx'
 
 export default function Result() {
-  const { result, go, setSosOpen, setActiveSlip, hospitals, t, language } = useApp()
+  const { result, go, setSosOpen, setActiveSlip, hospitals, t, language, startVideoCall } = useApp()
 
   if (!result) {
     return (
@@ -178,6 +179,44 @@ export default function Result() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Live Doctor Video Consultation Card (Direct Teleconsultation) */}
+      <div className="bg-gradient-to-r from-emerald-600 via-teal-700 to-blue-800 text-white rounded-2xl p-5 sm:p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
+            <Video className="w-6 h-6 text-white animate-pulse" />
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded-full border border-white/25 inline-flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping" />
+              Doctor On Duty Available Now
+            </span>
+            <h3 className="text-base sm:text-lg font-bold font-display mt-1">
+              {language === 'hi' ? 'डॉक्टर से तुरंत वीडियो कॉल पर परामर्श लें' : language === 'mr' ? 'डॉक्टरांशी थेट व्हिडिओ कॉलवर बोला' : 'Connect with On-Duty Doctor via Live Video Call'}
+            </h3>
+            <p className="text-xs text-teal-100 mt-0.5">
+              {language === 'hi' ? 'घर बैठे प्राथमिक स्वास्थ्य केंद्र के डॉक्टर से मुफ्त वीडियो जांच व डिजिटल पर्ची पाएं।' : language === 'mr' ? 'घरी बसून मोफत शासकीय डॉक्टरांचा सल्ला व औषधांची डिजिटल स्लिप मिळवा.' : 'Instant Free Govt Teleconsultation with Dr. Rajesh Sharma (MD, PHC CMO).'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() =>
+            startVideoCall({
+              name: 'Citizen Resident',
+              age: 34,
+              gender: 'Male',
+              symptoms: result.inputText || 'Evaluated symptoms',
+              vitals: result.vitals || { bp: '120/80', spo2: '98%', pulse: '76', temp: '99.4°F' },
+            })
+          }
+          className="tap-press self-start sm:self-auto px-5 py-3 rounded-xl bg-white hover:bg-teal-50 text-teal-900 font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-lg transition-all shrink-0"
+        >
+          <Video className="w-4 h-4 text-emerald-700" />
+          <span>{language === 'hi' ? 'वीडियो कॉल शुरू करें' : language === 'mr' ? 'व्हिडिओ कॉल सुरू करा' : 'Start Video Call'}</span>
+        </button>
       </div>
 
       {/* Recommended Primary Health Facility */}

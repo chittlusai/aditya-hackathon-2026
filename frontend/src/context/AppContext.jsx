@@ -5,6 +5,7 @@
  * Roles & Auth (Patient, Doctor, ASHA, Admin), Multilingual Translations (17 languages),
  * Live Hospital & Doctor Mesh, Smart Queue Prediction, Medicine & Diagnostics Network,
  * Referral Lifecycle Journey Tracking, High-Risk Watchlist, MCH Pathway, Chronic Care,
+ * Teleconsultation Video Calling Room, Doctor Profile Desk,
  * Consent Vault (ABDM) & FHIR Interoperability Bridge.
  */
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
@@ -70,7 +71,13 @@ export function AppProvider({ children }) {
   const [fhirExportModalOpen, setFhirExportModalOpen] = useState(false)
   const [selectedReferral, setSelectedReferral] = useState(null)
 
-  // 5. Connectivity & GPS
+  // 5. Doctor Profile & Teleconsultation Video Call
+  const [doctorProfileModalOpen, setDoctorProfileModalOpen] = useState(false)
+  const [selectedDoctorForProfile, setSelectedDoctorForProfile] = useState(INITIAL_DOCTORS[0])
+  const [videoCallModalOpen, setVideoCallModalOpen] = useState(false)
+  const [activeVideoSession, setActiveVideoSession] = useState(null)
+
+  // 6. Connectivity & GPS
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
   const [userCoords, setUserCoords] = useState({
     lat: 21.1458,
@@ -82,7 +89,7 @@ export function AppProvider({ children }) {
   const [gpsStatus, setGpsStatus] = useState('prompt') // 'prompt' | 'granted' | 'denied' | 'loading'
   const watchIdRef = useRef(null)
 
-  // 6. Dynamic Facilities & Health Mesh Database
+  // 7. Dynamic Facilities & Health Mesh Database
   const [hospitals, setHospitals] = useState(() => {
     return generateHospitalsForCoordinates(21.1458, 79.0882)
   })
@@ -90,7 +97,7 @@ export function AppProvider({ children }) {
   const [medicines, setMedicines] = useState(ESSENTIAL_MEDICINES)
   const [diagnostics, setDiagnostics] = useState(DIAGNOSTIC_TESTS)
 
-  // 7. Referral Pipeline & Care Continuity
+  // 8. Referral Pipeline & Care Continuity
   const [referrals, setReferrals] = useState(() => {
     try {
       const saved = localStorage.getItem(REFERRALS_STORAGE_KEY)
@@ -104,7 +111,7 @@ export function AppProvider({ children }) {
   const [chronicCareData, setChronicCareData] = useState(CHRONIC_CARE_DATA)
   const [districtAnalytics, setDistrictAnalytics] = useState(DISTRICT_ANALYTICS)
 
-  // 8. Offline Patient Records (ASHA)
+  // 9. Offline Patient Records (ASHA)
   const [patientRecords, setPatientRecords] = useState(() => {
     try {
       const saved = localStorage.getItem(PATIENTS_STORAGE_KEY)
@@ -233,6 +240,38 @@ export function AppProvider({ children }) {
     setHospitals(nearby)
   }, [])
 
+  // Start Real-Time Teleconsultation Video Call
+  const startVideoCall = useCallback((patientData = null, doctorData = null, isDoctorView = false) => {
+    const defaultDoctor = doctorData || doctors[0]
+    const defaultPatient = patientData || {
+      name: currentUser?.name || 'Citizen (Patient)',
+      age: 34,
+      gender: 'Male',
+      symptoms: result?.urgency ? 'Evaluated with ' + result.urgency + ' symptoms' : 'General fever, headache, body pain for 3 days',
+      vitals: { bp: '125/82', spo2: '97%', pulse: '78', temp: '99.4°F' },
+      phone: currentUser?.phone || '+91 98221 55432',
+    }
+
+    setActiveVideoSession({
+      doctor: defaultDoctor,
+      patient: defaultPatient,
+      isDoctorView,
+      callId: `CALL-${Date.now().toString().slice(-6)}`,
+      startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    })
+    setVideoCallModalOpen(true)
+  }, [doctors, currentUser, result])
+
+  const endVideoCall = useCallback(() => {
+    setVideoCallModalOpen(false)
+    setActiveVideoSession(null)
+  }, [])
+
+  const openDoctorProfile = useCallback((doc = null) => {
+    setSelectedDoctorForProfile(doc || doctors[0])
+    setDoctorProfileModalOpen(true)
+  }, [doctors])
+
   // Update Referral Stage in 6-stage lifecycle
   const updateReferralStage = useCallback((refId, nextStageIndex, note = '') => {
     const stages = ['Created', 'Accepted', 'En Route', 'Arrived', 'In Consultation', 'Closed']
@@ -359,6 +398,18 @@ export function AppProvider({ children }) {
         setMedicines,
         diagnostics,
         setDiagnostics,
+
+        // Doctor Profile & Video Call
+        doctorProfileModalOpen,
+        setDoctorProfileModalOpen,
+        selectedDoctorForProfile,
+        setSelectedDoctorForProfile,
+        openDoctorProfile,
+        videoCallModalOpen,
+        setVideoCallModalOpen,
+        activeVideoSession,
+        startVideoCall,
+        endVideoCall,
 
         // 20-Feature Workflows
         referrals,
