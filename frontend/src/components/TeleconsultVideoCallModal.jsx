@@ -264,15 +264,15 @@ export default function TeleconsultVideoCallModal() {
     }
   }
 
-  // Patient Voice Dictation Handler with IMMEDIATE DOCTOR VOICE CANCELLATION / INTERRUPTION
+  // Patient Voice Dictation Handler with Auto-Send on Mobile
   const startPatientSpeaking = () => {
-    // 1. Immediately silence and stop doctor voice speech (ElevenLabs & browser speech) when user starts talking!
+    // 1. Immediately silence and stop doctor voice speech when user starts talking!
     stopDoctorVoiceAudio()
     setIsDoctorSpeaking(false)
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRecognition) {
-      alert('Speech recognition is not supported in this browser. Please use the in-call chat box.')
+      alert('Speech recognition is not supported in this browser. Please use the quick symptom chips or chat input below.')
       return
     }
 
@@ -286,6 +286,8 @@ export default function TeleconsultVideoCallModal() {
       recognition.continuous = false
       recognition.interimResults = true
 
+      let capturedText = ''
+
       recognition.onstart = () => {
         setIsPatientListening(true)
         setPatientSpokenText('')
@@ -296,7 +298,10 @@ export default function TeleconsultVideoCallModal() {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript
         }
-        setPatientSpokenText(transcript)
+        if (transcript.trim()) {
+          capturedText = transcript
+          setPatientSpokenText(transcript)
+        }
       }
 
       recognition.onerror = (e) => {
@@ -306,6 +311,10 @@ export default function TeleconsultVideoCallModal() {
 
       recognition.onend = () => {
         setIsPatientListening(false)
+        // Automatically send the recognized speech to Doctor AI upon silence on mobile!
+        if (capturedText && capturedText.trim().length > 1) {
+          handleSendProblem(capturedText.trim())
+        }
       }
 
       speechRecognitionRef.current = recognition
@@ -319,7 +328,10 @@ export default function TeleconsultVideoCallModal() {
   const stopPatientSpeaking = () => {
     if (speechRecognitionRef.current) {
       speechRecognitionRef.current.stop()
-      setIsPatientListening(false)
+    }
+    setIsPatientListening(false)
+    if (patientSpokenText && patientSpokenText.trim().length > 1) {
+      handleSendProblem(patientSpokenText.trim())
     }
   }
 
@@ -683,24 +695,77 @@ export default function TeleconsultVideoCallModal() {
           </div>
 
           {/* ========================================================================= */}
-          {/* 5. WHATSAPP BOTTOM CALL CONTROL ACTION BAR */}
+          {/* 5. WHATSAPP BOTTOM CALL CONTROL ACTION BAR WITH MOBILE CHIPS & INPUT */}
           {/* ========================================================================= */}
-          <div className="relative z-30 pb-4 pt-2 px-3 bg-gradient-to-t from-black via-black/90 to-transparent">
+          <div className="relative z-30 pb-4 pt-2 px-3 bg-gradient-to-t from-black via-black/95 to-transparent space-y-2">
+            {/* Quick 1-Tap Symptom Chips (Ultra-Fast for Mobile Touch) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+              {[
+                { label: langKey === 'te' ? '🌡️ తీవ్ర జ్వరం' : langKey === 'hi' ? '🌡️ तेज बुखार' : '🌡️ High Fever', text: 'I have severe high fever with chills and body ache' },
+                { label: langKey === 'te' ? '🤕 తలనొప్పి' : langKey === 'hi' ? '🤕 सिरदर्द' : '🤕 Headache', text: 'I have intense headache and dizziness' },
+                { label: langKey === 'te' ? '🤢 కడుపునొప్పి' : langKey === 'hi' ? '🤢 पेट दर्द' : '🤢 Stomach Pain', text: 'I have severe abdominal stomach pain and cramps' },
+                { label: langKey === 'te' ? '🩹 గాయం / రక్తం' : langKey === 'hi' ? '🩹 चोट / घाव' : '🩹 Cut / Wound', text: 'I have a physical bleeding cut and wound on my skin' },
+                { label: langKey === 'te' ? '🫁 దగ్గు & ఆయాసం' : langKey === 'hi' ? '🫁 खांसी व सांस' : '🫁 Cough / Breath', text: 'I have continuous coughing and throat irritation' },
+              ].map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSendProblem(chip.text)}
+                  disabled={isEvaluating}
+                  className="tap-press whitespace-nowrap px-2.5 py-1 rounded-full bg-slate-900/90 hover:bg-emerald-700/90 text-white text-[10px] font-bold border border-white/20 shadow-md backdrop-blur-md shrink-0 transition-all"
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Quick Text Input for Mobile Typing if Voice Dictation is blocked by OS */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSendProblem()
+              }}
+              className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md rounded-2xl p-1 border border-white/20"
+            >
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder={langKey === 'te' ? 'సమస్యను ఇక్కడ టైప్ చేయండి లేదా మైక్ నొక్కండి...' : langKey === 'hi' ? 'तकलीफ यहाँ लिखें या माइक दबाएं...' : 'Type symptoms or tap mic to speak...'}
+                className="flex-1 bg-transparent px-2.5 py-1 text-xs text-white placeholder-slate-400 focus:outline-hidden"
+              />
+              <button
+                type="submit"
+                disabled={!chatInput.trim() || isEvaluating}
+                className="tap-press px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold shrink-0 transition-all flex items-center gap-1"
+              >
+                <Send className="w-3 h-3" />
+                <span>Send</span>
+              </button>
+            </form>
+
             {/* Live Dictation Prompt if Speaking */}
             {patientSpokenText && (
-              <div className="mb-2 bg-emerald-900/80 border border-emerald-400/50 rounded-xl p-2 text-xs text-white flex items-center justify-between gap-1 shadow-lg">
-                <span className="truncate">🗣️ "{patientSpokenText}"</span>
+              <div className="bg-emerald-900/90 border border-emerald-400/60 rounded-xl p-2 text-xs text-white flex items-center justify-between gap-1 shadow-lg animate-pulse">
+                <span className="truncate text-[11px]">🗣️ "{patientSpokenText}"</span>
                 <button
                   type="button"
                   onClick={() => handleSendProblem()}
-                  className="tap-press px-2 py-0.5 rounded-lg bg-emerald-500 text-white text-[10px] font-bold shrink-0"
+                  className="tap-press px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-[10.5px] font-extrabold shrink-0 shadow-xs"
                 >
-                  Send →
+                  Send Now →
                 </button>
               </div>
             )}
 
-            <div className="flex items-center justify-around gap-2 max-w-sm mx-auto">
+            {isEvaluating && (
+              <div className="bg-blue-900/80 border border-blue-400/50 rounded-xl p-1.5 text-center text-xs text-blue-200 font-bold flex items-center justify-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 animate-spin text-amber-300" />
+                <span>Doctor is analyzing symptoms & formulating prescription...</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-around gap-2 max-w-sm mx-auto pt-1">
               {/* 1. Mute / Unmute Microphone */}
               <button
                 type="button"
@@ -725,18 +790,21 @@ export default function TeleconsultVideoCallModal() {
                 {videoActive ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
               </button>
 
-              {/* 3. Big Central "Tap to Speak / Interrupt Doctor" Button */}
+              {/* 3. Big Central "Tap to Speak / Send Voice" Button */}
               <button
                 type="button"
                 onClick={isPatientListening ? stopPatientSpeaking : startPatientSpeaking}
-                className={`tap-press w-14 h-14 rounded-full flex flex-col items-center justify-center text-white shadow-xl transition-all ${
+                className={`tap-press w-14 h-14 rounded-full flex flex-col items-center justify-center text-white shadow-2xl transition-all ${
                   isPatientListening
-                    ? 'bg-red-600 hover:bg-red-700 animate-pulse ring-4 ring-red-400/50'
+                    ? 'bg-red-600 hover:bg-red-700 animate-pulse ring-4 ring-red-400/60 scale-105'
                     : 'bg-emerald-600 hover:bg-emerald-700 ring-4 ring-emerald-400/30'
                 }`}
-                title="Speak to Doctor (Immediately stops doctor voice)"
+                title="Speak to Doctor"
               >
                 <Mic className="w-6 h-6" />
+                <span className="text-[7.5px] font-bold uppercase mt-0.5 tracking-tight">
+                  {isPatientListening ? 'Listening...' : 'Speak'}
+                </span>
               </button>
 
               {/* 4. Open In-Call Prescription Drawer Menu */}
