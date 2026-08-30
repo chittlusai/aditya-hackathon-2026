@@ -60,7 +60,7 @@ export default function TeleconsultVideoCallModal() {
   const [micActive, setMicActive] = useState(true)
   const [videoActive, setVideoActive] = useState(true)
   const [facingMode, setFacingMode] = useState('user') // 'user' | 'environment'
-  const [isMirrored, setIsMirrored] = useState(false) // Natural true-to-life orientation by default
+  const [isMirrored, setIsMirrored] = useState(true) // Mirrored webcam feed by default
   const [cameraStream, setCameraStream] = useState(null)
   const [cameraError, setCameraError] = useState(false)
   const [secondsElapsed, setSecondsElapsed] = useState(0)
