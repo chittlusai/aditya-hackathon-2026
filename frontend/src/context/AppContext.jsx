@@ -62,13 +62,34 @@ export function AppProvider({ children }) {
     }
   })
 
-  // 2. Authentication & Role State
+  // 2. Authentication & Role State (Auto-initialized with Demo Citizen to prevent blank screen)
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem(USER_STORAGE_KEY)
-      return saved ? JSON.parse(saved) : null
+      if (saved) return JSON.parse(saved)
+      const defaultUser = {
+        id: 'ABHA-91-8821-4401',
+        name: 'Ramesh Kumar (Citizen)',
+        role: 'patient',
+        title: 'Citizen / Patient Portal',
+        facility: 'Rampur Rural Sector',
+        phone: '+91 98221 55432',
+        abhaNumber: '91-8821-4401-9923',
+      }
+      try {
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(defaultUser))
+      } catch (e) {}
+      return defaultUser
     } catch {
-      return null
+      return {
+        id: 'ABHA-91-8821-4401',
+        name: 'Ramesh Kumar (Citizen)',
+        role: 'patient',
+        title: 'Citizen / Patient Portal',
+        facility: 'Rampur Rural Sector',
+        phone: '+91 98221 55432',
+        abhaNumber: '91-8821-4401-9923',
+      }
     }
   })
   const [role, setRole] = useState(() => {

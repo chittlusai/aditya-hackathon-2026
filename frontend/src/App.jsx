@@ -1,3 +1,4 @@
+import React from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { AppProvider, useApp } from './context/AppContext.jsx'
 import Navbar from './components/Navbar.jsx'
@@ -24,7 +25,57 @@ import FhirExportModal from './components/FhirExportModal.jsx'
 import DoctorProfileModal from './components/DoctorProfileModal.jsx'
 import TeleconsultVideoCallModal from './components/TeleconsultVideoCallModal.jsx'
 import PatientHistoryModal from './components/PatientHistoryModal.jsx'
-import { PhoneCall } from 'lucide-react'
+import { PhoneCall, AlertTriangle, RefreshCw } from 'lucide-react'
+
+export class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Arogya Setu Local ErrorBoundary caught:', error, errorInfo)
+  }
+
+  handleReset = () => {
+    try {
+      localStorage.removeItem('asl:current_user_v1')
+      localStorage.removeItem('asl:pill_adherence_v1')
+    } catch (e) {}
+    window.location.href = '/'
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-8 h-8 text-amber-400" />
+            </div>
+            <h2 className="text-xl font-bold text-white">App Session Restored</h2>
+            <p className="text-xs text-slate-300">
+              A temporary layout error was caught. Click below to reload the app with default settings.
+            </p>
+            <button
+              onClick={this.handleReset}
+              className="tap-press w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Reload Arogya Setu Local</span>
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
 
 function Shell() {
   const { screen, activeSlip, setActiveSlip, currentUser, t } = useApp()
@@ -117,8 +168,10 @@ function Shell() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <Shell />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <Shell />
+      </AppProvider>
+    </ErrorBoundary>
   )
 }
