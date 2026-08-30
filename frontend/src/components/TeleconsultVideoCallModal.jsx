@@ -139,7 +139,7 @@ export default function TeleconsultVideoCallModal() {
   // Start initial doctor greeting when WhatsApp call connects
   useEffect(() => {
     if (!videoCallModalOpen) {
-      if (synthRef.current) synthRef.current.cancel()
+      stopDoctorVoiceAudio()
       setCallEndedSummary(null)
       setIsDrawerOpen(false)
       return
@@ -164,7 +164,7 @@ export default function TeleconsultVideoCallModal() {
 
     return () => {
       clearTimeout(timer)
-      if (synthRef.current) synthRef.current.cancel()
+      stopDoctorVoiceAudio()
     }
   }, [videoCallModalOpen, langKey, speakDoctorVoice])
 
