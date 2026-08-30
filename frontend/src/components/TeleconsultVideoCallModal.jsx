@@ -121,6 +121,24 @@ export default function TeleconsultVideoCallModal() {
   const langKey = language || 'en'
   const speechCode = LANGUAGE_SPEECH_CODES[langKey] || 'en-IN'
 
+  // 1. Background Website Scroll Lock during active WhatsApp Video Call
+  useEffect(() => {
+    if (!videoCallModalOpen) return
+    const prevBodyOverflow = document.body.style.overflow
+    const prevHtmlOverflow = document.documentElement.style.overflow
+    const prevTouchAction = document.body.style.touchAction
+
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow || ''
+      document.documentElement.style.overflow = prevHtmlOverflow || ''
+      document.body.style.touchAction = prevTouchAction || ''
+    }
+  }, [videoCallModalOpen])
+
   // Ultra-Realistic ElevenLabs Doctor Voice Synthesizer with Instant Interruption Capability
   const speakDoctorVoice = useCallback(
     (textToSpeak) => {
@@ -136,14 +154,21 @@ export default function TeleconsultVideoCallModal() {
     [speechCode, doctorVoicePersona]
   )
 
-  // Start initial doctor greeting when WhatsApp call connects
+  // Start initial doctor greeting when WhatsApp call connects (Microphone strictly idle)
   useEffect(() => {
     if (!videoCallModalOpen) {
       stopDoctorVoiceAudio()
+      if (speechRecognitionRef.current) speechRecognitionRef.current.abort()
+      setIsPatientListening(false)
+      setPatientSpokenText('')
       setCallEndedSummary(null)
       setIsDrawerOpen(false)
       return
     }
+
+    // Ensure patient mic dictation is strictly OFF upon connecting
+    setIsPatientListening(false)
+    setPatientSpokenText('')
 
     const greeting = DOCTOR_GREETINGS[langKey] || DOCTOR_GREETINGS.en
     setDoctorSpeechText(greeting)
@@ -160,11 +185,12 @@ export default function TeleconsultVideoCallModal() {
 
     const timer = setTimeout(() => {
       speakDoctorVoice(greeting)
-    }, 600)
+    }, 500)
 
     return () => {
       clearTimeout(timer)
       stopDoctorVoiceAudio()
+      if (speechRecognitionRef.current) speechRecognitionRef.current.abort()
     }
   }, [videoCallModalOpen, langKey, speakDoctorVoice])
 
@@ -463,7 +489,7 @@ export default function TeleconsultVideoCallModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black overflow-hidden select-none">
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black overflow-hidden overscroll-none touch-none select-none">
         {/* ========================================================================= */}
         {/* 1. WHATSAPP FULL-SCREEN DOCTOR VIDEO STREAM VIEWPORT */}
         {/* ========================================================================= */}

@@ -19,14 +19,14 @@ export const DOCTOR_PROFILE = {
 }
 
 export const DOCTOR_GREETINGS = {
-  te: 'నమస్కారం! నేను డాక్టర్ రాజేష్ శర్మ. మీ ఆరోగ్యం ఎలా ఉంది? మీ సమస్యను లేదా ఎక్కడ నొప్పి ఉందో మైక్ నొక్కి చెప్పండి.',
-  hi: 'नमस्ते! मैं डॉ. राजेश शर्मा हूँ। आपको क्या तकलीफ या दर्द हो रहा है? कृपया मुझे बताएं।',
-  ta: 'வணக்கம்! நான் டாக்டர் ராஜேஷ் சர்மா. உங்கள் உடல்நலம் எப்படி உள்ளது? உங்கள் பிரச்சனையை சொல்லுங்கள்.',
-  mr: 'नमस्कार! मी डॉ. राजेश शर्मा. तुम्हाला काय त्रास किंवा दुखणे होत आहे? कृपया मला सांगा.',
-  bn: 'নমস্কার! আমি ডক্টর রাজেশ শর্মা। আপনার কি শারীরিক সমস্যা বা কষ্ট হচ্ছে? আমাকে বলুন।',
-  kn: 'ನಮಸ್ಕಾರ! ನಾನು ಡಾಕ್ಟರ್ ರಾಜೇಶ್ ಶರ್ಮಾ. ನಿಮಗೆ ಏನು ತೊಂದರೆ లేదా నోವಿದೆ? దయవిಟ್ಟು ತಿಳಿಸಿ.',
-  ml: 'നമസ്കാരം! ഞാൻ ഡോക്ടർ രാജേഷ് ശർമ്മ. നിങ്ങൾക്ക് എന്താണ് അസുఖം? ദയവായി പറയൂ.',
-  gu: 'નમસ્તે! હું ડૉ. રાજેશ શર્મા છું. તમને શું તકલીફ થઈ રહી છે? જણાવો.',
+  te: 'నమస్కారం! నేను డాక్టర్ రాజేష్ శర్మను. మీ ఆరోగ్యం ఎలా ఉంది? మీ సమస్యను లేదా ఎక్కడ నొప్పి ఉందో మైక్ నొక్కి మాట్లాడండి.',
+  hi: 'नमस्ते! मैं डॉक्टर राजेश शर्मा हूँ। आपका स्वास्थ्य कैसा है? आपको क्या तकलीफ या दर्द हो रहा है? कृपया बताइए।',
+  ta: 'வணக்கம்! நான் டாக்டர் ராஜேஷ் சர்மா. உங்கள் உடல்நலம் எப்படி உள்ளது? உங்கள் பிரச்சனையை மைக்கை அழுத்தி சொல்லுங்கள்.',
+  mr: 'नमस्कार! मी डॉक्टर राजेश शर्मा. तुम्हाला काय त्रास किंवा दुखणे होत आहे? कृपया मला सांगा.',
+  bn: 'নমস্কার! আমি ডাক্তার রাজেশ শর্মা। আপনার কি শারীরিক সমস্যা বা কষ্ট হচ্ছে? আমাকে বলুন।',
+  kn: 'ನಮಸ್ಕಾರ! ನಾನು ಡಾಕ್ಟರ್ ರಾಜೇಶ್ ಶರ್ಮಾ. ನಿಮಗೆ ಏನು ತೊಂದರೆ ಇದೆ? ದಯವಿಟ್ಟು ತಿಳಿಸಿ.',
+  ml: 'നമസ്കാരം! ഞാൻ ഡോക്ടർ രാജേഷ് ശർമ്മ. നിങ്ങൾക്ക് എന്താണ് അസുಖം? ദയവായി പറയൂ.',
+  gu: 'નમસ્તે! હું ડૉક્ટર રાજેશ શર્મા છું. તમને શું તકલીફ થઈ રહી છે? જણાવો.',
   pa: 'ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ! ਮੈਂ ਡਾਕਟਰ ਰਾਜੇਸ਼ ਹਾਂ। ਤੁਹਾਨੂੰ ਕੀ ਤਕਲੀਫ ਹੈ? ਦੱਸੋ।',
   or: 'ନମସ୍କାର! ମୁଁ ଡାକ୍ତର ରାଜେଶ ଶର୍ମା। ଆପଣଙ୍କୁ କଣ ଅସୁବିଧା ହେଉଛି? କୁହନ୍ତୁ।',
   as: 'নমস্কাৰ! মই ডাঃ ৰাজেশ শৰ্মা। আপোনাৰ কি অসুবিধা হৈছে? কওক।',
@@ -74,22 +74,22 @@ export async function getDoctorConsultResponse(
 
   const langNames = {
     en: 'English',
-    hi: 'Hindi (हिन्दी)',
-    te: 'Telugu (తెలుగు)',
-    ta: 'Tamil (தமிழ்)',
-    mr: 'Marathi (मराठी)',
-    bn: 'Bengali (বাংলা)',
-    gu: 'Gujarati (ગુજરાતી)',
-    kn: 'Kannada (ಕನ್ನಡ)',
-    ml: 'Malayalam (മലയാളം)',
-    pa: 'Punjabi (ਪੰਜਾਬੀ)',
-    or: 'Odia (ଓଡ଼ିଆ)',
-    as: 'Assamese (অসমীয়া)',
-    ur: 'Urdu (اردو)',
-    sa: 'Sanskrit (संस्कृतम्)',
-    mai: 'Maithili (मैथिली)',
-    kok: 'Konkani (कोंकणी)',
-    ne: 'Nepali (नेपाली)',
+    hi: 'Hindi (हिन्दी script only)',
+    te: 'Telugu (తెలుగు script only)',
+    ta: 'Tamil (தமிழ் script only)',
+    mr: 'Marathi (मराठी script only)',
+    bn: 'Bengali (বাংলা script only)',
+    gu: 'Gujarati (ગુજરાતી script only)',
+    kn: 'Kannada (ಕನ್ನಡ script only)',
+    ml: 'Malayalam (മലയാളം script only)',
+    pa: 'Punjabi (ਪੰਜਾਬੀ script only)',
+    or: 'Odia (ଓଡ଼ିଆ script only)',
+    as: 'Assamese (অসমীয়া script only)',
+    ur: 'Urdu (اردو script only)',
+    sa: 'Sanskrit (संस्कृतम् script only)',
+    mai: 'Maithili (मैथिली script only)',
+    kok: 'Konkani (कोंकणी script only)',
+    ne: 'Nepali (नेपाली script only)',
   }
   const targetLangName = langNames[langKey] || 'English'
 
@@ -98,7 +98,7 @@ export async function getDoctorConsultResponse(
     try {
       const prompt = `
 You are Dr. Rajesh Sharma (MBBS, MD General Medicine), Chief Medical Officer.
-You are in an active live video teleconsultation with a patient.
+You are in an active live WhatsApp video teleconsultation with a rural patient.
 
 PATIENT SAYS / ASKS:
 "${trimmed}"
@@ -107,56 +107,46 @@ PATIENT VITALS:
 ${JSON.stringify(vitals)}
 
 INSTRUCTIONS:
-1. Determine if the user is:
-   A. GREETING / CHITCHAT (e.g., "hi", "hello", "hail", "namaste", "good morning", "how are you"):
+1. "doctorReplySpeech" MUST BE 100% IN NATURAL, FLUENT, GRAMMATICALLY ACCURATE ${targetLangName}.
+   - Do NOT use English transliteration or mixed English words if language is not English.
+   - Use warm, polite, reassuring clinical phrasing suitable for rural citizens.
+2. Determine if the user is:
+   A. GREETING / CHITCHAT (e.g., "hi", "hello", "namaste", "how are you"):
       - Respond with a friendly, professional doctor greeting in ${targetLangName} and ask what symptoms or health concerns they have.
-      - Set "diagnosis" to null.
-      - Set "medicines" to [].
-      - Set "recoveryAdvice" to [].
-      - Set "facialAnalysis" to reflect a calm, conversational state.
-   B. ASKING A MEDICAL QUESTION (e.g. "what should I eat?", "why does head hurt?", "can I drink milk?"):
+      - Set "diagnosis" to null, "medicines" to [], "recoveryAdvice" to [].
+   B. ASKING A MEDICAL QUESTION:
       - Directly answer their question medically in ${targetLangName}.
-      - If no illness is being treated, set "diagnosis" to null and "medicines" to [].
-   C. REPORTING SYMPTOMS OR INJURY (e.g., "fever", "headache", "stomach pain", "cut", "cough", "vomiting"):
-      - Formulate an accurate diagnosis strictly matching the reported symptoms (DO NOT assume fever if not reported).
-      - Provide a warm medical reply in ${targetLangName}.
-      - Categorize EVERY single prescribed tablet into EXACT DAILY TIMING SLOTS:
-        * Morning (☀️ 08:00 AM)
-        * Afternoon (🌤️ 01:30 PM)
-        * Night (🌙 08:30 PM)
-        * SOS Emergency (⚡ As Needed)
+   C. REPORTING SYMPTOMS OR INJURY (e.g., "fever", "headache", "pain", "wound", "cough"):
+      - Formulate an accurate diagnosis matching the symptoms.
+      - Prescribe medicines with exact daily timing slots (Morning 08:00 AM, Afternoon 01:30 PM, Night 08:30 PM).
       - Provide home recovery care points in ${targetLangName}.
-
-2. If an image snapshot is provided, visually inspect facial expressions, emotional state, signs of pain, and any skin lacerations or injuries.
 
 RETURN VALID JSON ONLY matching this schema:
 {
-  "doctorReplySpeech": "Doctor reply spoken in ${targetLangName}",
+  "doctorReplySpeech": "Clean natural doctor speech written strictly in ${targetLangName}",
   "diagnosis": "Clinical Diagnosis Name or null",
   "urgency": "Mild" | "Moderate" | "Emergency",
   "facialAnalysis": {
-    "emotion": "Emotion detected (e.g. Calm / Attentive / In Pain / Anxious / Fatigued)",
+    "emotion": "Emotion detected",
     "painScore": 10,
     "visualSigns": "Facial cues observed",
-    "injuryCheck": "No acute physical injury / Mild Swelling / Laceration"
+    "injuryCheck": "No trauma / Mild injury detected"
   },
   "medicines": [
     {
-      "name": "Medicine Name with Strength (e.g. Paracetamol 650mg Tablet)",
+      "name": "Medicine Name (e.g. Paracetamol 650mg Tablet)",
       "dosage": "1 Tablet",
-      "slot": "Morning" | "Afternoon" | "Night" | "Morning & Night" | "TDS (All 3 Slots)" | "SOS",
-      "exactTime": "08:00 AM" | "01:30 PM" | "08:30 PM" | "08:00 AM, 01:30 PM, 08:30 PM" | "Immediate SOS",
-      "timing": "After Food" | "Before Food" | "Empty Stomach (30 mins before breakfast)",
-      "foodInstruction": "Take after meals / Before food",
-      "schedule": "Morning (☀️ 08:00 AM) • Afternoon (🌤️ 01:30 PM) • Night (🌙 08:30 PM)",
-      "frequency": "TDS / BD / OD / SOS",
+      "slot": "Morning" | "Afternoon" | "Night" | "Morning & Night" | "TDS" | "SOS",
+      "exactTime": "08:00 AM" | "01:30 PM" | "08:30 PM",
+      "timing": "After Food",
+      "foodInstruction": "Take with warm water after food",
+      "schedule": "Morning (☀️ 08:00 AM) • Night (🌙 08:30 PM)",
       "duration": "3 to 5 Days",
-      "purpose": "Precise usage purpose"
+      "purpose": "Relieves fever & body aches"
     }
   ],
   "recoveryAdvice": [
-    "Advice point 1 in ${targetLangName}",
-    "Advice point 2 in ${targetLangName}"
+    "Advice point 1 in ${targetLangName}"
   ],
   "whenToVisitHospital": "Hospital warning in ${targetLangName} or empty string"
 }
