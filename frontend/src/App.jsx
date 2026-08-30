@@ -2,6 +2,7 @@ import { AnimatePresence } from 'framer-motion'
 import { AppProvider, useApp } from './context/AppContext.jsx'
 import Navbar from './components/Navbar.jsx'
 import OfflineBanner from './components/OfflineBanner.jsx'
+import LoginGate from './components/LoginGate.jsx'
 import Home from './components/Home.jsx'
 import SymptomInput from './components/SymptomInput.jsx'
 import Result from './components/Result.jsx'
@@ -25,30 +26,36 @@ import PatientHistoryModal from './components/PatientHistoryModal.jsx'
 import { PhoneCall } from 'lucide-react'
 
 function Shell() {
-  const { screen, activeSlip, setActiveSlip, t } = useApp()
+  const { screen, activeSlip, setActiveSlip, currentUser, t } = useApp()
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans">
       <OfflineBanner />
       <Navbar />
 
-      {/* Main Content Router */}
+      {/* Main Content Router with Mandatory Login Enforcement */}
       <main className="flex-1 pb-24 lg:pb-10">
-        {screen === 'home' && <Home />}
-        {screen === 'check' && <SymptomInput />}
-        {screen === 'result' && <Result />}
-        {screen === 'map' && <HospitalDirectory />}
-        {screen === 'medicines' && <MedicineDiagnosticsFinder />}
-        {screen === 'doctor' && <DoctorWorkbench />}
-        {screen === 'asha' && <AshaWorkerPortal />}
-        {screen === 'admin' && <HospitalAdminPortal />}
-        {screen === 'about' && <About />}
+        {!currentUser ? (
+          <LoginGate />
+        ) : (
+          <>
+            {screen === 'home' && <Home />}
+            {screen === 'check' && <SymptomInput />}
+            {screen === 'result' && <Result />}
+            {screen === 'map' && <HospitalDirectory />}
+            {screen === 'medicines' && <MedicineDiagnosticsFinder />}
+            {screen === 'doctor' && <DoctorWorkbench />}
+            {screen === 'asha' && <AshaWorkerPortal />}
+            {screen === 'admin' && <HospitalAdminPortal />}
+            {screen === 'about' && <About />}
+          </>
+        )}
       </main>
 
       {/* 1. Language Selection Modal (First visit & On-demand) */}
       <LanguageSelectModal />
 
-      {/* 2. Unified Multi-Role Auth Modal (Citizen, Doctor, ASHA, Admin) */}
+      {/* 2. Unified Multi-Role Auth Modal (For role switching) */}
       <AuthModal />
 
       {/* 3. Doctor Profile & Credentials Modal */}

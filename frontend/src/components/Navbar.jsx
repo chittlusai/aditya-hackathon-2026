@@ -105,13 +105,24 @@ export default function Navbar() {
         icon: Building2,
       }
     }
+    if (!currentUser) {
+      return {
+        themeColor: 'bg-slate-700',
+        topGradient: 'grid-cols-3',
+        badgeBg: 'bg-amber-50 text-amber-900 border-amber-300',
+        roleTitle: 'Authentication Required',
+        name: 'Login Required',
+        status: '🔒 Portal Locked',
+        icon: User,
+      }
+    }
     // Citizen / Patient
     return {
       themeColor: 'bg-blue-600',
       topGradient: 'grid-cols-3',
       badgeBg: 'bg-slate-100 text-slate-800 border-slate-300',
       roleTitle: 'Citizen Health Portal',
-      name: currentUser?.name || 'Citizen Patient',
+      name: currentUser.name || 'Citizen Patient',
       status: 'ABHA Linked',
       icon: User,
     }

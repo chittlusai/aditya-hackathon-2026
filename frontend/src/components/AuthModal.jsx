@@ -121,13 +121,15 @@ export default function AuthModal() {
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white p-5 sm:p-6 relative shrink-0">
-            <button
-              onClick={() => setAuthModalOpen(false)}
-              className="tap-press absolute top-4 right-4 w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-all"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {currentUser && (
+              <button
+                onClick={() => setAuthModalOpen(false)}
+                className="tap-press absolute top-4 right-4 w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white transition-all"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
 
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
