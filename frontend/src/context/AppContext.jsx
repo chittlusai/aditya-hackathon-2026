@@ -66,7 +66,12 @@ export function AppProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem(USER_STORAGE_KEY)
-      if (saved) return JSON.parse(saved)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed && parsed.role === 'patient' && !parsed.name?.includes('Dr.')) {
+          return parsed
+        }
+      }
       const defaultUser = {
         id: 'ABHA-91-8821-4401',
         name: 'Ramesh Kumar (Citizen)',
