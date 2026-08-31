@@ -4,10 +4,76 @@ import { useApp } from '../context/AppContext.jsx'
 import HospitalMap from './HospitalMap.jsx'
 import HospitalCard from './HospitalCard.jsx'
 
+const DIRECTORY_I18N = {
+  en: {
+    verifiedTag: 'Verified Facilities Online',
+    directoryTitle: 'Verified Nearby Health Centres Directory',
+    directorySub: 'Government Primary Health Centres (PHC), Community Centres (CHC), and District Hospitals anchored to live GPS.',
+    gpsButton: 'Live High-Accuracy GPS',
+    mapSectionTitle: 'Interactive Proximity Map',
+    showingCentres: 'Showing centres near your live GPS coordinates',
+    searchPlaceholder: 'Search by hospital name, address, village, or specialty…',
+    availableText: 'Available Facilities',
+    chipAll: 'All Centres',
+    chipEmergency: '🚨 Emergency / ICU',
+    chipGovt: '🏛️ Govt PHC / CHC',
+    chipDoctors: '👨‍⚕️ Doctors on Duty',
+    chipMedicine: '💊 Medicine In Stock',
+  },
+  te: {
+    verifiedTag: 'ధృవీకరించబడిన ఆరోగ్య కేంద్రాలు',
+    directoryTitle: 'సమీప ప్రభుత్వ ఆరోగ్య కేంద్రాల డైరెక్టరీ',
+    directorySub: 'మీ లైవ్ GPS ఆధారంగా లెక్కించబడిన ప్రాథమిక ఆరోగ్య కేంద్రాలు (PHC), కమ్యూనిటీ కేంద్రాలు (CHC) & జిల్లా ఆసుపత్రులు.',
+    gpsButton: 'లైవ్ GPS లొకేషన్',
+    mapSectionTitle: 'ఇంటరాక్టివ్ సమీప ఆసుపత్రుల మ్యాప్',
+    showingCentres: 'మీ సమీపంలో అందుబాటులో ఉన్న కేంద్రాలు',
+    searchPlaceholder: 'ఆసుపత్రి పేరు, ఊరు, చిరునామా లేదా స్పెషలిస్ట్ శోధించండి…',
+    availableText: 'కేంద్రాలు అందుబాటులో ఉన్నాయి',
+    chipAll: 'అన్ని కేంద్రాలు',
+    chipEmergency: '🚨 అత్యవసరం / ICU',
+    chipGovt: '🏛️ ప్రభుత్వ PHC / CHC',
+    chipDoctors: '👨‍⚕️ డాక్టర్లు అందుబాటులో ఉన్నారు',
+    chipMedicine: '💊 మందుల నిల్వ ఉంది',
+  },
+  hi: {
+    verifiedTag: 'सत्यापित स्वास्थ्य केंद्र उपलब्ध',
+    directoryTitle: 'निकटतम सरकारी स्वास्थ्य केंद्र निर्देशिका',
+    directorySub: 'लाइव GPS के आधार पर प्राथमिक स्वास्थ्य केंद्र (PHC), सामुदायिक केंद्र (CHC) व जिला अस्पताल।',
+    gpsButton: 'सटीक GPS लोकेशन',
+    mapSectionTitle: 'इंटरैक्टिव नजदीकी अस्पताल नक्शा',
+    showingCentres: 'आपके नजदीकी स्वास्थ्य केंद्र',
+    searchPlaceholder: 'अस्पताल का नाम, पता, गांव या विशेषज्ञ खोजें…',
+    availableText: 'उपलब्ध स्वास्थ्य केंद्र',
+    chipAll: 'सभी केंद्र',
+    chipEmergency: '🚨 आपातकालीन / ICU',
+    chipGovt: '🏛️ सरकारी PHC / CHC',
+    chipDoctors: '👨‍⚕️ डॉक्टर उपस्थित',
+    chipMedicine: '💊 दवाई स्टॉक उपलब्ध',
+  },
+  ta: {
+    verifiedTag: 'சரிபார்க்கப்பட்ட மையங்கள்',
+    directoryTitle: 'அருகிலுள்ள அரசு சுகாதார நிலையங்கள்',
+    directorySub: 'நேரடி GPS அடிப்படையிலான ஆரம்ப சுகாதார நிலையங்கள் (PHC) மற்றும் அரசு மருத்துவமனைகள்.',
+    gpsButton: 'நேரடி GPS இருப்பிடம்',
+    mapSectionTitle: 'அருகிலுள்ள மருத்துவமனை வரைபடம்',
+    showingCentres: 'அருகிலுள்ள மையங்கள்',
+    searchPlaceholder: 'மருத்துவமனை பெயர் அல்லது முகவரியைத் தேடுங்கள்…',
+    availableText: 'மையங்கள் உள்ளன',
+    chipAll: 'அனைத்து மையங்கள்',
+    chipEmergency: '🚨 அவசர சிகிச்சை / ICU',
+    chipGovt: '🏛️ அரசு PHC / CHC',
+    chipDoctors: '👨‍⚕️ மருத்துவர்கள் உள்ளனர்',
+    chipMedicine: '💊 மருந்து இருப்பு உள்ளது',
+  },
+}
+
 export default function HospitalDirectory() {
   const { hospitals, t, userCoords, setGpsModalOpen, language } = useApp()
   const [search, setSearch] = useState('')
-  const [filterType, setFilterType] = useState('all') // 'all' | 'emergency' | 'govt' | 'doctors' | 'medicine'
+  const [filterType, setFilterType] = useState('all')
+
+  const langKey = language || 'en'
+  const text = DIRECTORY_I18N[langKey] || DIRECTORY_I18N.en
 
   const filteredHospitals = useMemo(() => {
     return (hospitals || []).filter((h) => {
@@ -58,14 +124,14 @@ export default function HospitalDirectory() {
                 </span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  {hospitals.length} Verified Facilities Online
+                  {hospitals.length} {text.verifiedTag}
                 </span>
               </div>
               <h1 className="text-lg sm:text-2xl font-bold text-slate-900 font-display mt-0.5">
-                {t('mapTitle')}
+                {text.directoryTitle}
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                {t('mapSub')}
+                {text.directorySub}
               </p>
             </div>
           </div>
@@ -80,7 +146,7 @@ export default function HospitalDirectory() {
             <span>
               {userCoords?.active
                 ? `GPS: ${userCoords.lat.toFixed(3)}°N, ${userCoords.lng.toFixed(3)}°E`
-                : t('useGps')}
+                : text.gpsButton}
             </span>
           </button>
         </div>
@@ -91,10 +157,10 @@ export default function HospitalDirectory() {
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" />
-            <span>Interactive Proximity Map</span>
+            <span>{text.mapSectionTitle}</span>
           </span>
           <span className="text-[11px] text-slate-500">
-            Showing {filteredHospitals.length} centres
+            {filteredHospitals.length} {text.showingCentres}
           </span>
         </div>
         <HospitalMap allHospitals={filteredHospitals} height="360px" />
@@ -110,107 +176,49 @@ export default function HospitalDirectory() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={
-                language === 'hi'
-                  ? 'अस्पताल का नाम, पता या डॉक्टर खोजें...'
-                  : language === 'mr'
-                  ? 'रुग्णालयाचे नाव, पत्ता किंवा डॉक्टर शोधा...'
-                  : 'Search by hospital name, address, village, or specialty...'
-              }
-              className="w-full pl-9 pr-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:border-blue-600 outline-none transition-all"
+              placeholder={text.searchPlaceholder}
+              className="w-full pl-9 pr-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 bg-slate-50 rounded-xl border border-slate-200 focus:bg-white focus:border-blue-600 outline-hidden transition-all"
             />
           </div>
 
           <div className="text-xs font-semibold text-slate-500 whitespace-nowrap hidden sm:block">
-            {filteredHospitals.length} of {hospitals.length} Available
+            {filteredHospitals.length} / {hospitals.length} {text.availableText}
           </div>
         </div>
 
         {/* Filter Chips Bar */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
           {[
-            { id: 'all', label: language === 'hi' ? 'सभी केंद्र' : language === 'mr' ? 'सर्व केंद्रे' : 'All Centres', count: hospitals.length },
-            { id: 'emergency', label: language === 'hi' ? '🚨 आपातकालीन / ICU' : language === 'mr' ? '🚨 आपत्कालीन / ICU' : '🚨 Emergency / ICU' },
-            { id: 'govt', label: language === 'hi' ? '🏛️ सरकारी PHC/CHC' : language === 'mr' ? '🏛️ शासकीय PHC/CHC' : '🏛️ Govt PHC / CHC' },
-            { id: 'doctors', label: language === 'hi' ? '👨‍⚕️ डॉक्टर उपस्थित' : language === 'mr' ? '👨‍⚕️ डॉक्टर उपस्थित' : '👨‍⚕️ Doctors on Duty' },
-            { id: 'medicine', label: language === 'hi' ? '💊 दवाई स्टॉक उपलब्ध' : language === 'mr' ? '💊 औषध साठा उपलब्ध' : '💊 Medicine In Stock' },
+            { id: 'all', label: text.chipAll, count: hospitals.length },
+            { id: 'emergency', label: text.chipEmergency },
+            { id: 'govt', label: text.chipGovt },
+            { id: 'doctors', label: text.chipDoctors },
+            { id: 'medicine', label: text.chipMedicine },
           ].map((chip) => {
             const active = filterType === chip.id
             return (
               <button
-                type="button"
                 key={chip.id}
+                type="button"
                 onClick={() => setFilterType(chip.id)}
-                className={`tap-press px-3 py-1.5 rounded-xl font-bold whitespace-nowrap border transition-all text-xs flex items-center gap-1.5 shrink-0 ${
+                className={`tap-press px-3 py-1.5 rounded-xl border font-bold text-xs whitespace-nowrap transition-all flex items-center gap-1.5 ${
                   active
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-2xs'
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
                     : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 <span>{chip.label}</span>
-                {chip.count !== undefined && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    active ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
-                  }`}>
-                    {chip.count}
-                  </span>
-                )}
               </button>
             )
           })}
         </div>
       </div>
 
-      {/* Structured Hospital List with Exact Physical Addresses & 1-Tap Directions */}
-      <div className="space-y-3.5">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-blue-600" />
-            <span>
-              {language === 'hi'
-                ? 'निकटतम स्वास्थ्य केंद्र सूची (दूरी के अनुसार)'
-                : language === 'mr'
-                ? 'जवळपासची आरोग्य केंद्र यादी (अंतरानुसार)'
-                : 'Verified Health Facilities (Nearest First)'}
-            </span>
-          </h2>
-          <span className="text-xs text-slate-500 font-medium">
-            Sorted by live GPS proximity
-          </span>
-        </div>
-
-        {filteredHospitals.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 text-xs space-y-2">
-            <AlertTriangle className="w-6 h-6 text-amber-500 mx-auto" />
-            <p className="font-bold text-slate-800 text-sm">
-              {language === 'hi' ? 'कोई अस्पताल नहीं मिला' : language === 'mr' ? 'कोणतेही रुग्णालय आढळले नाही' : 'No matching facilities found'}
-            </p>
-            <p>
-              {language === 'hi'
-                ? 'कृपया अपने खोज शब्द बदलें या सभी केंद्र फ़िल्टर चुनें।'
-                : language === 'mr'
-                ? 'कृपया आपले शोध शब्द बदला किंवा सर्व केंद्रे निवडा.'
-                : 'Try adjusting your search terms or select "All Centres" filter.'}
-            </p>
-            <button
-              type="button"
-              onClick={() => { setSearch(''); setFilterType('all') }}
-              className="mt-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200 inline-block"
-            >
-              Reset Filters
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {filteredHospitals.map((h, idx) => (
-              <HospitalCard
-                key={h.id}
-                hospital={h}
-                isTop={idx === 0 && !search && filterType === 'all'}
-              />
-            ))}
-          </div>
-        )}
+      {/* Hospital Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {filteredHospitals.map((h, idx) => (
+          <HospitalCard key={h.id} hospital={h} isTop={idx === 0} />
+        ))}
       </div>
     </div>
   )

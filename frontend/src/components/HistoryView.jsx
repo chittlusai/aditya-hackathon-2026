@@ -38,6 +38,138 @@ import {
 import { useApp } from '../context/AppContext.jsx'
 import { LANGUAGE_SPEECH_CODES } from '../utils/teleconsultAi.js'
 
+// Full multilingual dictionary for Medical History & Prescription Vault
+const HISTORY_I18N = {
+  en: {
+    backHome: 'Home',
+    sync: 'Sync',
+    consultDoctor: 'Consult Doctor',
+    vaultTag: 'Prescriptions & Timings Vault',
+    vaultTitle: 'Medical Records & Pill Timings',
+    todaysDoses: "Today's Doses",
+    dosesTaken: 'Taken',
+    tabTimings: 'Daily Pill Timings',
+    tabRx: 'Doctor Prescriptions (Rx)',
+    tabTriage: 'Health Triage Assessments',
+    tabAll: 'All Medical Records',
+    adherenceMeter: 'ADHERENCE METER',
+    timetableTitle: "Today's Daily Timetable",
+    hearVoice: 'Hear Voice',
+    completed: 'Completed',
+    pending: 'Pending',
+    morningSlot: 'Morning Dose • 08:00 AM (Morning / Breakfast)',
+    breakfastHint: 'Breakfast (07:30 AM – 09:00 AM)',
+    afternoonSlot: 'Afternoon Dose • 01:30 PM (Lunch / Afternoon)',
+    lunchHint: 'Lunch (01:00 PM – 02:30 PM)',
+    nightSlot: 'Night Dose • 08:30 PM (Dinner / Bedtime)',
+    dinnerHint: 'Dinner / Bedtime (08:00 PM – 09:30 PM)',
+    takenAt: 'Taken at',
+    markTaken: 'Mark as Taken',
+    afterFood: 'After Food',
+    searchPlaceholder: 'Search prescriptions, doctors, or symptoms…',
+    noRecords: 'No medical records found.',
+    printSlip: 'View / Print Slip',
+    doctorLabel: 'Doctor',
+    hospitalLabel: 'Health Facility',
+  },
+  te: {
+    backHome: 'హోమ్',
+    sync: 'సింక్',
+    consultDoctor: 'డాక్టర్ సంప్రదింపు',
+    vaultTag: 'ప్రిస్క్రిప్షన్లు & మందుల వేళల వాల్ట్',
+    vaultTitle: 'వైద్య రికార్డులు & మందుల వేళలు',
+    todaysDoses: 'నేటి మోతాదులు',
+    dosesTaken: 'తీసుకున్నారు',
+    tabTimings: 'మందుల వేళలు (Timings)',
+    tabRx: 'డాక్టర్ ప్రిస్క్రిప్షన్లు (Doctor Prescriptions - Rx)',
+    tabTriage: 'ఆరోగ్య పరీక్షలు (Triage Assessments)',
+    tabAll: 'అన్ని రికార్డులు (All Records)',
+    adherenceMeter: 'మందుల వినియోగ మీటర్',
+    timetableTitle: 'నేటి రోజువారీ మందుల పట్టిక',
+    hearVoice: 'వాయిస్ వినండి',
+    completed: 'పూర్తయింది',
+    pending: 'బాకీ ఉంది',
+    morningSlot: 'ఉదయం మోతాదు • 08:00 AM (ఉదయం / టిఫిన్ తర్వాత)',
+    breakfastHint: 'అల్పాహారం (07:30 AM – 09:00 AM)',
+    afternoonSlot: 'మధ్యాహ్నం మోతాదు • 01:30 PM (మధ్యాహ్న భోజనం తర్వాత)',
+    lunchHint: 'మధ్యాహ్న భోజనం (01:00 PM – 02:30 PM)',
+    nightSlot: 'రాత్రి మోతాదు • 08:30 PM (రాత్రి భోజనం / నిద్రకు ముందు)',
+    dinnerHint: 'రాత్రి భోజనం / నిద్రకు ముందు (08:00 PM – 09:30 PM)',
+    takenAt: 'సమయానికి వేసుకున్నారు',
+    markTaken: 'తీసుకున్నట్లు గుర్తించండి',
+    afterFood: 'భోజనం తర్వాత',
+    searchPlaceholder: 'ప్రిస్క్రిప్షన్లు, డాక్టర్ లేదా లక్షణాలను శోధించండి…',
+    noRecords: 'ఎటువంటి వైద్య రికార్డులు కనుగొనబడలేదు.',
+    printSlip: 'స్లిప్ చూడండి / ప్రింట్ చేయండి',
+    doctorLabel: 'వైద్యులు (Doctor)',
+    hospitalLabel: 'ఆరోగ్య కేంద్రం (Hospital)',
+  },
+  hi: {
+    backHome: 'होम',
+    sync: 'सिंक',
+    consultDoctor: 'डॉक्टर से परामर्श',
+    vaultTag: 'दवा पर्ची व समय तालिका',
+    vaultTitle: 'चिकित्सा रिकॉर्ड व दवाई समय',
+    todaysDoses: 'आज की खुराक',
+    dosesTaken: 'ली गई',
+    tabTimings: 'दवा का समय (Timings)',
+    tabRx: 'डॉक्टर पर्ची (Doctor Prescriptions - Rx)',
+    tabTriage: 'स्वास्थ्य जांच (Triage)',
+    tabAll: 'सभी रिकॉर्ड (All Records)',
+    adherenceMeter: 'दवा नियमितता मीटर',
+    timetableTitle: 'आज की दैनिक दवा समय सारणी',
+    hearVoice: 'आवाज़ सुनें',
+    completed: 'पूर्ण',
+    pending: 'शेष',
+    morningSlot: 'सुबह की खुराक • 08:00 AM (नाश्ते के बाद)',
+    breakfastHint: 'नाश्ता (07:30 AM – 09:00 AM)',
+    afternoonSlot: 'दोपहर की खुराक • 01:30 PM (दोपहर भोजन के बाद)',
+    lunchHint: 'दोपहर का भोजन (01:00 PM – 02:30 PM)',
+    nightSlot: 'रात की खुराक • 08:30 PM (रात के खाने के बाद)',
+    dinnerHint: 'रात का भोजन / सोने से पहले (08:00 PM – 09:30 PM)',
+    takenAt: 'समय पर ली गई',
+    markTaken: 'दवा ले ली (Mark as Taken)',
+    afterFood: 'भोजन के बाद',
+    searchPlaceholder: 'पर्ची, डॉक्टर या लक्षण खोजें…',
+    noRecords: 'कोई चिकित्सा रिकॉर्ड नहीं मिला।',
+    printSlip: 'पर्ची देखें / प्रिंट करें',
+    doctorLabel: 'डॉक्टर',
+    hospitalLabel: 'स्वास्थ्य केंद्र',
+  },
+  ta: {
+    backHome: 'முகப்பு',
+    sync: 'ஒத்திசை',
+    consultDoctor: 'மருத்துவர் ஆலோசனை',
+    vaultTag: 'மருந்து சீட்டுகள் & நேரப் பெட்டகம்',
+    vaultTitle: 'மருத்துவப் பதிவுகள் & மாத்திரை நேரங்கள்',
+    todaysDoses: 'இன்றைய அளவுகள்',
+    dosesTaken: 'எடுக்கப்பட்டது',
+    tabTimings: 'மாத்திரை நேரங்கள் (Timings)',
+    tabRx: 'மருத்துவர் சீட்டுகள் (Doctor Prescriptions - Rx)',
+    tabTriage: 'சுகாதார பரிசோதனைகள் (Triage)',
+    tabAll: 'அனைத்து பதிவுகள் (All Records)',
+    adherenceMeter: 'மருந்து பயன்பாட்டு மீட்டர்',
+    timetableTitle: 'இன்றைய தினசரி அட்டவணை',
+    hearVoice: 'குரல் கேட்க',
+    completed: 'முடிந்தது',
+    pending: 'மீதம்',
+    morningSlot: 'காலை அளவு • 08:00 AM (காலை உணவு)',
+    breakfastHint: 'காலை உணவு (07:30 AM – 09:00 AM)',
+    afternoonSlot: 'மதிய அளவு • 01:30 PM (மதிய உணவு)',
+    lunchHint: 'மதிய உணவு (01:00 PM – 02:30 PM)',
+    nightSlot: 'இரவு அளவு • 08:30 PM (இரவு உணவு)',
+    dinnerHint: 'இரவு உணவு (08:00 PM – 09:30 PM)',
+    takenAt: 'எடுக்கப்பட்டது',
+    markTaken: 'எடுத்ததாகக் குறிக்கவும்',
+    afterFood: 'உணவுக்குப் பின்',
+    searchPlaceholder: 'மருந்துகள் அல்லது மருத்துவரைத் தேடுங்கள்…',
+    noRecords: 'மருத்துவப் பதிவுகள் எதுவும் இல்லை.',
+    printSlip: 'சீட்டு காண்க / அச்சிடு',
+    doctorLabel: 'மருத்துவர்',
+    hospitalLabel: 'மருத்துவமனை',
+  },
+}
+
 export default function HistoryView() {
   const {
     go,
@@ -49,10 +181,14 @@ export default function HistoryView() {
     language,
   } = useApp()
 
+  const langKey = language || 'en'
+  const text = HISTORY_I18N[langKey] || HISTORY_I18N.en
+  const speechCode = LANGUAGE_SPEECH_CODES[langKey] || 'en-IN'
+
   const [reports, setReports] = useState([])
   const [search, setSearch] = useState('')
   const [activeSection, setActiveSection] = useState('pill_tracker') // 'pill_tracker' | 'prescriptions' | 'triage' | 'all'
-  const [filterUrgency, setFilterUrgency] = useState('all') // 'all' | 'Emergency' | 'Moderate' | 'Mild'
+  const [filterUrgency, setFilterUrgency] = useState('all')
   const [loading, setLoading] = useState(false)
   const [syncNotice, setSyncNotice] = useState('')
   const [isSpeakingSchedule, setIsSpeakingSchedule] = useState(false)
@@ -66,9 +202,6 @@ export default function HistoryView() {
       return {}
     }
   })
-
-  const langKey = language || 'en'
-  const speechCode = LANGUAGE_SPEECH_CODES[langKey] || 'en-IN'
 
   // Load reports from backend SQLite database and localStorage
   const loadReports = async () => {
@@ -117,8 +250,8 @@ export default function HistoryView() {
           created_at: '30 Aug 2026, 09:30 AM',
           vitals: { bp: '124/80', spo2: '97%', pulse: '82', temp: '101.4°F' },
           advice: 'Hydrate with ORS, take Paracetamol 650mg TDS, and consult PHC doctor if fever persists.',
-          hospital_name: 'Rampur Primary Health Centre (PHC)',
-          hospital_distance: 3.2,
+          hospital_name: 'Primary Health Centre, Rampur',
+          hospital_distance: 2.3,
           prescribed_medicines: [
             'Paracetamol 650mg Tablet (08:00 AM • 01:30 PM • 08:30 PM)',
             'Pantoprazole 40mg Tablet (07:30 AM Empty Stomach)',
@@ -174,48 +307,6 @@ export default function HistoryView() {
           doctor_notes: 'Facial Signs: Mild pallor. Pain Score: 65%. Physical Injuries: None detected.',
           risk_factors: ['Fever > 101°F'],
         },
-        {
-          id: 'REP-2026-8802',
-          is_prescription: false,
-          patient_name: 'Savita Devi',
-          age: 28,
-          gender: 'Female',
-          symptoms: 'Routine ANC visit checkup with mild swelling in feet at 28 weeks gestation',
-          urgency: 'Mild',
-          diagnosis: 'Routine Antenatal Care (2nd Trimester)',
-          created_at: '29 Aug 2026, 03:45 PM',
-          vitals: { bp: '118/76', spo2: '99%', pulse: '74', temp: '98.4°F', isPregnant: true },
-          advice: 'Continue daily IFA and Calcium supplements. Schedule 3rd ANC scan.',
-          hospital_name: 'Rampur Sector Sub-Centre',
-          hospital_distance: 1.5,
-          prescribed_medicines: ['Iron Folic Acid (IFA) Tablets (08:00 AM)', 'Calcium Carbonate 500mg (08:30 PM)'],
-          medicines_list: [
-            {
-              name: 'Iron Folic Acid (IFA) Tablet',
-              dosage: '1 Tablet',
-              slot: 'Morning',
-              exactTime: '08:00 AM',
-              timing: 'After Breakfast',
-              foodInstruction: 'Take with lemon water or plain water',
-              schedule: 'Morning (☀️ 08:00 AM)',
-              duration: '100 Days',
-              purpose: 'Prevents maternal anemia & fetal growth',
-            },
-            {
-              name: 'Calcium Carbonate 500mg Tablet',
-              dosage: '1 Tablet',
-              slot: 'Night',
-              exactTime: '08:30 PM',
-              timing: 'After Dinner',
-              foodInstruction: 'Do not take together with Iron tablet',
-              schedule: 'Night (🌙 08:30 PM)',
-              duration: '100 Days',
-              purpose: 'Maternal bone density & skeletal growth',
-            },
-          ],
-          doctor_notes: 'Fetal heart rate normal (142 bpm).',
-          risk_factors: ['Mild Pedal Edema'],
-        },
       ]
     }
 
@@ -225,19 +316,19 @@ export default function HistoryView() {
 
   useEffect(() => {
     loadReports()
-  }, [currentUser])
+  }, [])
 
-  // Toggle Medicine Taken Adherence Status
-  const toggleMedicineTaken = (key, medName) => {
+  // Toggle Pill Taken state
+  const togglePillTaken = (doseKey, medName) => {
     setTakenMap((prev) => {
-      const isCurrentlyTaken = Boolean(prev[key]?.taken)
+      const isCurrentlyTaken = !!prev[doseKey]?.taken
+      const now = new Date()
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       const updated = {
         ...prev,
-        [key]: {
+        [doseKey]: {
           taken: !isCurrentlyTaken,
-          takenAt: !isCurrentlyTaken
-            ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : '',
+          takenAt: !isCurrentlyTaken ? timeString : '',
           medName,
         },
       }
@@ -297,7 +388,7 @@ export default function HistoryView() {
         categorizedDoses.morning.push({
           ...doseObj,
           key: `${keyBase}_morning`,
-          slotLabel: 'Morning Dose',
+          slotLabel: text.morningSlot,
           slotTime: medObj.exactTime?.includes('07:30') ? '07:30 AM' : '08:00 AM',
         })
       }
@@ -312,7 +403,7 @@ export default function HistoryView() {
         categorizedDoses.afternoon.push({
           ...doseObj,
           key: `${keyBase}_afternoon`,
-          slotLabel: 'Afternoon Dose',
+          slotLabel: text.afternoonSlot,
           slotTime: '01:30 PM',
         })
       }
@@ -327,17 +418,8 @@ export default function HistoryView() {
         categorizedDoses.night.push({
           ...doseObj,
           key: `${keyBase}_night`,
-          slotLabel: 'Night Dose',
+          slotLabel: text.nightSlot,
           slotTime: '08:30 PM',
-        })
-      }
-
-      if (slotLower.includes('sos') || slotLower.includes('emergency') || slotLower.includes('needed')) {
-        categorizedDoses.sos.push({
-          ...doseObj,
-          key: `${keyBase}_sos`,
-          slotLabel: 'Emergency / SOS Dose',
-          slotTime: 'Immediate / As Needed',
         })
       }
     })
@@ -379,62 +461,9 @@ export default function HistoryView() {
     window.speechSynthesis.speak(utterance)
   }, [langKey, speechCode, categorizedDoses])
 
-  const filteredReports = reports.filter((r) => {
-    const q = search.toLowerCase()
-    const matchesSearch =
-      !q ||
-      (r.patient_name || '').toLowerCase().includes(q) ||
-      (r.symptoms || '').toLowerCase().includes(q) ||
-      (r.id || '').toLowerCase().includes(q) ||
-      (r.diagnosis || '').toLowerCase().includes(q) ||
-      (r.hospital_name || '').toLowerCase().includes(q)
-
-    if (!matchesSearch) return false
-
-    if (activeSection === 'prescriptions') {
-      if (!r.is_prescription && !r.id?.startsWith('RX') && !r.medicines_list?.length) {
-        return false
-      }
-    } else if (activeSection === 'triage') {
-      if (r.is_prescription || r.id?.startsWith('RX')) {
-        return false
-      }
-    }
-
-    if (filterUrgency !== 'all') {
-      return (r.urgency || '').toLowerCase().includes(filterUrgency.toLowerCase())
-    }
-    return true
-  })
-
   const rxCount = reports.filter(
     (r) => r.is_prescription || r.id?.startsWith('RX') || r.medicines_list?.length
   ).length
-
-  const handleDelete = async (reportId) => {
-    if (!window.confirm(`Delete record #${reportId}?`)) return
-    try {
-      await fetch(`/api/reports/${reportId}`, { method: 'DELETE' })
-    } catch (e) {}
-
-    const updated = reports.filter((r) => r.id !== reportId)
-    setReports(updated)
-    try {
-      localStorage.setItem('asl:patient_assessment_history_v1', JSON.stringify(updated))
-    } catch (e) {}
-    setSyncNotice(`Record #${reportId} deleted`)
-    setTimeout(() => setSyncNotice(''), 2500)
-  }
-
-  const handleDownloadJson = (report) => {
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Arogya_Medical_Record_${report.id}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
 
   return (
     <div className="w-full max-w-5xl mx-auto px-2 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-5 pb-20">
@@ -446,7 +475,7 @@ export default function HistoryView() {
           className="tap-press inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 transition-all"
         >
           <ArrowLeft className="w-3.5 h-3.5 text-blue-600" />
-          <span>Home</span>
+          <span>{text.backHome}</span>
         </button>
 
         <div className="flex items-center gap-1.5">
@@ -457,7 +486,7 @@ export default function HistoryView() {
             title="Sync from SQLite Database"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-600' : ''}`} />
-            <span className="hidden xs:inline">Sync</span>
+            <span className="hidden xs:inline">{text.sync}</span>
           </button>
 
           <button
@@ -466,12 +495,12 @@ export default function HistoryView() {
             className="tap-press inline-flex items-center gap-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-xl shadow-sm transition-all"
           >
             <Video className="w-3.5 h-3.5" />
-            <span>Consult Doctor</span>
+            <span>{text.consultDoctor}</span>
           </button>
         </div>
       </div>
 
-      {/* 2. Compact Mobile Header Card */}
+      {/* 2. Header Banner Card */}
       <div className="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xl border border-blue-700/30">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -481,634 +510,398 @@ export default function HistoryView() {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.2 rounded-full border border-emerald-400/20 truncate">
-                  Prescriptions & Timings Vault
+                  {text.vaultTag}
                 </span>
               </div>
               <h1 className="text-sm sm:text-xl font-bold font-display text-white truncate mt-0.5">
-                Medical Records & Pill Timings
+                {text.vaultTitle}
               </h1>
             </div>
           </div>
 
           <div className="text-right shrink-0">
-            <span className="text-[10px] text-blue-200 block font-mono">Today's Doses</span>
+            <span className="text-[10px] text-blue-200 block font-mono">{text.todaysDoses}</span>
             <strong className="text-xs sm:text-sm font-bold text-emerald-300">
-              {takenDosesCount}/{totalDosesCount} Taken
+              {takenDosesCount}/{totalDosesCount} {text.dosesTaken}
             </strong>
           </div>
         </div>
       </div>
 
-      {/* 3. Sticky Mobile Segmented Pills Control */}
-      <div className="grid grid-cols-4 gap-1 p-1 bg-slate-200/80 rounded-xl sm:rounded-2xl text-[11px] font-bold">
+      {/* 3. Sticky Segmented Control with FULL Forms for Rx & Triage */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 bg-slate-200/80 rounded-2xl text-[11px] font-bold">
         <button
           type="button"
           onClick={() => setActiveSection('pill_tracker')}
-          className={`tap-press py-2 px-1 rounded-lg text-center transition-all flex flex-col sm:flex-row items-center justify-center gap-1 ${
+          className={`tap-press py-2.5 px-2 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 ${
             activeSection === 'pill_tracker'
               ? 'bg-white text-emerald-800 shadow-sm font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Clock className="w-3.5 h-3.5 text-emerald-600" />
-          <span className="truncate">Timings</span>
+          <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <span className="truncate">{text.tabTimings}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSection('prescriptions')}
-          className={`tap-press py-2 px-1 rounded-lg text-center transition-all flex flex-col sm:flex-row items-center justify-center gap-1 ${
+          className={`tap-press py-2.5 px-2 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 ${
             activeSection === 'prescriptions'
               ? 'bg-white text-blue-800 shadow-sm font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Pill className="w-3.5 h-3.5 text-blue-600" />
-          <span className="truncate">Rx ({rxCount})</span>
+          <Pill className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <span className="truncate">{text.tabRx} ({rxCount})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSection('triage')}
-          className={`tap-press py-2 px-1 rounded-lg text-center transition-all flex flex-col sm:flex-row items-center justify-center gap-1 ${
+          className={`tap-press py-2.5 px-2 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 ${
             activeSection === 'triage'
               ? 'bg-white text-indigo-800 shadow-sm font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Stethoscope className="w-3.5 h-3.5 text-indigo-600" />
-          <span className="truncate">Triage</span>
+          <Stethoscope className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+          <span className="truncate">{text.tabTriage}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSection('all')}
-          className={`tap-press py-2 px-1 rounded-lg text-center transition-all flex flex-col sm:flex-row items-center justify-center gap-1 ${
+          className={`tap-press py-2.5 px-2 rounded-xl text-center transition-all flex items-center justify-center gap-1.5 ${
             activeSection === 'all'
               ? 'bg-white text-slate-900 shadow-sm font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <FileText className="w-3.5 h-3.5 text-slate-600" />
-          <span className="truncate">All ({reports.length})</span>
+          <FileText className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+          <span className="truncate">{text.tabAll} ({reports.length})</span>
         </button>
       </div>
-
-      {syncNotice && (
-        <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs font-bold flex items-center justify-between shadow-xs">
-          <span>{syncNotice}</span>
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-        </div>
-      )}
 
       {/* VIEW 1: DAILY PILL TRACKER & TIMINGS SCHEDULE */}
       {activeSection === 'pill_tracker' && (
         <div className="space-y-3 sm:space-y-4">
-          {/* Adherence & Voice Reader Bar */}
-          <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 shadow-xs space-y-2.5">
+          {/* Adherence Bar */}
+          <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <span className="text-[9.5px] font-bold uppercase text-emerald-700 bg-emerald-50 px-2 py-0.2 rounded border border-emerald-200">
-                  Adherence Meter
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  {text.adherenceMeter}
                 </span>
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">
-                  Today's Daily Timetable ({takenDosesCount}/{totalDosesCount} Doses Taken)
+                <h3 className="text-xs sm:text-base font-extrabold text-slate-900 mt-1">
+                  {text.timetableTitle} ({takenDosesCount}/{totalDosesCount} {text.dosesTaken})
                 </h3>
               </div>
 
-              {/* Voice Readout Button */}
               <button
                 type="button"
                 onClick={speakPillScheduleAloud}
-                className="tap-press inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold transition-all shrink-0"
+                className={`tap-press px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all ${
+                  isSpeakingSchedule
+                    ? 'bg-emerald-600 text-white border-emerald-600 animate-pulse'
+                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                }`}
               >
-                <Volume2 className={`w-3.5 h-3.5 ${isSpeakingSchedule ? 'animate-pulse text-blue-700' : ''}`} />
-                <span>Hear Voice</span>
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>{text.hearVoice}</span>
               </button>
             </div>
 
-            {/* Progress Bar */}
-            <div className="space-y-1">
-              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
-                <div
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${adherencePercent}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                <span>{adherencePercent}% Completed</span>
-                <span>{totalDosesCount - takenDosesCount} Pending</span>
-              </div>
+            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500"
+                style={{ width: `${adherencePercent}%` }}
+              />
             </div>
           </div>
 
-          {/* 4 Time Categories Cards (Mobile Native) */}
-          <div className="space-y-3">
-            {/* Category 1: ☀️ Morning Doses (08:00 AM) */}
-            <div className="bg-amber-50/50 border border-amber-200/90 rounded-2xl sm:rounded-3xl p-3 sm:p-4 space-y-2.5">
-              <div className="flex items-center justify-between border-b border-amber-200/60 pb-1.5">
+          {/* Morning Doses Slot */}
+          {categorizedDoses.morning.length > 0 && (
+            <div className="bg-amber-50/40 border border-amber-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 space-y-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0">
-                    <Sun className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold">
+                    <Sun className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-amber-950">
-                      ☀️ Morning Dose • 08:00 AM (ఉదయం / सुबह)
+                    <h4 className="font-extrabold text-xs sm:text-sm text-slate-900">
+                      {text.morningSlot}
                     </h4>
-                    <span className="text-[10px] text-amber-800 font-medium">
-                      Breakfast (07:30 AM – 09:00 AM)
-                    </span>
+                    <p className="text-[10.5px] text-amber-900/80 font-medium">
+                      {text.breakfastHint}
+                    </p>
                   </div>
                 </div>
-
-                <span className="text-[9.5px] font-mono bg-white text-amber-900 font-bold px-1.5 py-0.2 rounded-full border border-amber-300">
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md">
                   {categorizedDoses.morning.length} Tablets
                 </span>
               </div>
 
-              {categorizedDoses.morning.length === 0 ? (
-                <p className="text-xs text-slate-400 italic p-1">No morning medicines prescribed.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {categorizedDoses.morning.map((med) => {
-                    const isTaken = Boolean(takenMap[med.key]?.taken)
-                    return (
-                      <div
-                        key={med.key}
-                        className={`p-2.5 rounded-xl border transition-all space-y-2 bg-white ${
-                          isTaken ? 'border-emerald-300 ring-1 ring-emerald-500/20 bg-emerald-50/10' : 'border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-1">
-                          <div className="min-w-0 flex-1">
-                            <strong className="text-xs font-bold text-slate-900 block truncate">{med.name}</strong>
-                            <span className="text-[10px] text-blue-700 font-medium block truncate">{med.purpose}</span>
-                          </div>
-                          <span className="text-[9px] font-mono bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded border border-amber-300 shrink-0">
-                            {med.slotTime}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {categorizedDoses.morning.map((med) => {
+                  const isTaken = !!takenMap[med.key]?.taken
+                  return (
+                    <div
+                      key={med.key}
+                      className={`p-3.5 rounded-2xl border transition-all ${
+                        isTaken
+                          ? 'bg-emerald-50/70 border-emerald-300'
+                          : 'bg-white border-slate-200 shadow-2xs'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h5 className="font-bold text-xs sm:text-sm text-slate-900">
+                            {med.name}
+                          </h5>
+                          <p className="text-[11px] text-blue-700 font-medium mt-0.5">
+                            🎯 {med.purpose}
+                          </p>
+                          <span className="inline-block text-[10px] text-slate-500 mt-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 font-mono">
+                            🍽️ {med.timing || text.afterFood}
                           </span>
                         </div>
-
-                        <div className="text-[10px] text-slate-600 bg-slate-50 p-1.5 rounded-lg border border-slate-200/80">
-                          🍽️ <strong>Timing:</strong> {med.timing || med.foodInstruction || 'After Breakfast with water'}
-                        </div>
-
-                        {/* Large Thumb-Friendly Tap Target */}
-                        <button
-                          type="button"
-                          onClick={() => toggleMedicineTaken(med.key, med.name)}
-                          className={`tap-press w-full min-h-[38px] py-1.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
-                            isTaken
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
-                          }`}
-                        >
-                          <Check className={`w-3.5 h-3.5 ${isTaken ? 'stroke-[3]' : ''}`} />
-                          <span>{isTaken ? `Taken at ${takenMap[med.key]?.takenAt || '08:00 AM'}` : 'Mark as Taken'}</span>
-                        </button>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
 
-            {/* Category 2: 🌤️ Afternoon Doses (01:30 PM) */}
-            <div className="bg-blue-50/50 border border-blue-200/90 rounded-2xl sm:rounded-3xl p-3 sm:p-4 space-y-2.5">
-              <div className="flex items-center justify-between border-b border-blue-200/60 pb-1.5">
+                      <button
+                        type="button"
+                        onClick={() => togglePillTaken(med.key, med.name)}
+                        className={`tap-press mt-3 w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                          isTaken
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>
+                          {isTaken
+                            ? `${text.takenAt} ${takenMap[med.key]?.takenAt}`
+                            : text.markTaken}
+                        </span>
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Afternoon Doses Slot */}
+          {categorizedDoses.afternoon.length > 0 && (
+            <div className="bg-orange-50/40 border border-orange-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 space-y-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
-                    <Sunset className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold">
+                    <Sunset className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-blue-950">
-                      🌤️ Afternoon Dose • 01:30 PM (మధ్యాహ్నం / दोपहर)
+                    <h4 className="font-extrabold text-xs sm:text-sm text-slate-900">
+                      {text.afternoonSlot}
                     </h4>
-                    <span className="text-[10px] text-blue-800 font-medium">
-                      Lunch (01:00 PM – 02:30 PM)
-                    </span>
+                    <p className="text-[10.5px] text-orange-900/80 font-medium">
+                      {text.lunchHint}
+                    </p>
                   </div>
                 </div>
-
-                <span className="text-[9.5px] font-mono bg-white text-blue-900 font-bold px-1.5 py-0.2 rounded-full border border-blue-300">
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-100 text-orange-800 rounded-md">
                   {categorizedDoses.afternoon.length} Tablets
                 </span>
               </div>
 
-              {categorizedDoses.afternoon.length === 0 ? (
-                <p className="text-xs text-slate-400 italic p-1">No afternoon medicines prescribed.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {categorizedDoses.afternoon.map((med) => {
-                    const isTaken = Boolean(takenMap[med.key]?.taken)
-                    return (
-                      <div
-                        key={med.key}
-                        className={`p-2.5 rounded-xl border transition-all space-y-2 bg-white ${
-                          isTaken ? 'border-emerald-300 ring-1 ring-emerald-500/20 bg-emerald-50/10' : 'border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-1">
-                          <div className="min-w-0 flex-1">
-                            <strong className="text-xs font-bold text-slate-900 block truncate">{med.name}</strong>
-                            <span className="text-[10px] text-blue-700 font-medium block truncate">{med.purpose}</span>
-                          </div>
-                          <span className="text-[9px] font-mono bg-blue-100 text-blue-900 font-bold px-1.5 py-0.2 rounded border border-blue-300 shrink-0">
-                            {med.slotTime}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {categorizedDoses.afternoon.map((med) => {
+                  const isTaken = !!takenMap[med.key]?.taken
+                  return (
+                    <div
+                      key={med.key}
+                      className={`p-3.5 rounded-2xl border transition-all ${
+                        isTaken
+                          ? 'bg-emerald-50/70 border-emerald-300'
+                          : 'bg-white border-slate-200 shadow-2xs'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h5 className="font-bold text-xs sm:text-sm text-slate-900">
+                            {med.name}
+                          </h5>
+                          <p className="text-[11px] text-blue-700 font-medium mt-0.5">
+                            🎯 {med.purpose}
+                          </p>
+                          <span className="inline-block text-[10px] text-slate-500 mt-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 font-mono">
+                            🍽️ {med.timing || text.afterFood}
                           </span>
                         </div>
-
-                        <div className="text-[10px] text-slate-600 bg-slate-50 p-1.5 rounded-lg border border-slate-200/80">
-                          🍽️ <strong>Timing:</strong> {med.timing || med.foodInstruction || 'After Lunch with water'}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => toggleMedicineTaken(med.key, med.name)}
-                          className={`tap-press w-full min-h-[38px] py-1.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
-                            isTaken
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
-                          }`}
-                        >
-                          <Check className={`w-3.5 h-3.5 ${isTaken ? 'stroke-[3]' : ''}`} />
-                          <span>{isTaken ? `Taken at ${takenMap[med.key]?.takenAt || '01:30 PM'}` : 'Mark as Taken'}</span>
-                        </button>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
 
-            {/* Category 3: 🌙 Night Doses (08:30 PM) */}
-            <div className="bg-indigo-50/50 border border-indigo-200/90 rounded-2xl sm:rounded-3xl p-3 sm:p-4 space-y-2.5">
-              <div className="flex items-center justify-between border-b border-indigo-200/60 pb-1.5">
+                      <button
+                        type="button"
+                        onClick={() => togglePillTaken(med.key, med.name)}
+                        className={`tap-press mt-3 w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                          isTaken
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>
+                          {isTaken
+                            ? `${text.takenAt} ${takenMap[med.key]?.takenAt}`
+                            : text.markTaken}
+                        </span>
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Night Doses Slot */}
+          {categorizedDoses.night.length > 0 && (
+            <div className="bg-indigo-50/40 border border-indigo-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 space-y-3">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-700 text-white flex items-center justify-center shrink-0">
-                    <Moon className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
+                    <Moon className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-indigo-950">
-                      🌙 Night Dose • 08:30 PM (రాత్రి / रात)
+                    <h4 className="font-extrabold text-xs sm:text-sm text-slate-900">
+                      {text.nightSlot}
                     </h4>
-                    <span className="text-[10px] text-indigo-800 font-medium">
-                      Dinner & Bedtime (08:00 PM – 10:00 PM)
-                    </span>
+                    <p className="text-[10.5px] text-indigo-900/80 font-medium">
+                      {text.dinnerHint}
+                    </p>
                   </div>
                 </div>
-
-                <span className="text-[9.5px] font-mono bg-white text-indigo-900 font-bold px-1.5 py-0.2 rounded-full border border-indigo-300">
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-md">
                   {categorizedDoses.night.length} Tablets
                 </span>
               </div>
 
-              {categorizedDoses.night.length === 0 ? (
-                <p className="text-xs text-slate-400 italic p-1">No night medicines prescribed.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {categorizedDoses.night.map((med) => {
-                    const isTaken = Boolean(takenMap[med.key]?.taken)
-                    return (
-                      <div
-                        key={med.key}
-                        className={`p-2.5 rounded-xl border transition-all space-y-2 bg-white ${
-                          isTaken ? 'border-emerald-300 ring-1 ring-emerald-500/20 bg-emerald-50/10' : 'border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-1">
-                          <div className="min-w-0 flex-1">
-                            <strong className="text-xs font-bold text-slate-900 block truncate">{med.name}</strong>
-                            <span className="text-[10px] text-blue-700 font-medium block truncate">{med.purpose}</span>
-                          </div>
-                          <span className="text-[9px] font-mono bg-indigo-100 text-indigo-900 font-bold px-1.5 py-0.2 rounded border border-indigo-300 shrink-0">
-                            {med.slotTime}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {categorizedDoses.night.map((med) => {
+                  const isTaken = !!takenMap[med.key]?.taken
+                  return (
+                    <div
+                      key={med.key}
+                      className={`p-3.5 rounded-2xl border transition-all ${
+                        isTaken
+                          ? 'bg-emerald-50/70 border-emerald-300'
+                          : 'bg-white border-slate-200 shadow-2xs'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h5 className="font-bold text-xs sm:text-sm text-slate-900">
+                            {med.name}
+                          </h5>
+                          <p className="text-[11px] text-blue-700 font-medium mt-0.5">
+                            🎯 {med.purpose}
+                          </p>
+                          <span className="inline-block text-[10px] text-slate-500 mt-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 font-mono">
+                            🍽️ {med.timing || text.afterFood}
                           </span>
                         </div>
-
-                        <div className="text-[10px] text-slate-600 bg-slate-50 p-1.5 rounded-lg border border-slate-200/80">
-                          🍽️ <strong>Timing:</strong> {med.timing || med.foodInstruction || 'After Dinner at Bedtime'}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => toggleMedicineTaken(med.key, med.name)}
-                          className={`tap-press w-full min-h-[38px] py-1.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs ${
-                            isTaken
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
-                          }`}
-                        >
-                          <Check className={`w-3.5 h-3.5 ${isTaken ? 'stroke-[3]' : ''}`} />
-                          <span>{isTaken ? `Taken at ${takenMap[med.key]?.takenAt || '08:30 PM'}` : 'Mark as Taken'}</span>
-                        </button>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
 
-            {/* Category 4: ⚡ Emergency SOS / As Needed */}
-            {categorizedDoses.sos.length > 0 && (
-              <div className="bg-red-50/50 border border-red-200 rounded-2xl sm:rounded-3xl p-3 sm:p-4 space-y-2.5">
-                <div className="flex items-center justify-between border-b border-red-200 pb-1.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0">
-                      <Zap className="w-3.5 h-3.5 animate-pulse" />
+                      <button
+                        type="button"
+                        onClick={() => togglePillTaken(med.key, med.name)}
+                        className={`tap-press mt-3 w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                          isTaken
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                        }`}
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>
+                          {isTaken
+                            ? `${text.takenAt} ${takenMap[med.key]?.takenAt}`
+                            : text.markTaken}
+                        </span>
+                      </button>
                     </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-bold text-red-950">
-                        ⚡ Emergency SOS Doses (అత్యవసర మోతాదు)
-                      </h4>
-                      <span className="text-[10px] text-red-800 font-medium">
-                        Take when acute fever / pain exceeds threshold
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {categorizedDoses.sos.map((med) => (
-                    <div key={med.key} className="p-2.5 rounded-xl border border-red-200 bg-white space-y-1 text-xs">
-                      <strong className="text-slate-900 font-bold block truncate">{med.name}</strong>
-                      <p className="text-red-700 text-[10.5px] font-semibold">{med.timing || 'Immediate SOS'}</p>
-                      <p className="text-slate-600 text-[10px]">{med.purpose}</p>
-                    </div>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* VIEW 2: PRESCRIPTIONS & TRIAGE SLIPS (MOBILE REDESIGN) */}
+      {/* VIEW 2, 3, 4: PRESCRIPTIONS & TRIAGE LIST */}
       {activeSection !== 'pill_tracker' && (
-        <div className="space-y-3 sm:space-y-4">
-          {/* Search & Urgency Filter Toolbar */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-2.5 sm:p-3.5 shadow-xs space-y-2">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search ID, diagnosis, doctor..."
-                className="w-full pl-8 pr-3 py-1.5 sm:py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs outline-none focus:bg-white focus:border-blue-600 transition-all"
-              />
-            </div>
+        <div className="space-y-3">
+          {reports.map((report) => (
+            <div
+              key={report.id}
+              className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3"
+            >
+              <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                    {report.id}
+                  </span>
+                  <h4 className="font-extrabold text-sm sm:text-base text-slate-900 mt-1">
+                    {report.diagnosis || report.symptoms}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {text.doctorLabel}: <strong>{report.doctor_name || 'Dr. Rajesh Sharma (MD)'}</strong> • {report.created_at}
+                  </p>
+                </div>
 
-            {/* Urgency Filter Tabs */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
-              <button
-                type="button"
-                onClick={() => setFilterUrgency('all')}
-                className={`tap-press px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 ${
-                  filterUrgency === 'all'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                All ({filteredReports.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterUrgency('Emergency')}
-                className={`tap-press px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 ${
-                  filterUrgency === 'Emergency'
-                    ? 'bg-red-600 text-white shadow-2xs'
-                    : 'bg-white text-red-700 border border-red-200 hover:bg-red-50'
-                }`}
-              >
-                Emergency
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterUrgency('Moderate')}
-                className={`tap-press px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 ${
-                  filterUrgency === 'Moderate'
-                    ? 'bg-amber-600 text-white shadow-2xs'
-                    : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50'
-                }`}
-              >
-                Moderate
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterUrgency('Mild')}
-                className={`tap-press px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 ${
-                  filterUrgency === 'Mild'
-                    ? 'bg-emerald-600 text-white shadow-2xs'
-                    : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50'
-                }`}
-              >
-                Mild
-              </button>
-            </div>
-          </div>
-
-          {/* Records List (Mobile High-Density Cards) */}
-          <div className="space-y-3">
-            {loading ? (
-              <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-400">
-                <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-600" />
-                <p className="font-bold text-xs text-slate-600">Loading Medical Records...</p>
-              </div>
-            ) : filteredReports.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-400 space-y-2">
-                <FileText className="w-8 h-8 text-slate-300 mx-auto" />
-                <h3 className="font-bold text-sm text-slate-700">No Records Found</h3>
-                <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
-                  Start a teleconsultation to receive a digital prescription.
-                </p>
                 <button
                   type="button"
-                  onClick={() => startVideoCall()}
-                  className="tap-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-sm mt-1"
+                  onClick={() => setActiveSlip(report)}
+                  className="tap-press px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs flex items-center gap-1"
                 >
-                  <Video className="w-3.5 h-3.5" />
-                  <span>Consult Doctor</span>
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>{text.printSlip}</span>
                 </button>
               </div>
-            ) : (
-              filteredReports.map((record) => {
-                const isRx = record.is_prescription || record.id?.startsWith('RX') || record.medicines_list?.length > 0
-                const isEmergency = record.urgency?.toLowerCase().includes('emergency')
-                const isModerate = record.urgency?.toLowerCase().includes('moderate')
 
-                return (
-                  <div
-                    key={record.id}
-                    className={`bg-white rounded-2xl sm:rounded-3xl border p-3.5 sm:p-5 shadow-xs transition-all space-y-2.5 ${
-                      isRx
-                        ? 'border-emerald-200 bg-emerald-50/10'
-                        : isEmergency
-                        ? 'border-red-200 bg-red-50/10'
-                        : isModerate
-                        ? 'border-amber-200 bg-amber-50/10'
-                        : 'border-slate-200'
-                    }`}
-                  >
-                    {/* Top Meta Row */}
-                    <div className="flex items-center justify-between gap-1 border-b border-slate-100 pb-2">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span
-                          className={`font-mono font-bold text-[10px] px-2 py-0.2 rounded border ${
-                            isRx
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                              : 'bg-blue-50 text-blue-700 border-blue-200'
-                          }`}
-                        >
-                          {record.id}
+              {/* Prescribed Medicines Chips */}
+              {report.medicines_list && report.medicines_list.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-slate-700">
+                    {text.tabRx}:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {report.medicines_list.map((m, idx) => (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs"
+                      >
+                        <strong className="text-slate-900 block">{m.name}</strong>
+                        <span className="text-blue-700 text-[10.5px] font-medium block">
+                          🎯 {m.purpose}
                         </span>
-
-                        {isRx && (
-                          <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-emerald-600 text-white flex items-center gap-0.5">
-                            <Pill className="w-2.5 h-2.5" />
-                            Rx Slip
-                          </span>
-                        )}
-
-                        <span
-                          className={`text-[9.5px] font-extrabold px-2 py-0.2 rounded-full border ${
-                            isEmergency
-                              ? 'bg-red-50 text-red-700 border-red-200'
-                              : isModerate
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          }`}
-                        >
-                          {record.urgency || 'Moderate'}
+                        <span className="text-slate-500 text-[10px] font-mono">
+                          ⏰ {m.schedule || m.exactTime} • {m.timing}
                         </span>
                       </div>
-
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        {record.created_at || 'Recent'}
-                      </span>
-                    </div>
-
-                    {/* Patient & Diagnosis Summary */}
-                    <div className="space-y-1">
-                      <div className="flex items-start justify-between gap-1">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-xs sm:text-base text-slate-900 truncate">
-                            {record.patient_name || 'Citizen Patient'} {record.age ? `(${record.age} Yrs)` : ''}
-                          </h3>
-                          {record.diagnosis && (
-                            <p className="text-[11px] font-bold text-emerald-800 mt-0.5 flex items-center gap-1 truncate">
-                              <Stethoscope className="w-3 h-3 text-emerald-600 shrink-0" />
-                              <span className="truncate">{record.diagnosis}</span>
-                            </p>
-                          )}
-                        </div>
-
-                        {record.doctor_name && (
-                          <span className="text-[10px] font-bold text-slate-700 text-right shrink-0">
-                            👨‍⚕️ {record.doctor_name.split(' ')?.[0] || 'Doctor'}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="text-[11px] text-slate-700 bg-slate-50 p-2 rounded-xl border border-slate-200/80 line-clamp-2">
-                        "{record.symptoms}"
-                      </div>
-                    </div>
-
-                    {/* Structured Prescribed Tablets with Timings */}
-                    {record.medicines_list && record.medicines_list.length > 0 ? (
-                      <div className="space-y-1.5 bg-emerald-50/40 p-2.5 rounded-xl border border-emerald-200/80">
-                        <span className="text-[10px] font-bold text-emerald-950 flex items-center gap-1">
-                          <Pill className="w-3 h-3 text-emerald-600" />
-                          Prescribed Medicines & Timings:
-                        </span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                          {record.medicines_list.map((med, idx) => (
-                            <div key={idx} className="bg-white p-2 rounded-lg border border-emerald-200 text-[10.5px] space-y-0.5">
-                              <div className="flex items-center justify-between">
-                                <strong className="text-emerald-900 font-bold truncate">{med.name}</strong>
-                                <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 px-1 rounded border border-emerald-200">
-                                  {med.duration}
-                                </span>
-                              </div>
-                              <div className="text-[9.5px] text-slate-600 flex items-center justify-between">
-                                <span>{med.dosage} · <strong className="text-blue-700">{med.timing || 'After Food'}</strong></span>
-                                <span className="font-mono text-slate-800 font-bold">{med.exactTime || med.schedule}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* Mobile Action Buttons (Thumb Friendly) */}
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
-                      <div className="flex items-center gap-1.5 flex-1">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setActiveSlip({
-                              name: record.patient_name,
-                              age: record.age,
-                              gender: record.gender,
-                              symptoms: record.diagnosis || record.symptoms,
-                              urgency: record.urgency,
-                              advice: record.advice,
-                              vitals: record.vitals,
-                              hospital: { name: record.hospital_name, distance_km: record.hospital_distance },
-                              date: record.created_at?.split(',')?.[0] || 'Today',
-                              refId: record.id,
-                            })
-                          }
-                          className="tap-press flex-1 min-h-[36px] px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold text-[11px] shadow-2xs transition-all flex items-center justify-center gap-1"
-                        >
-                          <Printer className="w-3 h-3" />
-                          <span>View Slip</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            startVideoCall({
-                              name: record.patient_name,
-                              age: record.age,
-                              gender: record.gender,
-                              symptoms: `Follow-up for record #${record.id}: ${record.symptoms}`,
-                              vitals: record.vitals,
-                            })
-                          }
-                          className="tap-press min-h-[36px] px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-[11px] transition-all flex items-center justify-center gap-1"
-                        >
-                          <Video className="w-3 h-3 text-emerald-600" />
-                          <span>Follow-up</span>
-                        </button>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadJson(record)}
-                          className="tap-press p-2 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold"
-                          title="Download JSON"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(record.id)}
-                          className="tap-press p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all"
-                          title="Delete Record"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                )
-              })
-            )}
-          </div>
+                </div>
+              )}
+
+              {/* Hospital Tag */}
+              {report.hospital_name && (
+                <div className="flex items-center gap-1.5 text-xs text-slate-600 pt-1">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>
+                    {text.hospitalLabel}: <strong>{report.hospital_name}</strong> ({report.hospital_distance || '2.3'} km)
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
