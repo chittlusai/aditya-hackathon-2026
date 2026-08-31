@@ -19,19 +19,17 @@ if [ -d "frontend" ]; then
   npm run build
   cd ..
   echo ">>> Frontend build succeeded: frontend/dist created."
-else
-  echo ">>> Note: Checking current directory for package.json..."
-  if [ -f "package.json" ]; then
-    npm install
-    npm run build
-  fi
+elif [ -f "package.json" ]; then
+  npm install
+  npm run build
 fi
 
-# 3. Mirror frontend dist to backend/dist as a fallback
+# 3. Mirror frontend dist to backend/dist and root dist
 if [ -d "frontend/dist" ]; then
-  mkdir -p backend/dist
+  mkdir -p backend/dist dist
   cp -r frontend/dist/* backend/dist/ 2>/dev/null || true
-  echo ">>> Synced frontend/dist to backend/dist."
+  cp -r frontend/dist/* dist/ 2>/dev/null || true
+  echo ">>> Synced frontend/dist to backend/dist and dist."
 fi
 
 echo "=========================================="
