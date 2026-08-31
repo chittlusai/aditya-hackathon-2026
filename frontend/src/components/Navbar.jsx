@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Sparkles,
+  LogOut,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import LanguageToggle from './LanguageToggle.jsx'
@@ -120,6 +121,7 @@ export default function Navbar() {
     currentUser,
     setAuthModalOpen,
     startVideoCall,
+    logoutUser,
   } = useApp()
 
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
@@ -379,7 +381,21 @@ export default function Navbar() {
                 className="tap-press w-full text-left p-2.5 rounded-xl bg-blue-50 text-blue-900 font-bold text-xs flex items-center gap-2 border-t border-slate-100"
               >
                 <User className="w-4 h-4 text-blue-600" />
-                <span>{currentUser?.name || 'Citizen'}</span>
+                <span>{currentUser?.name || 'Citizen'} (Profile)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  closeDrawer()
+                  if (window.confirm('Are you sure you want to log out of your citizen account?')) {
+                    logoutUser()
+                  }
+                }}
+                className="tap-press w-full text-left p-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs flex items-center gap-2 border border-red-200/60"
+              >
+                <LogOut className="w-4 h-4 text-red-600" />
+                <span>Logout (నిష్క్రమించండి)</span>
               </button>
             </motion.div>
           )}

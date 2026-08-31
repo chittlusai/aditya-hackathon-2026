@@ -9,8 +9,52 @@ import {
   X,
   ArrowRight,
   Fingerprint,
+  LogOut,
+  Save,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
+
+const AUTH_I18N = {
+  en: {
+    badge: 'Citizen Patient Profile',
+    title: 'Manage Patient Details',
+    nameLabel: 'Full Name',
+    ageLabel: 'Age',
+    genderLabel: 'Gender',
+    phoneLabel: 'Mobile Number',
+    abhaLabel: 'ABHA ID (Ayushman Bharat Health Account)',
+    cancel: 'Cancel',
+    save: 'Save Profile',
+    logout: 'Logout / Sign Out',
+    logoutConfirm: 'Are you sure you want to log out of this account?',
+  },
+  te: {
+    badge: 'పౌరుని ప్రొఫైల్',
+    title: 'రోగి వివరాల నిర్వహణ',
+    nameLabel: 'పూర్తి పేరు (Name)',
+    ageLabel: 'వయస్సు (Age)',
+    genderLabel: 'లింగం (Gender)',
+    phoneLabel: 'మొబైల్ నంబర్ (Phone)',
+    abhaLabel: 'ఆయుష్మాన్ భారత్ హెల్త్ ఐడీ (ABHA ID)',
+    cancel: 'రద్దు చేయండి',
+    save: 'వివరాలు భద్రపరచండి',
+    logout: 'ఖాతా నుండి నిష్క్రమించండి (Logout)',
+    logoutConfirm: 'మీరు నిజంగానే ఖాతా నుండి లాగౌట్ కావాలనుకుంటున్నారా?',
+  },
+  hi: {
+    badge: 'नागरिक स्वास्थ्य प्रोफाइल',
+    title: 'मरीज विवरण प्रबंधित करें',
+    nameLabel: 'पूरा नाम',
+    ageLabel: 'उम्र',
+    genderLabel: 'लिंग',
+    phoneLabel: 'मोबाइल नंबर',
+    abhaLabel: 'आभा आईडी (ABHA ID)',
+    cancel: 'रद्द करें',
+    save: 'प्रोफाइल सहेजें',
+    logout: 'लॉगआउट करें (Sign Out)',
+    logoutConfirm: 'क्या आप निश्चित रूप से लॉगआउट करना चाहते हैं?',
+  },
+}
 
 export default function AuthModal() {
   const {
@@ -19,8 +63,12 @@ export default function AuthModal() {
     currentUser,
     loginUser,
     logoutUser,
+    language,
     t,
   } = useApp()
+
+  const langKey = language || 'en'
+  const text = AUTH_I18N[langKey] || AUTH_I18N.en
 
   const [name, setName] = useState(currentUser?.name || 'Ramesh Kumar')
   const [phone, setPhone] = useState(currentUser?.phone || '+91 98221 55432')
@@ -56,6 +104,13 @@ export default function AuthModal() {
     setAuthModalOpen(false)
   }
 
+  const handleLogout = () => {
+    if (window.confirm(text.logoutConfirm)) {
+      logoutUser()
+      setAuthModalOpen(false)
+    }
+  }
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
@@ -85,10 +140,10 @@ export default function AuthModal() {
               <div className="min-w-0">
                 <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded-full border border-white/25">
                   <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                  Citizen Patient Profile
+                  {text.badge}
                 </span>
                 <h2 className="text-base sm:text-lg font-bold font-display truncate mt-0.5">
-                  Manage Patient Details
+                  {text.title}
                 </h2>
               </div>
             </div>
@@ -99,7 +154,7 @@ export default function AuthModal() {
             <form onSubmit={handleSaveProfile} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Full Name (పేరు / नाम)
+                  {text.nameLabel}
                 </label>
                 <input
                   type="text"
@@ -113,7 +168,9 @@ export default function AuthModal() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Age</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {text.ageLabel}
+                  </label>
                   <input
                     type="number"
                     value={age}
@@ -122,7 +179,9 @@ export default function AuthModal() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Gender</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {text.genderLabel}
+                  </label>
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
@@ -137,7 +196,7 @@ export default function AuthModal() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Mobile Number (మొబైల్ నంబర్)
+                  {text.phoneLabel}
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -153,7 +212,7 @@ export default function AuthModal() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  ABHA ID (Ayushman Bharat Health Account)
+                  {text.abhaLabel}
                 </label>
                 <input
                   type="text"
@@ -164,19 +223,33 @@ export default function AuthModal() {
                 />
               </div>
 
-              <div className="flex gap-2.5 pt-2">
+              {/* Action Buttons: Cancel, Save & Logout */}
+              <div className="space-y-2 pt-2">
+                <div className="flex gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setAuthModalOpen(false)}
+                    className="tap-press flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all"
+                  >
+                    {text.cancel}
+                  </button>
+                  <button
+                    type="submit"
+                    className="tap-press flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{text.save}</span>
+                  </button>
+                </div>
+
+                {/* Prominent Red Logout Button */}
                 <button
                   type="button"
-                  onClick={() => setAuthModalOpen(false)}
-                  className="tap-press flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all"
+                  onClick={handleLogout}
+                  className="tap-press w-full py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="tap-press flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all"
-                >
-                  Save Profile
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>{text.logout}</span>
                 </button>
               </div>
             </form>
