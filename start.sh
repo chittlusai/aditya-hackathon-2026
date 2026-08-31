@@ -1,23 +1,31 @@
 #!/usr/bin/env bash
 set -e
 
+PORT="${PORT:-10000}"
+
 echo "=========================================="
 echo " Starting Arogya Setu Local on Render     "
-echo " PORT: ${PORT:-8000}                      "
+echo " Host: 0.0.0.0  |  Port: ${PORT}          "
 echo "=========================================="
 
-# 1. Try uvicorn directly from python
+# 1. Try uvicorn directly
+if command -v uvicorn >/dev/null 2>&1; then
+  echo ">>> Starting via uvicorn command..."
+  exec uvicorn main:app --host 0.0.0.0 --port "$PORT"
+fi
+
+# 2. Try python -m uvicorn
 if python -m uvicorn --version >/dev/null 2>&1; then
-  echo ">>> Starting via python -m uvicorn main:app..."
-  exec python -m uvicorn main:app --host 0.0.0.0 --port "${PORT:-8000}"
+  echo ">>> Starting via python -m uvicorn..."
+  exec python -m uvicorn main:app --host 0.0.0.0 --port "$PORT"
 fi
 
 if python3 -m uvicorn --version >/dev/null 2>&1; then
-  echo ">>> Starting via python3 -m uvicorn main:app..."
-  exec python3 -m uvicorn main:app --host 0.0.0.0 --port "${PORT:-8000}"
+  echo ">>> Starting via python3 -m uvicorn..."
+  exec python3 -m uvicorn main:app --host 0.0.0.0 --port "$PORT"
 fi
 
-# 2. Check virtual environment paths
+# 3. Check virtual environments
 for venv_path in \
   "/opt/render/project/src/.venv" \
   "/opt/render/project/src/backend/.venv" \
@@ -28,19 +36,20 @@ for venv_path in \
 do
   if [ -f "$venv_path/bin/uvicorn" ]; then
     echo ">>> Starting via $venv_path/bin/uvicorn..."
-    exec "$venv_path/bin/uvicorn" main:app --host 0.0.0.0 --port "${PORT:-8000}"
+    exec "$venv_path/bin/uvicorn" main:app --host 0.0.0.0 --port "$PORT"
   fi
   if [ -f "$venv_path/bin/python" ]; then
     echo ">>> Starting via $venv_path/bin/python..."
-    exec "$venv_path/bin/python" -m uvicorn main:app --host 0.0.0.0 --port "${PORT:-8000}"
+    exec "$venv_path/bin/python" -m uvicorn main:app --host 0.0.0.0 --port "$PORT"
   fi
 done
 
-# 3. Fallback: uvicorn in PATH
-if command -v uvicorn >/dev/null 2>&1; then
-  echo ">>> Starting via uvicorn command..."
-  exec uvicorn main:app --host 0.0.0.0 --port "${PORT:-8000}"
+# 4. Try gunicorn fallback
+if command -v gunicorn >/dev/null 2>&1; then
+  echo ">>> Starting via gunicorn..."
+  exec gunicorn -w 2 -k uvicorn.workers.UvicornWorker main:app --bind "0.0.0.0:$PORT"
 fi
 
-echo "Error: Could not locate uvicorn or Python environment."
-exit 1
+# 5. Direct python execution
+echo ">>> Starting via direct python main.py..."
+exec python main.py

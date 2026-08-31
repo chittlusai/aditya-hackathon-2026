@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Exit on error
-set -o errexit
+set -e
 
 echo "=========================================="
 echo " Starting Backend & Frontend Build        "
@@ -11,7 +10,17 @@ echo ">>> Installing Python requirements..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# 2. Build React frontend if located in parent folder
+# 2. Ensure Node.js & npm are present
+if ! command -v npm >/dev/null 2>&1; then
+  echo ">>> Installing portable Node.js (v20) for Render environment..."
+  NODE_URL="https://nodejs.org/dist/v20.18.0/node-v20.18.0-linux-x64.tar.xz"
+  mkdir -p /tmp/node
+  curl -fsSL "$NODE_URL" | tar -xJ -C /tmp/node --strip-components=1
+  export PATH="/tmp/node/bin:$PATH"
+  echo ">>> Node installed: $(node --version), npm: $(npm --version)"
+fi
+
+# 3. Build React frontend
 if [ -d "../frontend" ]; then
   echo ">>> Building React frontend from ../frontend..."
   cd ../frontend
@@ -26,11 +35,9 @@ elif [ -d "frontend" ]; then
   cd ..
 fi
 
-# 3. Mirror frontend dist if exists
 if [ -d "../frontend/dist" ]; then
   mkdir -p dist
   cp -r ../frontend/dist/* dist/ 2>/dev/null || true
-  echo ">>> Synced ../frontend/dist to backend/dist."
 fi
 
 echo "=========================================="
