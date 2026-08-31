@@ -1,27 +1,22 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import {
   Stethoscope,
   Building2,
-  Users,
   Phone,
-  Search,
-  PhoneCall,
-  Navigation,
   Sparkles,
   MapPin,
-  HeartPulse,
   ShieldCheck,
   Clock,
   ArrowRight,
   Pill,
   Siren,
-  Activity,
-  Mic,
-  Volume2,
   FileText,
   Video,
-  X,
-  ChevronDown,
+  Navigation,
+  CheckCircle2,
+  Calendar,
+  HeartPulse,
 } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import VisualSymptomSelector from './VisualSymptomSelector.jsx'
@@ -29,334 +24,252 @@ import VisualSymptomSelector from './VisualSymptomSelector.jsx'
 export default function Home() {
   const {
     go,
-    setRole,
     setSosOpen,
     t,
     language,
     hospitals,
-    patientRecords,
+    currentUser,
     userCoords,
     setGpsModalOpen,
-    requestGpsLocation,
-    setHistoryModalOpen,
     startVideoCall,
-    setSelectedReferral,
-    setReferralTrackerModalOpen,
-    setConsentVaultModalOpen,
-    setFhirExportModalOpen,
   } = useApp()
 
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showFeatureHub, setShowFeatureHub] = useState(false) // Collapsed by default on mobile to prioritize clinical actions
-
-  const filteredHospitals = (hospitals || []).filter(
-    (h) =>
-      (h?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (h?.type || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (h?.specialist || '').toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  const handleVisualSelect = (item) => {
+  const handleVisualSelect = () => {
     go('check')
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-2.5 sm:px-6 py-3 sm:py-8 space-y-3 sm:space-y-6 overflow-x-hidden">
-      {/* 1. Mobile-First Government Hero Section */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-8 shadow-xs">
-        <div className="max-w-3xl space-y-3 sm:space-y-4">
-          {/* Top GPS Status Pill */}
-          <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-            <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-800 px-2 py-0.5 rounded-lg border border-blue-200">
-              <ShieldCheck className="w-3 h-3 text-blue-600 shrink-0" />
-              <span>{t('bannerCategory')}</span>
-            </span>
-
-            <button
-              type="button"
-              onClick={() => setGpsModalOpen(true)}
-              className="tap-press inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg border border-emerald-200 transition-all"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="truncate max-w-[140px] sm:max-w-none">{userCoords?.label || 'GPS Radar'}</span>
-            </button>
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
+      {/* 1. Modern Citizen Welcome & Status Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20 shrink-0">
+            {currentUser?.name?.charAt(0) || 'R'}
           </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                {language === 'hi' ? 'नमस्ते' : language === 'te' ? 'నమస్కారం' : 'Welcome back'},
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                ABDM Verified
+              </span>
+            </div>
+            <h1 className="text-base sm:text-xl font-extrabold text-slate-900 truncate">
+              {currentUser?.name || 'Ramesh Kumar (Citizen)'}
+            </h1>
+          </div>
+        </div>
 
-          {/* Title & Brand */}
-          <div className="flex items-center gap-3">
-            <img
-              src="/logo.png"
-              alt="Arogya Setu Logo"
-              className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-2xl p-1 bg-white border border-blue-100 shadow-xs shrink-0"
-            />
+        {/* GPS Location & Emergency SOS Quick Actions */}
+        <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => setGpsModalOpen(true)}
+            className="tap-press flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 text-xs font-bold bg-slate-50 hover:bg-slate-100 text-slate-700 px-3 py-2 rounded-2xl border border-slate-200 transition-all"
+          >
+            <Navigation className="w-3.5 h-3.5 text-blue-600" />
+            <span className="truncate max-w-[130px] sm:max-w-none">{userCoords?.label || 'GPS Radar Active'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSosOpen(true)}
+            className="tap-press inline-flex items-center justify-center gap-1.5 text-xs font-extrabold bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-2xl shadow-md shadow-red-500/25 transition-all"
+          >
+            <Siren className="w-3.5 h-3.5 animate-pulse" />
+            <span>108 SOS</span>
+          </button>
+        </div>
+      </motion.div>
+
+      {/* 2. Flagship Interactive Feature Cards (2 Hero Cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* HERO CARD 1: AI Health Triage & Body Map */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white shadow-xl shadow-blue-600/15 overflow-hidden flex flex-col justify-between group"
+        >
+          {/* Subtle Background Art */}
+          <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-700" />
+
+          <div className="space-y-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-inner">
+                <Stethoscope className="w-6 h-6" />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 text-white px-2.5 py-1 rounded-full border border-white/25">
+                ⚡ 10ms Offline AI
+              </span>
+            </div>
+
             <div>
-              <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-display">
-                {t('appName')}
-              </h1>
-              <p className="text-[11px] sm:text-sm font-bold text-blue-700">
-                {t('portalSubtitle')}
+              <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
+                {language === 'hi' ? 'बीमारी व लक्षणों की जांच करें' : language === 'te' ? 'లక్షణాలు & ఆరోగ్య పరీక్ష' : 'Check Symptoms & Health Triage'}
+              </h2>
+              <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed mt-1">
+                {language === 'hi'
+                  ? 'चित्रों पर टच करके या अपनी भाषा में बोलकर बीमारी की गंभीरता और सही अस्पताल जानें।'
+                  : language === 'te'
+                  ? 'శరీర భాగాలపై నొక్కి లేదా 17 భాషల్లో మాట్లాడి తక్షణ వైద్య సలహా పొందండి.'
+                  : 'Tap interactive body parts or speak in 17 Indian languages for zero-delay triage & PHC matching.'}
               </p>
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-            {language === 'hi'
-              ? 'चित्रों पर क्लिक करके या बोलकर बीमारी की गंभीरता जांचें, उपस्थित डॉक्टर देखें और नजदीकी स्वास्थ्य केंद्र पहुंचे।'
-              : language === 'mr'
-              ? 'चित्रांवर क्लिक करून किंवा बोलून आजाराची तपासणी करा आणि जवळच्या आरोग्य केंद्राचा मार्ग मिळवा.'
-              : 'Identify illness urgency using visual icons or voice, check on-duty doctors, and reach your nearest Primary Health Centre.'}
-          </p>
-
-          {/* 1 Big Primary Action Button for Rural Mobile Users */}
           <button
             type="button"
             onClick={() => go('check')}
-            className="tap-press w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm sm:text-base shadow-md flex items-center justify-center gap-2.5 transition-all"
+            className="tap-press mt-5 w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-blue-50 text-blue-900 font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition-all relative z-10"
           >
-            <Stethoscope className="w-5 h-5 shrink-0" />
-            <span>{language === 'hi' ? 'बीमारी की जांच शुरू करें (AI Triage)' : language === 'mr' ? 'आरोग्य तपासणी सुरू करा' : 'Start Health Check (AI Triage)'}</span>
-            <ArrowRight className="w-5 h-5 shrink-0" />
+            <span>{language === 'hi' ? 'जांच शुरू करें (Start Triage)' : language === 'te' ? 'పరీక్ష ప్రారంభించండి' : 'Start Symptom Check'}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
+        </motion.div>
 
-          {/* 4 Quick Action Touch Tiles (2x2 grid on mobile) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => go('map')}
-              className="tap-press p-2.5 sm:p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 border border-slate-200 text-slate-800 text-left flex flex-col justify-between group transition-all"
-            >
-              <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="font-bold text-xs block text-slate-900">Nearby Hospitals</span>
-                <span className="text-[10px] text-slate-500">Live on-duty doctors</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => startVideoCall()}
-              className="tap-press p-2.5 sm:p-3 rounded-2xl bg-emerald-50/70 hover:bg-emerald-100 border border-emerald-200 text-slate-800 text-left flex flex-col justify-between group transition-all"
-            >
-              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-                <Video className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="font-bold text-xs block text-emerald-950">Video Doctor</span>
-                <span className="text-[10px] text-emerald-700 font-semibold">Live Teleconsult</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => go('history')}
-              className="tap-press p-2.5 sm:p-3 rounded-2xl bg-teal-50/70 hover:bg-teal-100 border border-teal-200 text-slate-800 text-left flex flex-col justify-between group transition-all"
-            >
-              <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-                <FileText className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="font-bold text-xs block text-teal-950">Health History</span>
-                <span className="text-[10px] text-teal-700 font-semibold">Reports & Slips</span>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSosOpen(true)}
-              className="tap-press p-2.5 sm:p-3 rounded-2xl bg-red-50 hover:bg-red-100 border border-red-200 text-slate-800 text-left flex flex-col justify-between group transition-all"
-            >
-              <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-                <Siren className="w-4 h-4 animate-pulse" />
-              </div>
-              <div>
-                <span className="font-bold text-xs block text-red-950">108 SOS</span>
-                <span className="text-[10px] text-red-700 font-semibold">Emergency Dispatch</span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Visual Illustrated Problem Cards (Primary Mobile Selector for Rural Citizens) */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-3.5 sm:p-7 shadow-xs">
-        <VisualSymptomSelector onSelectSymptom={handleVisualSelect} selectedSymptoms={[]} />
-      </div>
-
-      {/* 3. Next-Gen 20-Feature Upgrade Blueprint Hub (Mobile Optimized Collapsible) */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xl border border-blue-700/30 space-y-3 w-full overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowFeatureHub((prev) => !prev)}
-          className="tap-press w-full flex items-center justify-between gap-2 text-left"
+        {/* HERO CARD 2: WhatsApp Doctor Video Consultation */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 text-white shadow-xl shadow-emerald-600/15 overflow-hidden flex flex-col justify-between group"
         >
-          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-blue-500/25 text-blue-200 px-2 py-0.5 rounded-full border border-blue-400/25 inline-flex items-center gap-1 shrink-0">
-              <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
-              SIH26133
-            </span>
-            <h2 className="text-xs sm:text-base font-bold font-sans text-white truncate">
-              20 Advanced Health Upgrades
-            </h2>
+          {/* Subtle Background Art */}
+          <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-emerald-400/15 blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-700" />
+
+          <div className="space-y-3 relative z-10">
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-inner">
+                <Video className="w-6 h-6" />
+              </div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/30 text-emerald-200 px-2.5 py-1 rounded-full border border-emerald-400/30 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Live Doctor Available
+              </span>
+            </div>
+
+            <div>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
+                {language === 'hi' ? 'डॉक्टर वीडियो कॉल (WhatsApp)' : language === 'te' ? 'వాట్సాప్ డాక్టర్ వీడియో కాల్' : 'WhatsApp Doctor Video Call'}
+              </h2>
+              <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed mt-1">
+                {language === 'hi'
+                  ? 'डॉ. राजेश शर्मा से लाइव बात करें — चेहरे के दर्द का AI विश्लेषण व वास्तविक आवाज़ में परामर्श।'
+                  : language === 'te'
+                  ? 'డాక్టర్ రాజేష్ శర్మతో మాట్లాడండి — ముఖ కవళికల AI స్కాన్ & రియల్ వాయిస్ సలహా.'
+                  : 'Live teleconsultation with Dr. Rajesh Sharma featuring Gemini AI Face/Pain HUD and ElevenLabs real doctor voice.'}
+              </p>
+            </div>
           </div>
 
-          <div className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-blue-200 bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-xl shrink-0 transition-all border border-white/10">
-            <span>{showFeatureHub ? 'Hide' : 'Explore'}</span>
-            <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform ${showFeatureHub ? 'rotate-180' : ''}`} />
-          </div>
-        </button>
-
-        {showFeatureHub && (
-          <div className="pt-3 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
-            {/* Feature 01: AI Care Navigator */}
-            <button
-              type="button"
-              onClick={() => go('check')}
-              className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-blue-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                <Stethoscope className="w-4 h-4 text-blue-300" />
-              </div>
-              <div>
-                <span className="text-[9px] font-mono text-blue-300 block font-bold">FEAT 01</span>
-                <span className="text-xs font-bold text-white leading-tight block">AI Care Navigator</span>
-              </div>
-            </button>
-
-            {/* Feature 03: Command Map & Radar */}
-            <button
-              type="button"
-              onClick={() => go('map')}
-              className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                <MapPin className="w-4 h-4 text-emerald-300" />
-              </div>
-              <div>
-                <span className="text-[9px] font-mono text-emerald-300 block font-bold">FEAT 03</span>
-                <span className="text-xs font-bold text-white leading-tight block">Command Map & Queue</span>
-              </div>
-            </button>
-
-            {/* Features 10 & 11: Medicine & Diagnostics */}
-            <button
-              type="button"
-              onClick={() => go('medicines')}
-              className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-amber-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                <Pill className="w-4 h-4 text-amber-300" />
-              </div>
-              <div>
-                <span className="text-[9px] font-mono text-amber-300 block font-bold">FEAT 10 & 11</span>
-                <span className="text-xs font-bold text-white leading-tight block">Medicine & Labs</span>
-              </div>
-            </button>
-
-            {/* Features 05 & 06: Referral Lifecycle Tracker */}
-            <button
-              type="button"
-              onClick={() => setReferralTrackerModalOpen(true)}
-              className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-purple-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                <Activity className="w-4 h-4 text-purple-300" />
-              </div>
-              <div>
-                <span className="text-[9px] font-mono text-purple-300 block font-bold">FEAT 05 & 06</span>
-                <span className="text-xs font-bold text-white leading-tight block">Referral Tracker</span>
-              </div>
-            </button>
-
-            {/* Feature 19: Privacy & Consent Vault */}
-            <button
-              type="button"
-              onClick={() => setConsentVaultModalOpen(true)}
-              className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-indigo-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                <ShieldCheck className="w-4 h-4 text-indigo-300" />
-              </div>
-              <div>
-                <span className="text-[9px] font-mono text-indigo-300 block font-bold">FEAT 19</span>
-                <span className="text-xs font-bold text-white leading-tight block">Consent Vault (ABDM)</span>
-              </div>
-            </button>
-
-            {/* Feature 20: FHIR Interoperability */}
-            <button
-              type="button"
-              onClick={() => setFhirExportModalOpen(true)}
-              className="tap-press text-left p-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all flex flex-col justify-between group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-rose-500/30 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                <HeartPulse className="w-4 h-4 text-rose-300" />
-              </div>
-              <div>
-                <span className="text-[9px] font-mono text-rose-300 block font-bold">FEAT 20</span>
-                <span className="text-xs font-bold text-white leading-tight block">FHIR / ABDM Bridge</span>
-              </div>
-            </button>
-          </div>
-        )}
+          <button
+            type="button"
+            onClick={() => startVideoCall()}
+            className="tap-press mt-5 w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-950 font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition-all relative z-10"
+          >
+            <span>{language === 'hi' ? 'कॉल शुरू करें (Start Call)' : language === 'te' ? 'కాల్ ప్రారంభించండి' : 'Start Video Call Now'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </motion.div>
       </div>
 
-      {/* 4. Simple 3-Step Guide (Mobile Friendly) */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-7 shadow-xs">
-        <div className="text-center max-w-xl mx-auto mb-4 sm:mb-6">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 block">
-            {language === 'hi' ? 'सरल व आसान उपयोग' : language === 'mr' ? 'सोपी व सुलभ पद्धत' : 'Easy To Use · How It Works'}
-          </span>
-          <h3 className="text-base sm:text-xl font-bold text-slate-900 font-display mt-0.5">
-            {language === 'hi' ? '3 चरणों में सही इलाज तक पहुंचें' : language === 'mr' ? '३ सोप्या पायऱ्यांमध्ये आरोग्य सेवा' : 'Access Quality Care in 3 Simple Steps'}
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center sm:flex-col sm:text-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-extrabold flex items-center justify-center shrink-0">
-              1
+      {/* 3. Secondary Bento Grid (Nearby Hospitals & Pill Tracker) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Card 3: Nearby Hospitals & Live GPS Map */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-blue-300 transition-all group"
+        >
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-xs sm:text-sm text-slate-900">
-                {language === 'hi' ? 'लक्षण बताएं या चित्र चुनें' : 'Speak or Select Symptoms'}
-              </h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                {language === 'hi' ? 'अपनी भाषा में बोलें या परेशानी के चित्र पर टच करें।' : 'Talk in your native language or tap any symptom icon.'}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md">
+                  GPS Radar
+                </span>
+                <span className="text-[10px] font-bold text-slate-500">
+                  {hospitals?.length || 18} Centres
+                </span>
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 mt-1">
+                Nearby PHC & CHC Hospitals
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Check driving distances, on-duty doctors, ICU beds & oxygen availability.
               </p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center sm:flex-col sm:text-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-extrabold flex items-center justify-center shrink-0">
-              2
+          <button
+            type="button"
+            onClick={() => go('map')}
+            className="tap-press w-full py-2.5 px-3.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-800 hover:text-blue-700 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5"
+          >
+            <MapPin className="w-3.5 h-3.5 text-teal-600" />
+            <span>View Hospital Radar & Live Map →</span>
+          </button>
+        </motion.div>
+
+        {/* Card 4: Daily Pill Tracker & Medicine Timings */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-amber-300 transition-all group"
+        >
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 border border-amber-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Pill className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-xs sm:text-sm text-slate-900">
-                {language === 'hi' ? 'गंभीरता व प्राथमिक सलाह' : 'Get Triage & Advice'}
-              </h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                {language === 'hi' ? 'तुरंत जानें कि सामान्य आराम चाहिए या डॉक्टर को दिखाना है।' : 'Immediate assessment on whether home care or hospital is needed.'}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
+                  Daily Schedule
+                </span>
+                <span className="text-[10px] font-bold text-slate-500">
+                  Morning • Afternoon • Night
+                </span>
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 mt-1">
+                Daily Pill Tracker & Medicines
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Organizes tablets with food instructions, exact timings & clinical purpose.
               </p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center sm:flex-col sm:text-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-extrabold flex items-center justify-center shrink-0">
-              3
-            </div>
-            <div>
-              <h4 className="font-bold text-xs sm:text-sm text-slate-900">
-                {language === 'hi' ? 'डॉक्टर व अस्पताल का रास्ता' : 'Reach Doctor & Hospital'}
-              </h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                {language === 'hi' ? 'उपस्थित डॉक्टर, दूरी और प्राथमिकता पर्ची प्राप्त करें।' : 'See on-duty doctors, beds, and priority referral slip.'}
-              </p>
-            </div>
-          </div>
-        </div>
+          <button
+            type="button"
+            onClick={() => go('medicines')}
+            className="tap-press w-full py-2.5 px-3.5 rounded-xl bg-slate-50 hover:bg-amber-50 text-slate-800 hover:text-amber-800 font-bold text-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5"
+          >
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            <span>Check Pill Timings & Stock →</span>
+          </button>
+        </motion.div>
       </div>
+
+      {/* 4. Visual 1-Tap Body Symptoms Selector */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-7 shadow-xs"
+      >
+        <VisualSymptomSelector onSelectSymptom={handleVisualSelect} selectedSymptoms={[]} />
+      </motion.div>
     </div>
   )
 }
