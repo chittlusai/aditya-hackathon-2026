@@ -66,21 +66,21 @@ export default function Navbar() {
       </div>
 
       {/* Main Header Bar */}
-      <header ref={navRef} className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs w-full">
-        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 h-13 sm:h-16 flex items-center justify-between gap-2">
-          {/* 1. Left: Brand Logo & Title */}
+      <header ref={navRef} className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs w-full">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
+          {/* 1. Left: Brand Logo & Title (Clean - Zero Box Border) */}
           <button
             type="button"
             onClick={() => {
               closeDrawer()
               go('home')
             }}
-            className="tap-press flex items-center gap-2 text-left shrink-0 group min-w-0"
+            className="tap-press flex items-center gap-2.5 text-left shrink-0 group min-w-0"
           >
             <img
               src="/logo.png"
               alt="Arogya Setu Logo"
-              className="w-7 h-7 sm:w-9 sm:h-9 object-contain rounded-xl shadow-2xs border border-blue-100/60 p-0.5 bg-white group-hover:scale-105 transition-transform shrink-0"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-xl group-hover:scale-105 transition-transform shrink-0"
             />
             <div className="flex flex-col min-w-0">
               <span className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight leading-none truncate">

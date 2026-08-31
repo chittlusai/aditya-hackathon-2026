@@ -506,22 +506,30 @@ export default function TeleconsultVideoCallModal() {
         {/* 1. WHATSAPP FULL-SCREEN DOCTOR VIDEO STREAM VIEWPORT */}
         {/* ========================================================================= */}
         <div className="relative w-full h-full max-w-md sm:max-w-lg md:max-w-xl mx-auto bg-slate-950 flex flex-col justify-between overflow-hidden shadow-2xl">
-          {/* Real Full Video Feed of the Doctor */}
+          {/* Real Full Video Feed of the Doctor with Dynamic Speech Animation */}
           <div className="absolute inset-0 w-full h-full overflow-hidden">
             <img
               src="/doctor_video_feed.jpg"
               alt={doctor.name}
-              className="w-full h-full object-cover object-center transform scale-105 transition-all duration-700"
+              className={`w-full h-full object-cover object-center transition-all duration-700 ${
+                isDoctorSpeaking
+                  ? 'scale-105 brightness-105 contrast-105 animate-[pulse_2.2s_ease-in-out_infinite]'
+                  : 'scale-100'
+              }`}
             />
 
             {/* Subtle Clinical Ambient Lighting & Dark Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-transparent to-black/85 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/90 pointer-events-none" />
 
             {/* Audio Reactive Doctor Speaking Pulse Wave Indicator */}
             {isDoctorSpeaking && (
-              <div className="absolute top-16 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-500/40 text-emerald-400 text-xs font-bold shadow-lg animate-pulse">
-                <Volume2 className="w-3.5 h-3.5 text-emerald-400 animate-bounce" />
-                <span>Doctor is Speaking ({language.toUpperCase()})...</span>
+              <div className="absolute top-14 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-emerald-950/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-emerald-400/50 text-emerald-300 text-xs font-bold shadow-2xl animate-pulse z-20">
+                <div className="flex items-center gap-0.5">
+                  <span className="w-1 h-3 bg-emerald-400 rounded-full animate-[bounce_0.6s_infinite_100ms]" />
+                  <span className="w-1 h-4 bg-emerald-300 rounded-full animate-[bounce_0.6s_infinite_200ms]" />
+                  <span className="w-1 h-2 bg-emerald-400 rounded-full animate-[bounce_0.6s_infinite_300ms]" />
+                </div>
+                <span>Dr. Rajesh Sharma is Speaking ({language.toUpperCase()})...</span>
               </div>
             )}
           </div>
@@ -553,40 +561,10 @@ export default function TeleconsultVideoCallModal() {
               </div>
             </div>
 
-            {/* Right Header Menu Button: Voice Persona Switcher & Drawer Toggle */}
+            {/* Right Header Menu Button: Male Doctor Badge & Drawer Toggle */}
             <div className="flex items-center gap-1.5">
-              {/* ElevenLabs Voice Persona Switcher */}
-              <div className="flex items-center bg-black/40 backdrop-blur-md p-0.5 rounded-xl border border-white/20 text-[10px]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDoctorVoicePersona('male')
-                    stopDoctorVoiceAudio()
-                  }}
-                  className={`px-1.5 py-1 rounded-lg font-bold transition-all flex items-center gap-0.5 ${
-                    doctorVoicePersona === 'male'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-white/70 hover:text-white'
-                  }`}
-                  title="Dr. Rajesh Sharma (Male Voice - ElevenLabs AI)"
-                >
-                  <span>👨‍⚕️ Male</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDoctorVoicePersona('female')
-                    stopDoctorVoiceAudio()
-                  }}
-                  className={`px-1.5 py-1 rounded-lg font-bold transition-all flex items-center gap-0.5 ${
-                    doctorVoicePersona === 'female'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-white/70 hover:text-white'
-                  }`}
-                  title="Dr. Ananya Rao (Female Voice - ElevenLabs AI)"
-                >
-                  <span>👩‍⚕️ Female</span>
-                </button>
+              <div className="hidden sm:flex items-center gap-1 bg-emerald-950/70 backdrop-blur-md px-2.5 py-1 rounded-xl border border-emerald-400/30 text-[10.5px] text-emerald-200 font-bold">
+                <span>👨‍⚕️ MD Chief Medical Officer</span>
               </div>
 
               <button
@@ -601,9 +579,9 @@ export default function TeleconsultVideoCallModal() {
                 }`}
               >
                 <Pill className="w-3.5 h-3.5" />
-                <span className="text-[11px] hidden xs:inline">Rx Menu</span>
+                <span>Prescription ({prescribedMedicines.length})</span>
                 {prescribedMedicines.length > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-amber-300" />
+                  <span className="w-2 h-2 rounded-full bg-amber-300 animate-pulse" />
                 )}
               </button>
             </div>
