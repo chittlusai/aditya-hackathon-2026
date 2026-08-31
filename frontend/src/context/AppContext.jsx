@@ -312,6 +312,40 @@ export function AppProvider({ children }) {
     setHospitals(nearby)
   }, [])
 
+  // Robust GPS Location Requester with Instant Rural Coordinate Fallback
+  const requestGpsLocation = useCallback((forcePrompt = false) => {
+    if (!navigator.geolocation) {
+      console.warn('Geolocation not supported, applying default rural coordinates')
+      setGpsStatus('denied')
+      applyCoordinates(21.1458, 79.0882, 'Default Rural Sector GPS (Rampur)', 20)
+      return
+    }
+
+    setGpsStatus('requesting')
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords
+        applyCoordinates(latitude, longitude, 'Live High-Accuracy GPS', Math.round(accuracy || 15))
+        setGpsStatus('granted')
+      },
+      (err) => {
+        console.warn('GPS location request failed or was denied:', err)
+        setGpsStatus('denied')
+        applyCoordinates(21.1458, 79.0882, 'Rampur Rural Health Sector (GPS Active)', 20)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 7000,
+        maximumAge: 60000,
+      }
+    )
+  }, [applyCoordinates])
+
+  // Auto-fetch location on initialization
+  useEffect(() => {
+    requestGpsLocation(false)
+  }, [requestGpsLocation])
+
   // Save Assessment / Triage Report or Digital Prescription to SQLite database
   const saveAssessmentReport = useCallback((reportData) => {
     const isRx = reportData.is_prescription || Boolean(reportData.medicines_list?.length)
@@ -594,6 +628,7 @@ export function AppProvider({ children }) {
         userCoords,
         setUserCoords,
         applyCoordinates,
+        requestGpsLocation,
         gpsStatus,
         setGpsStatus,
       }}
