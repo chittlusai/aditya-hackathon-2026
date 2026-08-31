@@ -264,7 +264,19 @@ export default function TeleconsultVideoCallModal() {
     }
   }
 
-  // Patient Voice Dictation Handler with Auto-Send on Mobile
+  const finalTranscriptRef = useRef('')
+  const silenceTimerRef = useRef(null)
+
+  const resetVoiceSilenceTimer = () => {
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+    silenceTimerRef.current = setTimeout(() => {
+      if (speechRecognitionRef.current) {
+        speechRecognitionRef.current.stop()
+      }
+    }, 5500)
+  }
+
+  // Patient Voice Dictation Handler with Google Assistant Continuous Capture
   const startPatientSpeaking = () => {
     // 1. Immediately silence and stop doctor voice speech when user starts talking!
     stopDoctorVoiceAudio()
@@ -278,42 +290,68 @@ export default function TeleconsultVideoCallModal() {
 
     try {
       if (speechRecognitionRef.current) {
-        speechRecognitionRef.current.abort()
+        try {
+          speechRecognitionRef.current.abort()
+        } catch {}
       }
+
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+
+      finalTranscriptRef.current = ''
+      setPatientSpokenText('')
 
       const recognition = new SpeechRecognition()
       recognition.lang = speechCode
-      recognition.continuous = false
+      recognition.continuous = true
       recognition.interimResults = true
-
-      let capturedText = ''
+      recognition.maxAlternatives = 1
 
       recognition.onstart = () => {
         setIsPatientListening(true)
         setPatientSpokenText('')
+        resetVoiceSilenceTimer()
       }
 
+      recognition.onsoundstart = () => resetVoiceSilenceTimer()
+      recognition.onspeechstart = () => resetVoiceSilenceTimer()
+
       recognition.onresult = (event) => {
-        let transcript = ''
+        resetVoiceSilenceTimer()
+        let finalStr = ''
+        let currentInterim = ''
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript
+          const res = event.results[i]
+          if (res.isFinal) {
+            finalStr += res[0].transcript + ' '
+          } else {
+            currentInterim += res[0].transcript
+          }
         }
-        if (transcript.trim()) {
-          capturedText = transcript
-          setPatientSpokenText(transcript)
+
+        if (finalStr.trim()) {
+          finalTranscriptRef.current = (finalTranscriptRef.current + ' ' + finalStr).trim()
         }
+
+        const fullCaptured = (finalTranscriptRef.current + ' ' + currentInterim).trim()
+        setPatientSpokenText(fullCaptured)
       }
 
       recognition.onerror = (e) => {
-        console.warn('Speech recognition error:', e)
-        setIsPatientListening(false)
+        console.warn('Speech recognition notice:', e)
+        if (e.error === 'not-allowed') {
+          alert('Microphone access blocked. Please allow Microphone permission.')
+          setIsPatientListening(false)
+        }
       }
 
       recognition.onend = () => {
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
         setIsPatientListening(false)
-        // Automatically send the recognized speech to Doctor AI upon silence on mobile!
-        if (capturedText && capturedText.trim().length > 1) {
-          handleSendProblem(capturedText.trim())
+
+        const finalRecordedText = (finalTranscriptRef.current || patientSpokenText || '').trim()
+        if (finalRecordedText.length > 1) {
+          handleSendProblem(finalRecordedText)
         }
       }
 
@@ -326,12 +364,16 @@ export default function TeleconsultVideoCallModal() {
   }
 
   const stopPatientSpeaking = () => {
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
     if (speechRecognitionRef.current) {
-      speechRecognitionRef.current.stop()
+      try {
+        speechRecognitionRef.current.stop()
+      } catch {}
     }
     setIsPatientListening(false)
-    if (patientSpokenText && patientSpokenText.trim().length > 1) {
-      handleSendProblem(patientSpokenText.trim())
+    const textToSend = (finalTranscriptRef.current || patientSpokenText || '').trim()
+    if (textToSend.length > 1) {
+      handleSendProblem(textToSend)
     }
   }
 

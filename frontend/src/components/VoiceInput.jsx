@@ -44,17 +44,17 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
     if (intervalRef.current) clearInterval(intervalRef.current)
     
-    setSilenceCountdown(3)
-    let count = 3
+    setSilenceCountdown(5)
+    let count = 5
     intervalRef.current = setInterval(() => {
       count -= 1
       if (count >= 0) setSilenceCountdown(count)
     }, 1000)
 
-    // 3000ms silence timer
+    // 5000ms silence timer
     silenceTimerRef.current = setTimeout(() => {
       stopListening()
-    }, 3000)
+    }, 5000)
   }
 
   const startListening = () => {

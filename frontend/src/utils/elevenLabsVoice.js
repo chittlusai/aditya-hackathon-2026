@@ -1,7 +1,7 @@
 /**
- * elevenLabsVoice.js — Ultra-Realistic AI Doctor Voice Synthesizer with ElevenLabs
- * Supports Male Doctor (Dr. Rajesh Sharma) and Female Doctor (Dr. Ananya Rao)
- * with eleven_multilingual_v2 supporting all Indian languages (Telugu, Hindi, Tamil, etc.)
+ * elevenLabsVoice.js — Ultra-Realistic AI Doctor Voice Synthesizer
+ * Powered by free Microsoft Edge Neural TTS with high-quality Indian regional accents
+ * and automatic ElevenLabs & browser speech fallbacks.
  */
 
 export const DEFAULT_ELEVENLABS_API_KEY =
@@ -9,10 +9,10 @@ export const DEFAULT_ELEVENLABS_API_KEY =
   (typeof localStorage !== 'undefined' && localStorage.getItem('asl:elevenlabs_api_key')) ||
   ''
 
-// ElevenLabs Voice Personas
+// Voice Personas
 export const ELEVENLABS_VOICE_IDS = {
   male: {
-    id: '2DRBj9T2XZ7Jmkcm6WCZ', // Realistic Doctor Voice ID provided by User
+    id: '2DRBj9T2XZ7Jmkcm6WCZ',
     name: 'Dr. Rajesh Sharma (Chief Medical Officer)',
     persona: 'Male Doctor',
     stability: 0.50,
@@ -20,7 +20,7 @@ export const ELEVENLABS_VOICE_IDS = {
     style: 0.15,
   },
   female: {
-    id: '21m00Tcm4TlvDq8ikWAM', // Rachel - Warm, compassionate female clinician
+    id: '21m00Tcm4TlvDq8ikWAM',
     name: 'Dr. Ananya Rao (Senior Medical Officer)',
     persona: 'Female Doctor',
     stability: 0.55,
@@ -32,7 +32,7 @@ export const ELEVENLABS_VOICE_IDS = {
 let activeAudioElement = null
 
 /**
- * Stop any currently playing ElevenLabs or browser audio
+ * Stop any currently playing audio stream
  */
 export function stopDoctorVoiceAudio() {
   if (activeAudioElement) {
@@ -48,8 +48,7 @@ export function stopDoctorVoiceAudio() {
 }
 
 /**
- * Synthesize ultra-realistic doctor voice speech via ElevenLabs API
- * with backend proxy endpoint and automatic fallback.
+ * Synthesize ultra-realistic doctor voice speech via Edge Neural TTS / ElevenLabs
  */
 export async function playDoctorVoiceSpeech(
   text,
@@ -66,15 +65,16 @@ export async function playDoctorVoiceSpeech(
 
   const voiceConfig = ELEVENLABS_VOICE_IDS[persona] || ELEVENLABS_VOICE_IDS.male
   const voiceId = voiceConfig.id
+  const langKey = (languageCode || 'en').split('-')[0].toLowerCase()
 
-  // 1. First Tier: Dedicated Backend Streaming Proxy (Guarantees zero CORS & full audio headers)
+  // 1. First Tier: Microsoft Edge Neural TTS via Backend Engine (Free, high-fidelity Indian accents)
   try {
-    onStart()
     const proxyRes = await fetch('/api/tts/doctor-voice', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text: cleanText,
+        language: langKey,
         voice_id: voiceId,
         persona,
       }),
@@ -82,7 +82,7 @@ export async function playDoctorVoiceSpeech(
 
     if (proxyRes.ok) {
       const audioBlob = await proxyRes.blob()
-      if (audioBlob && audioBlob.size > 500) {
+      if (audioBlob && audioBlob.size > 300) {
         const audioUrl = URL.createObjectURL(audioBlob)
         const audio = new Audio(audioUrl)
         activeAudioElement = audio
@@ -104,7 +104,7 @@ export async function playDoctorVoiceSpeech(
       }
     }
   } catch (err) {
-    console.warn('Backend ElevenLabs audio stream attempt failed, trying direct API:', err)
+    console.warn('Backend Edge TTS audio stream attempt failed, trying ElevenLabs direct API:', err)
   }
 
   // 2. Second Tier: Direct ElevenLabs API Call
@@ -154,54 +154,44 @@ export async function playDoctorVoiceSpeech(
         await audio.play()
         return
       }
-    } catch (e) {
-      console.warn('Direct ElevenLabs API failed:', e)
+    } catch (directErr) {
+      console.warn('Direct ElevenLabs synthesis failed, resorting to native browser speech:', directErr)
     }
   }
 
-  // 3. Fallback to Browser Speech Synthesis
+  // 3. Third Tier: Native Browser SpeechSynthesis
   fallbackBrowserSpeech(cleanText, persona, languageCode, onStart, onEnd, onError)
 }
 
 /**
- * Fallback Browser Speech Synthesis
+ * High-quality Native Browser SpeechSynthesis Fallback
  */
 function fallbackBrowserSpeech(text, persona, languageCode, onStart, onEnd, onError) {
   if (typeof window === 'undefined' || !window.speechSynthesis) {
-    onError?.()
+    onError()
     return
   }
 
-  try {
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = languageCode || 'en-IN'
+  window.speechSynthesis.cancel()
 
-    if (persona === 'female') {
-      utterance.pitch = 1.18
-      utterance.rate = 0.94
-    } else {
-      utterance.pitch = 0.90
-      utterance.rate = 0.92
-    }
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = languageCode || 'en-IN'
+  utterance.rate = 0.95
+  utterance.pitch = persona === 'female' ? 1.15 : 0.92
 
-    const voices = window.speechSynthesis.getVoices()
-    const match = voices.find(
-      (v) =>
-        v.lang.toLowerCase().includes((languageCode || '').toLowerCase()) ||
-        v.name.toLowerCase().includes(persona === 'female' ? 'female' : 'male') ||
-        v.name.toLowerCase().includes('india') ||
-        v.name.toLowerCase().includes('google')
-    )
-    if (match) utterance.voice = match
-
-    utterance.onstart = () => onStart()
-    utterance.onend = () => onEnd()
-    utterance.onerror = () => onError()
-
-    window.speechSynthesis.speak(utterance)
-  } catch (e) {
-    console.warn('Browser speech synthesis failed:', e)
-    onError?.()
+  // Select best matching regional voice if available
+  const voices = window.speechSynthesis.getVoices()
+  const matchingVoice = voices.find((v) => v.lang === languageCode || v.lang.startsWith(languageCode.split('-')[0]))
+  if (matchingVoice) {
+    utterance.voice = matchingVoice
   }
+
+  utterance.onstart = () => onStart()
+  utterance.onend = () => onEnd()
+  utterance.onerror = () => {
+    onEnd()
+    onError()
+  }
+
+  window.speechSynthesis.speak(utterance)
 }

@@ -229,27 +229,68 @@ def update_hospital(hospital_id: int, update_data: HospitalUpdate):
 
 class VoiceSynthesisRequest(BaseModel):
     text: str
+    language: Optional[str] = "en"
     voice_id: Optional[str] = "2DRBj9T2XZ7Jmkcm6WCZ"
     persona: Optional[str] = "male"
 
 
+EDGE_TTS_VOICE_MAP = {
+    "te": "te-IN-MohanNeural",
+    "hi": "hi-IN-MadhurNeural",
+    "en": "en-IN-PrabhatNeural",
+    "ta": "ta-IN-ValluvarNeural",
+    "mr": "mr-IN-ManoharNeural",
+    "bn": "bn-IN-BashkarNeural",
+    "kn": "kn-IN-GaganNeural",
+    "gu": "gu-IN-NiranjanNeural",
+    "ml": "ml-IN-MidhunNeural",
+    "ur": "ur-IN-SalmanNeural",
+    "pa": "pa-IN-GurpreetNeural",
+    "or": "or-IN-SubhasisNeural",
+}
+
+
 @app.post("/api/tts/doctor-voice")
-def synthesize_doctor_voice(req: VoiceSynthesisRequest):
-    """Synthesizes human speech via ElevenLabs API with multi-tier fallback."""
+@app.post("/api/tts")
+async def synthesize_doctor_voice(req: VoiceSynthesisRequest):
+    """Synthesizes human doctor speech via high-fidelity Edge TTS Neural voices with ElevenLabs fallback."""
+    from fastapi.responses import Response
+    import io
+
+    # 1. Try Microsoft Edge Neural TTS (Free, high-fidelity Indian regional accents)
+    lang_key = (req.language or "en").lower()
+    edge_voice = EDGE_TTS_VOICE_MAP.get(lang_key, "en-IN-PrabhatNeural")
+
+    try:
+        import edge_tts
+        communicate = edge_tts.Communicate(req.text, edge_voice)
+        audio_buffer = io.BytesIO()
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio_buffer.write(chunk["data"])
+        
+        audio_bytes = audio_buffer.getvalue()
+        if len(audio_bytes) > 500:
+            return Response(
+                content=audio_bytes,
+                media_type="audio/mpeg",
+                headers={
+                    "Content-Disposition": "inline; filename=doctor_speech.mp3",
+                    "X-TTS-Engine": "Edge-TTS-Neural",
+                    "X-TTS-Voice": edge_voice,
+                },
+            )
+    except Exception as edge_err:
+        print(f"Edge TTS error: {edge_err}, falling back to ElevenLabs...")
+
+    # 2. Fallback to ElevenLabs API
     api_key = os.environ.get("ELEVENLABS_API_KEY", "sk_c9ce4df483a542eaaa9cbfc02214aac7e900b84ec00f5078")
-    
     candidate_voices = []
     if req.voice_id:
         candidate_voices.append(req.voice_id)
-    
-    if req.persona == "female":
-        candidate_voices.extend(["EXAVITQu4vr4xnSDxMaL", "FGY2WhTYpPnrIDTdsKH5", "XrExE9yKIg1WjnnlVkGX"])
-    else:
-        candidate_voices.extend(["pNInz6obpgDQGcFmaJgB", "JBFqnCBsd6RMkjVDRZzb", "VR6AewLTigWG4xSOukaG"])
-    
+    candidate_voices.extend(["2DRBj9T2XZ7Jmkcm6WCZ", "pNInz6obpgDQGcFmaJgB", "JBFqnCBsd6RMkjVDRZzb"])
+
     import requests
-    from fastapi.responses import Response
-    
     for v_id in candidate_voices:
         try:
             url = f"https://api.elevenlabs.io/v1/text-to-speech/{v_id}"
@@ -269,11 +310,15 @@ def synthesize_doctor_voice(req: VoiceSynthesisRequest):
             }
             res = requests.post(url, json=body, headers=headers, timeout=15)
             if res.status_code == 200 and len(res.content) > 0:
-                return Response(content=res.content, media_type="audio/mpeg")
+                return Response(
+                    content=res.content,
+                    media_type="audio/mpeg",
+                    headers={"X-TTS-Engine": "ElevenLabs"},
+                )
         except Exception:
             continue
-            
-    raise HTTPException(status_code=500, detail="Voice synthesis failed across candidates")
+
+    raise HTTPException(status_code=500, detail="Voice synthesis failed across all engines")
 
 
 # ---------- Database Endpoints (Auth, Login Logs, Reports, Teleconsult) ----------

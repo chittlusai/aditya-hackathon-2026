@@ -120,11 +120,17 @@ INSTRUCTIONS:
       - Step 1: Empathetically REPEAT & ACKNOWLEDGE the exact symptoms reported by the patient.
       - Step 2: ASK FOLLOW-UP SCREENING QUESTIONS: Inquire if they have any other associated symptoms (such as shivering, vomiting, throat pain, body rashes, or shortness of breath).
       - Step 3: Provide clear clinical reassurance and prescribe the necessary medicines with exact food instructions and daily timing slots.
-      - Prescribe medicines categorized into Morning (☀️ 08:00 AM), Afternoon (🌤️ 01:30 PM), Night (🌙 08:30 PM), or SOS.
+      - STRICT CLINICAL PHARMACOPOEIA DOSING RULE:
+        * Dosing must strictly follow standard market Indian Pharmacopoeia (MoHFW) standards.
+        * Paracetamol 650mg: Exactly "1 Tablet" per dose slot (e.g. 1 Tablet Morning 08:00 AM, 1 Tablet Afternoon 01:30 PM, 1 Tablet Night 08:30 PM after food). NEVER prescribe multiple tablets (like 4 tablets) in one dose, as that is toxic!
+        * Pantoprazole 40mg: Exactly "1 Tablet" once daily in Morning (empty stomach).
+        * ORS: "1 Sachet in 1L water" (continuous sip).
+        * Cetirizine 10mg: Exactly "1 Tablet" once daily at Night.
+        * Every medicine must have dosage = "1 Tablet" or "1 Capsule" or "1 Sachet".
 
 RETURN VALID JSON ONLY matching this schema:
 {
-  "doctorReplySpeech": "Doctor speech in ${targetLangName}: (1) repeats reported problem, (2) asks if other symptoms exist, and (3) gives medical guidance",
+  "doctorReplySpeech": "Doctor speech in ${targetLangName}: (1) repeats reported problem, (2) asks if other symptoms exist, and (3) gives medical guidance with exact 1-tablet schedule",
   "diagnosis": "Clinical Diagnosis Name or null",
   "urgency": "Mild" | "Moderate" | "Emergency",
   "facialAnalysis": {
@@ -135,15 +141,15 @@ RETURN VALID JSON ONLY matching this schema:
   },
   "medicines": [
     {
-      "name": "Medicine Name (e.g. Paracetamol 650mg Tablet)",
+      "name": "Paracetamol 650mg Tablet",
       "dosage": "1 Tablet",
-      "slot": "Morning" | "Afternoon" | "Night" | "Morning & Night" | "TDS" | "SOS",
-      "exactTime": "08:00 AM" | "01:30 PM" | "08:30 PM",
-      "timing": "After Food",
-      "foodInstruction": "Take with warm water after food",
-      "schedule": "Morning (☀️ 08:00 AM) • Night (🌙 08:30 PM)",
+      "slot": "Morning • Afternoon • Night (TDS)",
+      "exactTime": "08:00 AM, 01:30 PM, 08:30 PM",
+      "timing": "30 Mins After Food with warm water",
+      "foodInstruction": "Take 1 tablet after meals with water",
+      "schedule": "Morning (☀️ 08:00 AM) • Afternoon (🌤️ 01:30 PM) • Night (🌙 08:30 PM)",
       "duration": "3 to 5 Days",
-      "purpose": "Relieves fever & body aches"
+      "purpose": "Reduces fever, headache and body aches"
     }
   ],
   "recoveryAdvice": [
