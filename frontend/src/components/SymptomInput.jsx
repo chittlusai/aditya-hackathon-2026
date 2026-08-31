@@ -164,16 +164,28 @@ export default function SymptomInput() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-primary block">
                 {t('formTag')}
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary-50 text-primary border border-primary-100">
-                <ShieldCheck className="w-3 h-3 text-primary" />
-                {language === 'hi' ? 'स्वास्थ्य प्रोटोकॉल' : language === 'mr' ? 'आरोग्य प्रोटोकॉल' : 'Clinical Protocol'}
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                <ShieldCheck className="w-3 h-3 text-blue-600" />
+                {language === 'te'
+                  ? 'వైద్య నిబంధనలు (Clinical Protocol)'
+                  : language === 'ta'
+                  ? 'சுகாதார நெறிமுறைகள்'
+                  : language === 'hi'
+                  ? 'स्वास्थ्य प्रोटोकॉल'
+                  : language === 'mr'
+                  ? 'आरोग्य प्रोटोकॉल'
+                  : 'Clinical Protocol'}
               </span>
             </div>
-            <h1 className="text-lg sm:text-2xl font-bold text-text-main font-display mt-1">
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 font-display mt-1">
               {t('inputHeader')}
             </h1>
-            <p className="text-xs sm:text-sm text-text-muted mt-1 leading-relaxed">
-              {language === 'hi'
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+              {language === 'te'
+                ? 'చిత్రాలను ఎంచుకోండి, మాట్లాడండి లేదా కింద మీ అనారోగ్య వివరాలను రాయండి.'
+                : language === 'ta'
+                ? 'படங்களைத் தேர்ந்தெடுக்கவும், பேசவும் அல்லது அறிகுறிகளை தட்டச்சு செய்யவும்.'
+                : language === 'hi'
                 ? 'अपनी तकलीफ का चित्र चुनें, बोलकर बताएं या नीचे विवरण लिखें।'
                 : language === 'mr'
                 ? 'आपल्या त्रासाचे चित्र निवडा, बोलून सांगा किंवा खाली माहिती लिहा.'

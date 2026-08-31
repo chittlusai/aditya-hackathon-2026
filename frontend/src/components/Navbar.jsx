@@ -17,6 +17,99 @@ import {
 import { useApp } from '../context/AppContext.jsx'
 import LanguageToggle from './LanguageToggle.jsx'
 
+const NAV_I18N = {
+  en: {
+    home: 'Home',
+    check: 'Check Symptoms',
+    call: 'WhatsApp Doctor Call',
+    map: 'Nearby Hospitals',
+    medicines: 'Pills & Medicines',
+    history: 'My Records & Slips',
+    sos: '108 SOS',
+    tagline: 'Rural Health & AI Triage Mesh',
+  },
+  te: {
+    home: 'హోమ్',
+    check: 'ఆరోగ్య తనిఖీ',
+    call: 'వాట్సాప్ డాక్టర్ కాల్',
+    map: 'సమీప ఆసుపత్రులు',
+    medicines: 'మందుల షెడ్యూల్',
+    history: 'నా రికార్డులు & స్లిప్పులు',
+    sos: '108 అత్యవసరం',
+    tagline: 'గ్రామీణ ఆరోగ్య & AI తనిఖీ వ్యవస్థ',
+  },
+  hi: {
+    home: 'होम',
+    check: 'बीमारी जांच',
+    call: 'डॉक्टर वीडियो कॉल',
+    map: 'नजदीकी अस्पताल',
+    medicines: 'दवाई व गोलियां',
+    history: 'मेरी पर्चियां व इतिहास',
+    sos: '108 एम्बुलेंस',
+    tagline: 'ग्रामीण स्वास्थ्य व AI जांच नेटवर्क',
+  },
+  ta: {
+    home: 'முகப்பு',
+    check: 'சுகாதார பரிசோதனை',
+    call: 'மருத்துவர் வீடியோ அழைப்பு',
+    map: 'அருகிலுள்ள மருத்துவமனைகள்',
+    medicines: 'மருந்துகள் & மாத்திரைகள்',
+    history: 'எனது பதிவுகள் & சீட்டுகள்',
+    sos: '108 அவசர ஊர்தி',
+    tagline: 'கிராமப்புற சுகாதாரம் & AI நெட்வொர்க்',
+  },
+  mr: {
+    home: 'मुख्यपृष्ठ',
+    check: 'आरोग्य तपासणी',
+    call: 'डॉक्टर व्हिडिओ कॉल',
+    map: 'जवळची रुग्णालये',
+    medicines: 'औषध वेळापत्रक',
+    history: 'आरोग्य नोंदी व पर्च्या',
+    sos: '108 रुग्णवाहिका',
+    tagline: 'ग्रामीण आरोग्य व AI तपासणी नेटवर्क',
+  },
+  bn: {
+    home: 'হোম',
+    check: 'স্বাস্থ্য পরীক্ষা',
+    call: 'ডাক্তার ভিডিও কল',
+    map: 'নিকটবর্তী হাসপাতাল',
+    medicines: 'ওষুধ ও পিল ট্র্যাকার',
+    history: 'আমার রেকর্ড ও প্রেসক্রিপশন',
+    sos: '108 অ্যাম্বুলেন্স',
+    tagline: 'গ্রামীণ স্বাস্থ্য ও AI নেটওয়ার্ক',
+  },
+  kn: {
+    home: 'ಮುಖಪುಟ',
+    check: 'ಆರೋಗ್ಯ ತಪಾಸಣೆ',
+    call: 'ವೈದ್ಯರ ವೀಡಿಯೊ ಕರೆ',
+    map: 'ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆಗಳು',
+    medicines: 'ಮಾತ್ರೆ ವೇಳಾಪಟ್ಟಿ',
+    history: 'ನನ್ನ ದಾಖಲೆಗಳು',
+    sos: '108 ತುರ್ತು ಸೇವೆ',
+    tagline: 'ಗ್ರಾಮೀಣ ಆರೋಗ್ಯ & AI ನೆಟ್‌ವರ್ಕ್',
+  },
+  gu: {
+    home: 'હોમ',
+    check: 'સ્વાસ્થ્ય તપાસ',
+    call: 'ડૉક્ટર વિડિઓ કૉલ',
+    map: 'નજીકની હોસ્પિટલો',
+    medicines: 'દવાઓનું સમયપત્રક',
+    history: 'મારા રેકોર્ડ્સ અને ચિઠ્ઠી',
+    sos: '108 એમ્બ્યુલન્સ',
+    tagline: 'ગ્રામીણ આરોગ્ય & AI નેટવર્ક',
+  },
+  ml: {
+    home: 'ഹോം',
+    check: 'ആരോഗ്യ പരിശോധന',
+    call: 'ഡോക്ടർ വീഡിയോ കോൾ',
+    map: 'അടുത്തുള്ള ആശുപത്രികൾ',
+    medicines: 'മരുന്ന് ഷെഡ്യൂൾ',
+    history: 'എന്റെ റെക്കോർഡുകൾ',
+    sos: '108 ആംബുലൻസ്',
+    tagline: 'ഗ്രാമീണ ആരോഗ്യം & AI നെറ്റ്‌വർക്ക്',
+  },
+}
+
 export default function Navbar() {
   const {
     screen,
@@ -31,6 +124,9 @@ export default function Navbar() {
 
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const navRef = useRef(null)
+
+  const langKey = language || 'en'
+  const text = NAV_I18N[langKey] || NAV_I18N.en
 
   // Close drawer on click outside
   useEffect(() => {
@@ -49,11 +145,11 @@ export default function Navbar() {
 
   // Mobile Bottom Navigation Bar Items (Thumb Friendly)
   const mobileNavItems = [
-    { key: 'home', label: 'Home', icon: Home, action: () => go('home') },
-    { key: 'check', label: 'AI Check', icon: Stethoscope, action: () => go('check') },
-    { key: 'map', label: 'Hospitals', icon: MapPin, action: () => go('map') },
-    { key: 'medicines', label: 'Medicines', icon: Pill, action: () => go('medicines') },
-    { key: 'history', label: 'My Records', icon: FileText, action: () => go('history') },
+    { key: 'home', label: text.home, icon: Home, action: () => go('home') },
+    { key: 'check', label: text.check, icon: Stethoscope, action: () => go('check') },
+    { key: 'map', label: text.map, icon: MapPin, action: () => go('map') },
+    { key: 'medicines', label: text.medicines, icon: Pill, action: () => go('medicines') },
+    { key: 'history', label: text.history, icon: FileText, action: () => go('history') },
   ]
 
   return (
@@ -88,7 +184,7 @@ export default function Navbar() {
                 <span className="hidden sm:inline">{t('appName')}</span>
               </span>
               <span className="text-[9px] sm:text-[10px] text-blue-600 font-bold tracking-wide uppercase mt-0.5 hidden sm:inline truncate">
-                Rural Health & AI Triage Mesh
+                {text.tagline}
               </span>
             </div>
           </button>
@@ -105,7 +201,7 @@ export default function Navbar() {
               }`}
             >
               <Home className="w-3.5 h-3.5" />
-              <span>{t('navHome')}</span>
+              <span>{text.home}</span>
             </button>
 
             <button
@@ -118,7 +214,7 @@ export default function Navbar() {
               }`}
             >
               <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
-              <span>Check Symptoms</span>
+              <span>{text.check}</span>
             </button>
 
             <button
@@ -127,7 +223,7 @@ export default function Navbar() {
               className="tap-press px-3 py-2 rounded-xl text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition-all flex items-center gap-1.5"
             >
               <Video className="w-3.5 h-3.5 text-emerald-600" />
-              <span>WhatsApp Doctor Call</span>
+              <span>{text.call}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </button>
 
@@ -141,7 +237,7 @@ export default function Navbar() {
               }`}
             >
               <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Nearby Hospitals</span>
+              <span>{text.map}</span>
             </button>
 
             <button
@@ -154,7 +250,7 @@ export default function Navbar() {
               }`}
             >
               <Pill className="w-3.5 h-3.5 text-amber-600" />
-              <span>Pills & Medicines</span>
+              <span>{text.medicines}</span>
             </button>
 
             <button
@@ -167,7 +263,7 @@ export default function Navbar() {
               }`}
             >
               <FileText className="w-3.5 h-3.5 text-teal-600" />
-              <span>My Prescriptions & History</span>
+              <span>{text.history}</span>
             </button>
           </nav>
 
@@ -180,7 +276,7 @@ export default function Navbar() {
               className="tap-press px-2.5 sm:px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold text-xs shadow-md shadow-red-500/20 flex items-center gap-1.5 transition-all"
             >
               <Siren className="w-3.5 h-3.5 animate-pulse" />
-              <span>108 SOS</span>
+              <span>{text.sos}</span>
             </button>
 
             {/* Language Switcher */}
@@ -228,7 +324,7 @@ export default function Navbar() {
                 className="tap-press w-full text-left p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center gap-2"
               >
                 <Home className="w-4 h-4 text-blue-600" />
-                <span>Home Dashboard</span>
+                <span>{text.home}</span>
               </button>
 
               <button
@@ -237,7 +333,7 @@ export default function Navbar() {
                 className="tap-press w-full text-left p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center gap-2"
               >
                 <Stethoscope className="w-4 h-4 text-blue-600" />
-                <span>Check Symptoms (AI & Body Map)</span>
+                <span>{text.check}</span>
               </button>
 
               <button
@@ -246,7 +342,7 @@ export default function Navbar() {
                 className="tap-press w-full text-left p-2.5 rounded-xl bg-emerald-50 text-emerald-800 font-bold text-xs flex items-center gap-2"
               >
                 <Video className="w-4 h-4 text-emerald-600" />
-                <span>WhatsApp Doctor Video Call</span>
+                <span>{text.call}</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-auto" />
               </button>
 
@@ -256,7 +352,7 @@ export default function Navbar() {
                 className="tap-press w-full text-left p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center gap-2"
               >
                 <MapPin className="w-4 h-4 text-emerald-600" />
-                <span>Nearby Hospitals & GPS Radar</span>
+                <span>{text.map}</span>
               </button>
 
               <button
@@ -265,7 +361,7 @@ export default function Navbar() {
                 className="tap-press w-full text-left p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center gap-2"
               >
                 <Pill className="w-4 h-4 text-amber-600" />
-                <span>Pills & Daily Medicine Tracker</span>
+                <span>{text.medicines}</span>
               </button>
 
               <button
@@ -274,7 +370,7 @@ export default function Navbar() {
                 className="tap-press w-full text-left p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center gap-2"
               >
                 <FileText className="w-4 h-4 text-teal-600" />
-                <span>My Prescriptions & History</span>
+                <span>{text.history}</span>
               </button>
 
               <button
@@ -283,7 +379,7 @@ export default function Navbar() {
                 className="tap-press w-full text-left p-2.5 rounded-xl bg-blue-50 text-blue-900 font-bold text-xs flex items-center gap-2 border-t border-slate-100"
               >
                 <User className="w-4 h-4 text-blue-600" />
-                <span>Profile: {currentUser?.name || 'Citizen'}</span>
+                <span>{currentUser?.name || 'Citizen'}</span>
               </button>
             </motion.div>
           )}
@@ -305,7 +401,7 @@ export default function Navbar() {
               }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? 'scale-110 text-blue-600' : ''}`} />
-              <span className="text-[10px] mt-0.5">{item.label}</span>
+              <span className="text-[10px] mt-0.5 truncate max-w-[70px]">{item.label}</span>
             </button>
           )
         })}
