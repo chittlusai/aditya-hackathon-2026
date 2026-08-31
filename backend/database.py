@@ -353,10 +353,21 @@ def delete_patient_report(report_id: str) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM patient_reports WHERE id = ?", (report_id,))
+    deleted = cursor.rowcount > 0
     conn.commit()
-    count = cursor.rowcount
     conn.close()
-    return count > 0
+    return deleted
+
+
+def clear_all_patient_reports() -> bool:
+    """Wipes all patient reports and teleconsultation records from SQLite."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM patient_reports")
+    cursor.execute("DELETE FROM teleconsult_records")
+    conn.commit()
+    conn.close()
+    return True
 
 
 def save_teleconsult_record(call_data: Dict[str, Any]) -> Dict[str, Any]:

@@ -309,32 +309,23 @@ export default function HistoryView() {
       }
     } catch (e) {}
 
-    // 3. Guarantee rich initial prescriptions if empty
-    if (loadedReports.length === 0) {
-      loadedReports = [
-        {
-          id: 'RX-2026-8948',
-          is_prescription: true,
-          patient_name: currentUser?.name || 'Ramesh Kumar (Citizen)',
-          age: 54,
-          gender: 'Male',
-          symptoms: 'High fever for 3 days with severe headache, body pain, and dry cough',
-          urgency: 'Moderate',
-          diagnosis: 'Acute Viral Febrile Illness & Pharyngitis',
-          doctor_name: 'Dr. Rajesh Sharma (MBBS, MD General Medicine)',
-          created_at: '31 Aug 2026, 10:25 PM',
-          vitals: { bp: '124/80', spo2: '97%', pulse: '82', temp: '101.4°F' },
-          advice: 'Drink ORS fluids, take prescribed Paracetamol after meals, and rest for 3 days.',
-          hospital_name: 'Primary Health Centre, Rampur',
-          hospital_distance: 2.3,
-          medicines_list: DEFAULT_FALLBACK_MEDS,
-          doctor_notes: 'Patient examined via WhatsApp Video Teleconsultation. Facial scan shows mild fever flushing.',
-        },
-      ]
-    }
-
     setReports(loadedReports)
     setLoading(false)
+  }
+
+  // Clear all history handler for fresh state
+  const handleClearHistory = async () => {
+    if (window.confirm('Are you sure you want to clear all history and start fresh?')) {
+      try {
+        localStorage.removeItem('asl:patient_assessment_history_v1')
+        localStorage.removeItem('asl:pill_adherence_v1')
+        await fetch('/api/reports/clear-all', { method: 'POST' })
+      } catch (e) {}
+      setReports([])
+      setTakenMap({})
+      setSyncNotice('All history cleared. Website is now fresh!')
+      setTimeout(() => setSyncNotice(''), 4000)
+    }
   }
 
   useEffect(() => {
@@ -511,6 +502,18 @@ export default function HistoryView() {
         </button>
 
         <div className="flex items-center gap-2">
+          {reports.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearHistory}
+              className="tap-press inline-flex items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-2 rounded-2xl shadow-xs transition-all"
+              title="Clear All History & Start Fresh"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-600" />
+              <span className="hidden xs:inline">Clear History</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => loadReports()}
@@ -627,8 +630,45 @@ export default function HistoryView() {
       {/* 5. VIEW A: RICH PRESCRIPTION CARDS (OPTIMIZED & EXPANDED) */}
       {activeSection === 'prescriptions' && (
         <div className="space-y-4">
-          {filteredReports.map((report) => {
-            const meds = getNormalizedMedicines(report)
+          {filteredReports.length === 0 ? (
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-xs">
+              <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center mx-auto shadow-inner">
+                <FileText className="w-8 h-8 text-blue-600" />
+              </div>
+              <div className="max-w-md mx-auto space-y-1.5">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                  {langKey === 'te' ? 'ఎటువంటి ప్రిస్క్రిప్షన్లు లేవు (Fresh State)' : langKey === 'hi' ? 'कोई पुराना रिकॉर्ड नहीं है' : 'No Medical Prescriptions Yet'}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {langKey === 'te'
+                    ? 'డాక్టర్ సంప్రదింపు లేదా ఆరోగ్య పరీక్ష పూర్తయిన తర్వాత మీ డిజిటల్ ప్రిస్క్రిప్షన్లు మరియు మందుల వేళలు ఇక్కడ కనిపిస్తాయి.'
+                    : langKey === 'hi'
+                    ? 'डॉक्टर से परामर्श या स्वास्थ्य जांच के बाद आपकी डिजिटल पर्चियां यहां दिखेंगी।'
+                    : 'Your digital prescriptions, dosage rules, and doctor advice will appear here automatically after your consultation.'}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => go('check')}
+                  className="tap-press px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all"
+                >
+                  <Stethoscope className="w-4 h-4" />
+                  <span>{langKey === 'te' ? 'లక్షణాలు తనిఖీ చేయండి' : 'Check Symptoms'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => startVideoCall()}
+                  className="tap-press px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center gap-1.5 transition-all"
+                >
+                  <Video className="w-4 h-4" />
+                  <span>{langKey === 'te' ? 'డాక్టర్ సంప్రదింపు' : 'Consult Doctor'}</span>
+                </button>
+              </div>
+            </div>
+          ) :
+            filteredReports.map((report) => {
+              const meds = getNormalizedMedicines(report)
             const urgency = report.urgency || 'Moderate'
             const urgencyBadge =
               urgency === 'Emergency'

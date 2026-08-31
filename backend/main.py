@@ -382,6 +382,14 @@ def delete_report(report_id: str):
     return {"status": "success", "message": f"Report {report_id} deleted successfully"}
 
 
+@app.delete("/api/reports")
+@app.post("/api/reports/clear-all")
+def clear_all_reports():
+    """Wipes all historical reports and teleconsult records for a fresh site."""
+    database.clear_all_patient_reports()
+    return {"status": "success", "message": "All medical history records cleared"}
+
+
 @app.post("/api/teleconsult")
 def create_teleconsult(call_data: Dict[str, Any]):
     """Saves a teleconsultation video call record to SQLite."""
