@@ -317,33 +317,76 @@ export function AppProvider({ children }) {
     setHospitals(nearby)
   }, [])
 
-  // Robust GPS Location Requester with Instant Rural Coordinate Fallback
-  const requestGpsLocation = useCallback((forcePrompt = false) => {
-    if (!navigator.geolocation) {
-      console.warn('Geolocation not supported, applying default rural coordinates')
-      setGpsStatus('denied')
-      applyCoordinates(21.1458, 79.0882, 'Default Rural Sector GPS (Rampur)', 20)
-      return
+  // Robust GPS Location Requester with Multi-Tier Browser & IP Fallback
+  const requestGpsLocation = useCallback(async (forcePrompt = false) => {
+    setGpsStatus('requesting')
+
+    // Helper to fetch IP-based coordinates if browser GPS is blocked on non-HTTPS or times out
+    const tryIpGeolocation = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/', { timeout: 4000 })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.latitude && data.longitude) {
+            const locName = `${data.city || 'Your Area'}, ${data.region || 'India'} (IP Radar)`
+            applyCoordinates(data.latitude, data.longitude, locName, 100)
+            setGpsStatus('granted')
+            setGpsModalOpen(false)
+            return true
+          }
+        }
+      } catch (ipErr) {
+        console.warn('IP geolocation service unreachable:', ipErr)
+      }
+
+      // Secondary IP geolocation fallback
+      try {
+        const res2 = await fetch('https://ipwho.is/', { timeout: 4000 })
+        if (res2.ok) {
+          const data2 = await res2.json()
+          if (data2.latitude && data2.longitude) {
+            const locName2 = `${data2.city || 'Your Area'}, ${data2.region || 'India'} (Network Radar)`
+            applyCoordinates(data2.latitude, data2.longitude, locName2, 100)
+            setGpsStatus('granted')
+            setGpsModalOpen(false)
+            return true
+          }
+        }
+      } catch (ipErr2) {}
+
+      return false
     }
 
-    setGpsStatus('requesting')
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords
-        applyCoordinates(latitude, longitude, 'Live High-Accuracy GPS', Math.round(accuracy || 15))
-        setGpsStatus('granted')
-      },
-      (err) => {
-        console.warn('GPS location request failed or was denied:', err)
+    // 1. Try Browser Geolocation API
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude, accuracy } = pos.coords
+          applyCoordinates(latitude, longitude, 'Live High-Accuracy GPS', Math.round(accuracy || 15))
+          setGpsStatus('granted')
+          setGpsModalOpen(false)
+        },
+        async (err) => {
+          console.warn('Browser GPS permission denied or timed out, trying IP radar:', err.message)
+          const success = await tryIpGeolocation()
+          if (!success) {
+            setGpsStatus('denied')
+            applyCoordinates(21.1458, 79.0882, 'Default Rural Sector GPS (Rampur)', 20)
+          }
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 6000,
+          maximumAge: 300000,
+        }
+      )
+    } else {
+      const success = await tryIpGeolocation()
+      if (!success) {
         setGpsStatus('denied')
-        applyCoordinates(21.1458, 79.0882, 'Rampur Rural Health Sector (GPS Active)', 20)
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 7000,
-        maximumAge: 60000,
+        applyCoordinates(21.1458, 79.0882, 'Default Rural Sector GPS (Rampur)', 20)
       }
-    )
+    }
   }, [applyCoordinates])
 
   // Auto-fetch location on initialization
