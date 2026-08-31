@@ -1,14 +1,12 @@
 services:
-  # Unified Full-Stack Web Service (FastAPI + React SPA)
   - type: web
-    name: arogya-setu-fullstack
+    name: aditya-hackathon-2026
     runtime: python
     buildCommand: bash build.sh
     startCommand: bash start.sh
+    plan: free
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
-      - key: GEMINI_API_KEY
-        sync: false
-
-
+      - key: PORT
+        value: 10000
